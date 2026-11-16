@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D7.15 인원 안전 및 보안 문제 대응 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D7.15">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 7 보안 운영 › 7.15</div>
+<h1>인원 안전 및 보안 문제 대응</h1>
+<div class="en">Address personnel safety and security concerns · ISC2 CISSP Exam Outline(2024-04-15 발효) 7.15</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">도메인 7의 마지막 단원은 사람을 다룹니다. 원본은 단원 전체의 원칙을 첫 줄에 둡니다. <b>인원 안전이 자산, 데이터, 가용성보다 우선한다.</b> 그리고 이 단원에는 두 축이 있습니다. 사람이 해를 입지 않게 하는 <b>인원 안전(safety)</b>, 사람을 경로로 한 침해를 막는 <b>인원 보안(security)</b>. 둘은 자주 충돌하며, 원본이 꼽는 전형적 실패는 <b>자산을 지키려다 사람을 위험에 두는 설계</b>입니다. 공식 개요 7.15는 출장, 보안 교육(내부자 위협, 소셜 미디어, 2FA 피로), 비상 관리, 강압을 듭니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.8.html">D1.8 인적 보안</a> · <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a></td><td>인사 보안, 교육·인식 체계 전반 (3~5절, 8절)</td></tr>
+<tr><td><a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a></td><td>MFA 강도, FIDO2, 헬프데스크 재등록 우회 (5절)</td></tr>
+<tr><td><a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a></td><td>최소권한, 직무 분리, 이중 통제·지식 분할, 직무 순환 (3절, 7절)</td></tr>
+<tr><td><a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a> · <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a></td><td>UEBA, 유출 모니터링, ML 점수의 한계 (3절)</td></tr>
+<tr><td><a class="xr" href="D7.13.html">D7.13 업무연속성 계획·훈련</a> · <a class="xr" href="D7.14.html">D7.14 물리적 보안</a></td><td>BC 훈련, fail-safe 문, 출입 기록 (6절, 7절)</td></tr>
+<tr><td><a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a></td><td>VPN, 분할 터널링, 가짜 AP (2절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>인원 안전과 인원 보안</h2>
+<div class="tw"><table>
+<tr><th>축</th><th>내용</th></tr>
+<tr><td><b>인원 안전</b> safety</td><td>사람이 해를 입지 않게</td></tr>
+<tr><td><b>인원 보안</b> security</td><td>사람을 경로로 한 침해를 막음</td></tr>
+</table></div>
+<div class="box think"><p><span class="tag">판단 순서</span>안전과 다른 목표가 충돌하는 상황이라면 ① 사람이 다치거나 갇힐 위험이 있는가 → 있다면 그것이 먼저(비상구는 안에서 열림, 강압 시 순응) ② 그 결정으로 생기는 보안 공백은 무엇인가 → 대피 후 재진입 통제, 감시 유지, 조용한 경보처럼 <b>안전을 해치지 않는 방식</b>으로 메운다. 안전을 희생해서 보안을 지키는 설계는 선택지에 두지 않습니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D7.15-Q11</div>
+<p>비상 상황의 결정에서 자산 보호와 인명 안전이 상충할 때 우선하는 것은?</p><ol type="A"><li>인명 안전이 항상 우선한다. 그래서 비상 탈출 같은 통제는 접근 통제와 충돌하더라도 사람이 나갈 수 있게 해야 한다.</li><li>자산은 측정 가능한 가치를 가지므로 자산 보호.</li><li>그때 당직 관리자가 결정하는 쪽.</li><li>기록은 재생성할 수 없으므로 데이터 무결성.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 화재와 같이 사람이 위험할 때는 해당 비상 절차에 따라 대피와 인원 보호를 먼저 수행합니다. 출입 설계에서는 안전한 퇴실을 확보하고, 소화 설비에는 인체 영향과 시설 안전 기준을 고려합니다. 자산 손실은 복구와 보험으로 다룰 수 있지만 인명은 그렇지 않다.</p><ul><li>B · 자산 가치는 인명보다 우선하지 않는다.</li><li>C · 상황별 판단이 아니라 확립된 원칙이다.</li><li>D · 데이터도 인명보다 우선하지 않는다.</li></ul><div class="src">원문 위치 · D7.15-Q11</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.15.md §2 · 공식 개요 7.15 “Address personnel safety and security concerns” · 원본의 “시험에서 거의 항상 정답” 단정은 판단 순서로 바꿔 적음 · 기존 문제 Q11 주제</div>
+<h2 id="s2"><span class="n">2</span>출장 (Travel)</h2>
+<div class="tw"><table>
+<tr><th>위험</th><th>내용</th></tr>
+<tr><td>기기 절취와 압수</td><td>분실, 도난, 국경 검사와 일시 보관</td></tr>
+<tr><td>적대적 환경</td><td>숙소·공공 장소에서의 기기 접근, 객실 금고의 신뢰성 한계</td></tr>
+<tr><td>네트워크</td><td>공공 와이파이, 가짜 AP, 호텔 네트워크</td></tr>
+<tr><td><b>충전 포트</b></td><td>데이터 전송이 가능한 공공 충전 포트</td></tr>
+<tr><td>관찰·표적화</td><td>화면 엿보기, 대화 도청, 특정 산업·직급 표적</td></tr>
+<tr><td>개인 안전·법적 차이</td><td>치안, 재해, 의료 접근성 / 암호화 수출입 규제, 데이터 접근 요구, 구금 위험</td></tr>
+</table></div>
+<p>통제: <b>데이터 최소화(가장 효과적)</b>, <b>출장 전용 기기</b>(최소 구성, 종료 후 초기화), 전체 디스크 암호화와 전원 종료, VPN 강제와 분할 터널링 금지, 셀룰러 테더링 선호, <b>전원 어댑터나 데이터 차단 케이블로 충전</b>, 프라이버시 스크린, 피싱 저항성 MFA, 원격 초기화, <b>귀국 후 초기화 또는 검사</b>, 출장 전 브리핑, 비상 연락과 체크인, 여행 추적(프라이버시와 균형), 임원 보호.</p>
+<p>원본의 핵심: <b>출장 보안은 기술이 아니라 “무엇을 가져가지 않을 것인가”다.</b> 기기에 없는 데이터는 탈취될 수 없습니다.</p>
+<p><b>원문 사례 — 데이터 최소화가 막은 손실.</b> 고위험 지역 출장 정책을 출장 전용 기기와 데이터 최소화로 바꾼 뒤, 출장자 기기를 숙소에서 분실했지만 기기에는 업무 데이터가 없었고 접근은 VPN과 MFA를 거쳐야 해 손실은 기기 자체뿐이었습니다.</p>
+<p><b>원문 사례 — 공공 충전 포트.</b> 공항 공공 충전 포트에 업무용 스마트폰을 연결했는데, 귀국 후 점검에서 기기에 관리 프로파일이 추가되어 있었습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>VPN과 분할 터널링은 <a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a>, FDE의 한계는 <a class="xr" href="D7.5.html">D7.5 자원 보호</a>의 5절, MFA는 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 2절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.15.md §3 출장, §7 사례 1, 사례 2 · 공식 개요 7.15 “Travel”</div>
+<h2 id="s3"><span class="n">3</span>내부자 위협 (Insider Threat)</h2>
+<p>공식 개요는 보안 교육과 인식에서 <b>내부자 위협, 소셜 미디어 영향, 2FA 피로</b>를 명시합니다(교육 체계 전반은 <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>).</p>
+<div class="tw"><table>
+<tr><th>유형</th><th>동기와 특성</th></tr>
+<tr><td><b>악의적 내부자</b></td><td>금전, 보복, 이념, 포섭</td></tr>
+<tr><td><b>부주의한 내부자</b></td><td>실수, 절차 우회, 편의</td></tr>
+<tr><td><b>침해된 내부자</b></td><td>자격증명 탈취로 공격자가 내부자로 활동</td></tr>
+</table></div>
+<p>원본은 악의적 내부자가 가장 어려운 이유를 이렇게 설명합니다. <b>정당한 접근 권한을 갖고 정상 업무 시간에 정상 경로로 활동</b>하므로 시그니처 기반 탐지가 작동하지 않습니다.</p>
+<div class="tw"><table>
+<tr><th>프로그램 구성</th><th>요점</th></tr>
+<tr><td><b>최소권한과 알 필요성</b></td><td>가장 근본적. 권한이 없으면 할 수 없음</td></tr>
+<tr><td>직무 분리·이중 통제, 직무 순환·강제 휴가</td><td>혼자 전 과정 불가, 장기 부정 탐지</td></tr>
+<tr><td>접근 검토, UEBA, 유출 모니터링(DLP, 외부 저장소, 대량 인쇄)</td><td>권한 누적과 이상 행위</td></tr>
+<tr><td><b>퇴사 전후 집중 모니터링</b></td><td>퇴사 통보 후 유출이 집중됨</td></tr>
+<tr><td>물리·논리 상관분석, 익명 신고 경로</td><td>동료의 신고</td></tr>
+<tr><td><b>지원 프로그램</b></td><td>재정 곤란·불만·스트레스가 동기. <b>처벌 중심이 아닌 지원 접근</b>이 예방 효과</td></tr>
+</table></div>
+<p>윤리적·법적 경계: 프라이버시(모니터링 범위·고지·비례성), <b>차별 금지</b>(특정 집단 프로파일링), <b>행위 분석 점수는 조사 단서이지 단독 근거가 아님</b>, 조사 전 법무·인사 참여, <b>투명성</b>(모니터링 사실 고지가 억제 효과와 법적 요건을 함께 충족).</p>
+<p><b>원문 사례 — 퇴사 통보 후 데이터 유출.</b> 퇴사를 통보한 직원이 2주 인수인계 기간에 대량의 설계 문서를 개인 클라우드로 올렸는데, 평소 권한 범위 안이었고 업무 시간 중이었습니다. 퇴사 통보 후 집중 모니터링 기간을 두고, 외부 저장소 업로드를 DLP로 탐지하고, 고위험 역할은 통보 시점에 권한 범위를 줄였습니다.</p>
+<p><b>원문 사례 — 지원 접근이 예방한 내부자 사건.</b> 감시 중심 프로그램은 1년간 탐지 성과가 미미하고 직원 불만만 늘었는데, 재정 곤란·불만·스트레스에 대한 지원 경로와 결합하자 두 건의 자발적 상담이 생겨 잠재 사건으로 커지기 전에 해소되었습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>권한 원칙과 직무 순환은 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>, UEBA와 유출 모니터링은 <a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>의 6·8절, 퇴사 처리는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>의 4절, 조사 절차는 <a class="xr" href="D7.1.html">D7.1 조사</a>의 9절에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D7.15-Q04</div>
+<p>퇴사를 통보한 직원이 2주의 인수인계 기간에 이미 보유한 접근 권한으로 업무 시간 중 대량의 설계 문서를 개인 클라우드 저장소로 업로드했다. 이 패턴을 해소하는 통제는?</p><ol type="A"><li>인수인계 필요와 무관하게 통보 즉시 모든 접근을 차단한다.</li><li>통보 후 집중 모니터링 기간을 설정하고 외부 저장소 업로드에 데이터 유출 방지를 적용하며 고위험 역할은 통보 시점에 권한 범위를 축소한다.</li><li>직원에게 추가 비밀 유지 협약 서명을 요구한다.</li><li>사내 네트워크에서 개인 기기 사용을 금지한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 퇴사 통보 후 데이터 유출이 집중된다는 것이 알려진 패턴이다. 권한 범위 내의 정상 시간 활동이므로 통보 후 집중 모니터링 기간을 설정하고 외부 저장소 업로드를 유출 방지로 탐지하며 고위험 역할은 통보 시점에 권한 범위를 축소해야 한다.</p><ul><li>A · 즉시 전면 차단은 인수인계를 불가능하게 만들고 역할별 판단이 필요하다.</li><li>C · 서면 협약은 억제 효과가 제한적이고 탐지를 제공하지 않는다.</li><li>D · 클라우드 업로드는 개인 기기 없이도 가능하다.</li></ul><div class="src">원문 위치 · D7.15-Q04</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.15.md §3 보안 교육과 인식 — 내부자 위협, §7 사례 3, 사례 4 · 공식 개요 7.15 “Security training and awareness (e.g., insider threat, …)” · 기존 문제 Q04 주제</div>
+<h2 id="s4"><span class="n">4</span>소셜 미디어 영향</h2>
+<div class="tw"><table>
+<tr><th>조직 위험</th><th>내용</th></tr>
+<tr><td>정보 노출</td><td>업무 사진의 화면, 화이트보드, 배지, 설비 — 의도하지 않은 노출이 대부분</td></tr>
+<tr><td>조직 구조 노출</td><td>직함, 보고 체계, 기술 스택 → <b>표적 피싱의 재료</b></td></tr>
+<tr><td><b>채용 공고의 과다 정보</b></td><td>사용 중인 제품과 버전</td></tr>
+<tr><td>위장 계정, 포섭 접근</td><td>임원·채용 담당자 사칭, 가짜 채용 제안</td></tr>
+<tr><td>평판·물리 안전</td><td>발언의 조직 입장 해석, 출장·재택 위치와 일정 노출</td></tr>
+<tr><td>개인 신원 정보</td><td>보안 질문 답의 재료(어머니 성, 반려동물, 출신 학교)</td></tr>
+</table></div>
+<p>대응: 예시 중심 정책(“조심하라”가 아니라), 실제 사례 교육, 공식 창구 지정, <b>채용 공고 검토</b>, 임원 보호와 사칭 계정 모니터링, <b>보안 질문 지양</b>.</p>
+<p>원본의 경계: <b>직원의 개인 소셜 미디어를 조직이 통제할 수는 없다.</b> 통제 대상은 <b>업무 정보의 노출</b>이며 개인 표현과 구분해야 합니다. 과도한 통제는 법적 문제와 반발을 낳습니다.</p>
+<p><b>원문 사례 — 사진에 담긴 노출.</b> 직원이 올린 사무실 사진 배경에 모니터의 고객 목록, 화이트보드의 네트워크 다이어그램, 배지 번호가 선명하게 담겨 있었습니다. 실제 사례 이미지로 보여 주는 교육, 민감 구역 촬영 제한, 화이트보드 지우기 습관으로 대응했습니다.</p>
+<p><b>원문 사례 — 채용 공고가 제공한 정찰 정보.</b> 채용 공고에 보안 제품과 버전, 클라우드 구성, 레거시 시스템이 상세히 적혀 있어 침투 테스트 팀이 이를 정찰의 주 출처로 썼습니다. 제품명 대신 범주로 일반화하고 공고를 보안 검토 대상에 넣었습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>사회공학의 원리는 <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>, 보안 질문이 MFA가 아닌 이유는 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 2절에서 다룹니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D7.15-Q08</div>
+<p>침투 테스트 팀이 조직의 채용 공고를 주 정찰 출처로 사용했다. 공고가 보안 제품명과 버전, 클라우드 구성, 레거시 시스템을 상세히 기재했기 때문이다. 적절한 통제는?</p><ol type="A"><li>채용 공고 게시를 중단하고 채용 대행사에만 의존한다.</li><li>지원자가 공고를 보기 전에 비밀 유지 협약에 서명하도록 요구한다.</li><li>공격자를 오인시키기 위해 의도적으로 거짓 기술 세부를 게시한다.</li><li>공고의 기술 세부를 일반화해 제품명과 버전 대신 범주를 기재하고 공고 검토를 보안 검토 범위에 포함한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 채용 공고는 누구나 볼 수 있는 공개 정찰 자료다. 제품명과 버전은 알려진 취약점 조회로 바로 이어지므로 범주 수준으로 일반화하고 공고 검토를 보안 검토 대상에 포함시켜야 한다.</p><ul><li>A · 공고 중단은 채용 자체를 어렵게 만든다.</li><li>B · 공개 공고에 비밀 유지 협약은 적용할 수 없다.</li><li>C · 허위 정보는 지원자를 오인시키고 신뢰를 해친다.</li></ul><div class="src">원문 위치 · D7.15-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.15.md §3 소셜 미디어 영향, §7 사례 5, 사례 6 · 공식 개요 7.15 “social media impacts” · 기존 문제 Q08 주제</div>
+<h2 id="s5"><span class="n">5</span>2FA 피로 (MFA Fatigue / Push Bombing)</h2>
+<p><b>수법</b>: 탈취한 비밀번호로 로그인을 반복 시도해 사용자에게 <b>푸시 알림을 대량 발송</b>합니다. 사용자가 짜증·혼란·“시스템 오류겠지”라는 판단으로 승인하면 접근이 성립합니다. <b>헬프데스크 사칭 연락과 결합</b>되는 경우가 많습니다(“인증 요청을 승인해 주세요”).</p>
+<div class="tw"><table>
+<tr><th>대응</th><th>내용</th></tr>
+<tr><td><b>번호 매칭</b></td><td>화면의 숫자를 앱에 입력해야 승인. 무심한 탭 방지</td></tr>
+<tr><td>추가 맥락 표시</td><td>로그인 위치, 앱, IP</td></tr>
+<tr><td>속도 제한과 자동 차단</td><td>반복 요청 시 차단·경보</td></tr>
+<tr><td><b>피싱 저항성 인증</b></td><td><b>FIDO2와 패스키가 근본 해결</b> — 푸시 승인 자체가 없음</td></tr>
+<tr><td>탐지</td><td>다수 거부 후 승인, 단시간 다수 요청</td></tr>
+<tr><td><b>교육</b></td><td><b>“예상하지 못한 인증 요청은 거부하고 신고한다”</b>, <b>“헬프데스크는 인증 승인을 요청하지 않는다”</b></td></tr>
+<tr><td><b>신고 경로</b></td><td>거부만으로는 조직이 공격을 모름 → <b>거부 후 신고</b></td></tr>
+</table></div>
+<p>관련 수법: SIM 스와핑(SMS 우회), <b>실시간 피싱 중계(AiTM)</b>(TOTP와 푸시 모두 우회, FIDO2가 대응), MFA 재등록 사회공학.</p>
+<p><b>원문 사례 — 2FA 피로 공격 성공.</b> 공격자가 야간에 푸시를 반복 발송해 사용자가 잠결에 승인했고, 이후 헬프데스크를 사칭해 다른 사용자도 공략했습니다. 번호 매칭, 위치·앱 표시, 단시간 다수 요청 차단, 위 두 교육 메시지로 대응하고 FIDO2 전환을 추진했습니다.</p>
+<p><b>원문 사례 — 거부만 하고 신고하지 않은 경우.</b> 여러 사용자가 의심스러운 푸시를 거부했지만 신고하지 않아 조직은 공격이 진행 중임을 몰랐고, 결국 한 사용자가 승인해 침해가 일어났습니다. 거부 이벤트 자체를 경보 대상으로 등록했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>MFA 수단의 강도와 FIDO2 원리, 헬프데스크 재등록 우회는 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 2절과 4절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.15.md §3 2FA 피로, §7 사례 7, 사례 8 · 공식 개요 7.15 “2FA fatigue”</div>
+<h2 id="s6"><span class="n">6</span>비상 관리 (Emergency Management)</h2>
+<div class="tw"><table>
+<tr><th>구성요소</th><th>요점</th></tr>
+<tr><td>대피 계획</td><td>경로, 집결 지점, 인원 점검 담당. <b>장애인과 방문자 포함</b></td></tr>
+<tr><td>대피 훈련</td><td>훈련하지 않은 계획은 혼란을 만듦</td></tr>
+<tr><td><b>인원 점검</b></td><td>누가 안전한가. <b>출입 기록이 재실 인원 파악의 근거</b></td></tr>
+<tr><td>대피소(shelter-in-place)</td><td>밖이 더 위험할 때(화학 유출, 외부 위협, 기상)</td></tr>
+<tr><td>응급 처치·AED, 비상 소통, 외부 기관 연계</td><td>소방, 경찰, 의료</td></tr>
+<tr><td>역할과 대리자, 사후 지원</td><td>층별 담당, 심리 지원, 가족 소통</td></tr>
+</table></div>
+<p>특수 상황: 의료 응급, 적대적 침입자(지역 지침에 따른 절차와 훈련), 작업장 폭력(위협 평가, 보고 경로, 접근 권한 즉시 차단), 감염병(재택 전환, 인력 가용성 저하).</p>
+<h3 id="s6-sec">보안과의 접점</h3>
+<ul>
+<li>대피 중 보안 공백: 건물이 비는 동안 자산 노출 → <b>대피 후 재진입 통제</b>.</li>
+<li>비상 시 fail-safe 문이 열리면 보안 구역이 개방됩니다.</li>
+<li><b>허위 경보를 이용한 침입</b>: 화재 경보를 울려 대피시킨 뒤 침입.</li>
+<li>비상 상황의 보안 우회가 영구화되는 것.</li>
+</ul>
+<p><b>원문 사례 — 허위 화재 경보를 이용한 침입.</b> 공격자가 화재 경보를 작동시켜 건물을 대피시킨 뒤 혼란 중 제한 구역에 들어갔고, fail-safe 문은 모두 열려 있었습니다. 대피 후 재진입 통제, 대피 중 핵심 구역 감시 유지, 경보 원인 확인 절차를 추가했습니다. 문을 잠그는 것이 아니라 <b>안전을 해치지 않는 방식</b>으로 공백을 메운 것입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>현장 안전 확인과 업무 복구 승인에는 서로 다른 정보가 필요합니다. 인원 상태가 확인된 경로와, 시설을 다시 써도 된다는 판단을 각각 기록하면 복구 책임자가 무엇을 기다려야 하는지 분명해집니다. 병원처럼 환자가 있는 시설에서는 “대피”와 “환자 이송·대피소 유지”의 판단이 별도로 필요합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>fail-safe 문과 출입 기록은 <a class="xr" href="D7.14.html">D7.14 물리적 보안</a>, BC 훈련은 <a class="xr" href="D7.13.html#s7">D7.13 7절</a>, DR의 인원 원칙은 <a class="xr" href="D7.11.html">D7.11 재해 복구 프로세스</a>의 3절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.15.md §3 비상 관리, §7 사례 9 · 공식 개요 7.15 “Emergency management”</div>
+<h2 id="s7"><span class="n">7</span>강압 (Duress)</h2>
+<p><b>사람이 위협 하에 강제로 행동하도록 요구받는 상황</b>입니다.</p>
+<div class="tw"><table>
+<tr><th>통제 수단</th><th>내용</th></tr>
+<tr><td><b>강압 코드</b></td><td>정상과 다른 코드를 입력하면 <b>겉으로는 정상 동작하면서 조용히 경보</b></td></tr>
+<tr><td>강압 경보</td><td>고정식, 휴대식, 발 스위치</td></tr>
+<tr><td>안전 확인 문구</td><td>통화 중 특정 문구로 강압 상황을 알림</td></tr>
+<tr><td>체크인 절차</td><td>정기 확인이 없으면 이상 신호</td></tr>
+<tr><td>감시 연동</td><td>경보 시 해당 구역 카메라 자동 표시</td></tr>
+</table></div>
+<p>원본의 핵심 원칙: <b>강압 통제의 원칙은 “순응하라”다.</b> 사람의 생명이 자산보다 우선하므로 저항하지 말고 요구에 따르면서 조용히 경보를 보내는 것이 설계 목표입니다.</p>
+<ul>
+<li><b>은밀성</b>: 가해자가 눈치채면 피해자가 위험해집니다. 확인 음이나 화면 표시가 없어야 합니다.</li>
+<li>오작동 방지와 진짜 경보를 놓치지 않을 균형.</li>
+<li><b>대응 절차</b>: 즉시 현장 진입이 아니라 상황 평가와 외부 기관 연계가 우선인 경우가 많습니다.</li>
+<li>훈련: 코드를 기억하지 못하면 쓸모없고, 훈련 사실이 외부에 알려지면 효과가 떨어집니다.</li>
+<li><b>이중 효과 방지</b>: 강압 코드가 실제로 금고를 열어 주되 경보가 가야 합니다. 열리지 않으면 가해자가 폭력을 씁니다.</li>
+<li>적용 대상: 현금 취급, 단독·야간 근무, 접수, 고위험 지역 출장, 임원.</li>
+</ul>
+<p>논리적 강압: 암호 강제 제공 요구(지역별 법적 의무가 다름), 부인 가능 암호화(실효성과 법적 위험이 논쟁적), 그리고 <b>한 사람이 혼자 모든 것을 열 수 없게 하는 접근 설계(이중 통제, 지식 분할)가 강압에 대한 구조적 방어</b>입니다.</p>
+<p><b>원문 사례 — 강압 코드가 작동하지 않은 설계.</b> 현금 취급 지점에서 직원이 강도 상황에 강압 코드를 입력했지만 금고가 열리지 않도록 설계되어 있었고, 가해자가 폭력을 썼습니다.</p>
+<p><b>원문 사례 — 혼자 열 수 없게 만든 구조적 방어.</b> 금고와 암호 키에 이중 통제와 지식 분할을 적용해, 한 직원이 강압 상황에 놓였을 때 혼자서는 열 수 없었고 가해자가 얻을 수 있는 것이 제한되었습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>야간 응급실 접수 담당자에게 발 스위치 강압 경보를 주었는데, 경보를 받은 보안팀이 어디로 어떻게 대응해야 할지 정해져 있지 않았다고 합시다. 강압 신호는 받는 쪽의 절차(누가 받는가, 현장 진입 전에 무엇을 확인하는가, 언제 경찰에 연락하는가)와 함께 설계되어야 운영 통제가 됩니다. 신호만 있고 대응이 없으면, 은밀하게 보낸 경보가 아무 일도 일으키지 못합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>이중 통제와 지식 분할은 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>의 3절, 감시 연동은 <a class="xr" href="D7.14.html">D7.14 물리적 보안</a>의 4절에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D7.15-Q01</div>
+<p>현금 취급 지점에 강압 코드를 도입했으나 강압 코드 입력 시 금고가 열리지 않도록 구성되어 있었다. 실제 강도 상황에서 직원이 강압 코드를 입력했고 금고가 열리지 않아 가해자가 폭력을 사용했다. 설계상의 오류는?</p><ol type="A"><li>가해자가 도망가도록 강압 코드가 경보음을 발생시켜야 했다.</li><li>강압 통제는 요구를 충족시키면서 조용히 경보를 보내야 한다. 지배 원칙은 순응하고 사람을 보호하는 것이다.</li><li>현금 취급에 강압 코드를 아예 사용하지 않아야 했다.</li><li>직원이 요구를 거부하고 저항하도록 교육받아야 했다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 강압 통제의 핵심 원칙은 순응하라다. 사람의 생명이 자산보다 우선하므로 강압 코드는 겉으로는 요구를 충족시키면서 조용히 경보를 보내야 한다. 요구가 충족되지 않으면 가해자가 폭력을 사용해 피해자가 위험해진다. 또한 확인 음과 화면 표시가 없어야 은밀성이 유지된다.</p><ul><li>A · 경보음은 은밀성을 깨뜨려 피해자를 더 위험하게 만든다.</li><li>C · 강압 코드는 현금 취급 지점의 표준 통제다.</li><li>D · 저항 유도는 생명을 위험에 두는 잘못된 설계다.</li></ul><div class="src">원문 위치 · D7.15-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.15.md §3 강압, §7 사례 10, 사례 11 · 공식 개요 7.15 “Duress” · 기존 문제 Q01 주제</div>
+<h2 id="s8"><span class="n">8</span>인적 보안 전반과의 연결</h2>
+<ul>
+<li>채용 전 심사: 배경 조사, 참조 확인</li>
+<li>고용 계약과 비밀 유지 협약</li>
+<li>재직 중 관리: 교육, 접근 검토, 역할 변경</li>
+<li>퇴사 처리: 접근 차단, 자산 반납, 출입증 회수</li>
+<li><b>공급자와 계약 인력</b>: 같은 수준의 심사와 통제가 적용되는가</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>출장 보호 안내에는 대상과 위험을, 사고 연락 절차에는 이용 가능한 채널과 책임자를 담습니다. 교육은 직원이 실제로 적절한 연락을 할 수 있는지, 그리고 받은 팀이 비상과 강압 상황을 구분해 대응할 수 있는지까지 확인해야 완성됩니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>인사 보안 생애주기는 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>, 계정 생애주기는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.15.md §3 인적 보안 전반과의 연결</div>
+<h2 id="s9"><span class="n">9</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>인원 보안 점검 결과다. ㉠ 고위험 지역 출장자가 평소 업무 노트북을 그대로 가져간다. ㉡ 여러 직원이 의심스러운 푸시 알림을 거부만 하고 신고하지 않았다. ㉢ 현금 취급 지점의 강압 코드는 금고를 열지 않도록 되어 있다. ㉣ 화재 경보 대피 후 제한 구역 재진입 통제가 없다. 가장 적절한 대책 묶음은?</p>
+<ol type="A">
+<li>㉠ 출장 전용 기기와 데이터 최소화, 귀국 후 초기화 / ㉡ “거부하고 신고”, 거부 이벤트 경보, 번호 매칭·FIDO2 / ㉢ 강압 코드는 요구를 충족하면서 조용히 경보 / ㉣ 대피 후 재진입 통제와 대피 중 핵심 구역 감시</li>
+<li>㉠ 노트북 암호 강화만 / ㉡ 푸시 알림 끔 / ㉢ 강압 코드 입력 시 경보음 / ㉣ 비상구를 fail-secure로</li>
+<li>㉠ 출장 금지 / ㉡ 거부한 직원 칭찬만 / ㉢ 강압 코드 폐지 / ㉣ 화재 경보 비활성화</li>
+<li>㉠ 그대로 / ㉡ SMS OTP로 교체 / ㉢ 금고 이중 잠금으로 직원도 못 열게 하고 경보 없음 / ㉣ 경비 증원만</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 2절(가져가지 않는 것이 핵심), ㉡ 5절(거부만으로는 탐지가 안 됨), ㉢ 7절(순응, 은밀한 경보 — B의 경보음은 은밀성을 깸), ㉣ 6절(안전을 해치지 않으면서 공백을 메움 — B의 비상구 fail-secure는 인원 안전 위반).</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">10</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>시설 사고 중 복구팀의 작업 순서는 무엇을 기준으로 정하나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>먼저 비상 계획에 따라 사람과 현장의 안전을 확인합니다. 재진입 승인 여부와 업무 중단 상태를 구분해 보고한 다음 안전한 방식으로 대체 운영과 복구를 진행합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">11</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>인원 안전 &gt; 자산·데이터·가용성.</b> 두 축: 안전(해를 입지 않게)과 보안(사람을 경로로 한 침해). 자산을 지키려다 사람을 위험에 두는 설계가 전형적 실패.</li>
+<li>출장: <b>데이터 최소화(가장 효과적)</b>, 출장 전용 기기, 전원 종료, VPN·분할 터널링 금지, <b>충전 포트 주의</b>, 귀국 후 초기화.</li>
+<li>내부자: 악의적·부주의·침해된. 악의적 내부자는 <b>정당한 권한·정상 경로</b>. 최소권한이 가장 근본, <b>퇴사 전후 집중 모니터링</b>, <b>지원 접근</b>, 투명성, 점수는 단서일 뿐.</li>
+<li>소셜 미디어: 사진 속 화면·배지, 조직 구조, <b>채용 공고</b>, 사칭, 보안 질문 재료. 통제 대상은 업무 정보 노출이지 개인 표현이 아니다.</li>
+<li>2FA 피로: 푸시 대량 발송 + 헬프데스크 사칭. <b>번호 매칭</b>, 맥락 표시, 속도 제한, <b>FIDO2가 근본 해결</b>. “거부하고 <b>신고</b>”, 헬프데스크는 승인을 요청하지 않는다. AiTM은 TOTP·푸시 모두 우회.</li>
+<li>비상 관리: 대피(장애인·방문자), 인원 점검(<b>출입 기록</b>), 대피소, 외부 기관. <b>허위 경보 침입</b> → 대피 후 재진입 통제.</li>
+<li>강압: 강압 코드·경보·확인 문구. <b>원칙은 순응</b>, <b>은밀성</b>, 열어 주되 경보, 대응은 평가 먼저. <b>이중 통제·지식 분할이 구조적 방어</b>.</li>
+<li>인적 보안 생애주기: 채용 심사, 계약·NDA, 재직 관리, 퇴사 처리, 공급자·계약 인력도 같은 수준.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D7.15.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">12</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Clean Device</span> <span class="term-ko">· 출장 전용 기기</span></h3>
+<p>최소 구성으로 준비해 출장 후 초기화하는 기기. 고위험 지역에 적합하다.</p>
+<h3 id="glossary-2"><span lang="en">Shoulder Surfing</span> <span class="term-ko">· 화면 엿보기</span></h3>
+<p>어깨 너머로 화면이나 입력을 관찰하는 수법.</p>
+<h3 id="glossary-3"><span lang="en">Juice Jacking</span> <span class="term-ko">· 충전 포트 악용</span></h3>
+<p>공공 충전 포트의 데이터 라인을 통한 공격.</p>
+<h3 id="glossary-4"><span lang="en">Insider Threat</span> <span class="term-ko">· 내부자 위협</span></h3>
+<p>악의적, 부주의한, 침해된 내부자에 의한 위협.</p>
+<h3 id="glossary-5"><span lang="en">Compromised Insider</span> <span class="term-ko">· 침해된 내부자</span></h3>
+<p>자격증명이 탈취되어 공격자가 내부자로 활동하는 상태.</p>
+<h3 id="glossary-6"><span lang="en">MFA Fatigue / Push Bombing</span> <span class="term-ko">· 2FA 피로</span></h3>
+<p>푸시 알림을 대량 발송해 사용자의 무심한 승인을 유도하는 공격.</p>
+<h3 id="glossary-7"><span lang="en">Number Matching</span> <span class="term-ko">· 번호 매칭</span></h3>
+<p>화면의 숫자를 앱에 입력하게 해 무심한 승인을 막는 방식.</p>
+<h3 id="glossary-8"><span lang="en">AiTM (Adversary-in-the-Middle)</span> <span class="term-ko">· 공격자 중간 개입</span></h3>
+<p>가짜 사이트가 인증 코드를 실시간 중계하는 피싱. TOTP 와 푸시를 우회한다.</p>
+<h3 id="glossary-9"><span lang="en">SIM Swapping</span> <span class="term-ko">· SIM 스와핑</span></h3>
+<p>통신사를 속여 번호를 이전해 SMS 기반 인증을 우회하는 공격.</p>
+<h3 id="glossary-10"><span lang="en">Shelter-in-place</span> <span class="term-ko">· 피난처 대기</span></h3>
+<p>밖으로 나가는 것이 더 위험할 때 건물 내에 머무는 대응.</p>
+<h3 id="glossary-11"><span lang="en">Accountability / Headcount</span> <span class="term-ko">· 인원 점검</span></h3>
+<p>대피 후 누가 안전한지 확인하는 활동.</p>
+<h3 id="glossary-12"><span lang="en">Duress Code</span> <span class="term-ko">· 강압 코드</span></h3>
+<p>정상 동작을 유지하면서 조용히 경보를 발생시키는 코드.</p>
+<h3 id="glossary-13"><span lang="en">Panic Button</span> <span class="term-ko">· 비상 경보 장치</span></h3>
+<p>강압이나 위협 상황에서 경보를 발생시키는 장치.</p>
+<h3 id="glossary-14"><span lang="en">Duress Word</span> <span class="term-ko">· 안전 확인 문구</span></h3>
+<p>통화 중 강압 상황을 알리는 사전 합의된 문구.</p>
+<h3 id="glossary-15"><span lang="en">Dual Control / Split Knowledge</span> <span class="term-ko">· 이중 통제 / 지식 분할</span></h3>
+<p>혼자서 열 수 없게 만드는 통제. 강압에 대한 구조적 방어다.</p>
+<div class="src">원문 위치 · D7.15.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">13</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-53 PS 통제군</strong> — 인적 보안(심사, 퇴사, 제재, 외부 인력)</li>
+<li><strong>NIST SP 800-53 AT 통제군</strong> — 인식과 교육(내부자 위협 교육 포함)</li>
+<li><strong>NIST SP 800-46</strong> — 원격 근무와 모바일 기기 보안</li>
+<li><strong>ISO/IEC 27002:2022 6장</strong> — 인적 통제(심사, 고용 조건, 인식, 징계, 퇴사)</li>
+<li><strong>NITTF / CISA 내부자 위협 프로그램 지침</strong> — 프로그램 구성 개념</li>
+<li><strong>OSHA 류 작업장 안전 규정</strong> — 지역별 안전 요건</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D7.15.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">비상 상황의 결정에서 자산 보호와 인명 안전이 상충할 때 우선하는 것은?</a></li>
+<li><a href="#question-2">퇴사를 통보한 직원이 2주의 인수인계 기간에 이미 보유한 접근 권한으로 업무 시간 중 대량의 설계 문서를 개인 클라우드 저장소로 업로드했다. 이 패턴을 해소하는 통제는?</a></li>
+<li><a href="#question-3">침투 테스트 팀이 조직의 채용 공고를 주 정찰 출처로 사용했다. 공고가 보안 제품명과 버전, 클라우드 구성, 레거시 시스템을 상세히 기재했기 때문이다. 적절한 통제는?</a></li>
+<li><a href="#question-4">현금 취급 지점에 강압 코드를 도입했으나 강압 코드 입력 시 금고가 열리지 않도록 구성되어 있었다. 실제 강도 상황에서 직원이 강압 코드를 입력했고 금고가 열리지 않아 가해자가 폭력을 사용했다. 설계상의 오류는?</a></li>
+<li><a href="#question-5">인원 보안 점검 결과다. ㉠ 고위험 지역 출장자가 평소 업무 노트북을 그대로 가져간다. ㉡ 여러 직원이 의심스러운 푸시 알림을 거부만 하고 신고하지 않았다. ㉢ 현금 취급 지점의 강압 코드는 금고를 열지 않도록 되어 있다. ㉣ 화재 경보 대피 후 제한 구역 재진입 통제가 없다. 가장 적절한 대책 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D7.14.html"><small>← 이전 단원</small>7.14 물리적 보안</a><a href="D8.1.html" style="text-align:right"><small>다음 단원 →</small>8.1 SDLC 보안</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

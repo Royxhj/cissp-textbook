@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D5.4 인가 메커니즘의 구현과 관리 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D5.4">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 5 식별 및 접근 관리 › 5.4</div>
+<h1>인가 메커니즘의 구현과 관리</h1>
+<div class="en">Implement and manage authorization mechanisms · ISC2 CISSP Exam Outline(2024-04-15 발효) 5.4</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">인증이 “당신은 누구인가”를 확인했다면, 인가는 “그렇다면 이 객체에 이 작업을 해도 되는가”에 답합니다. 공식 개요 5.4는 여섯 가지 모델(DAC, MAC, RBAC, 규칙 기반, ABAC, 위험 기반)과 정책 집행 구조(PDP·PEP)를 듭니다. 이름을 외우기보다 <b>누가 답을 정하고, 무엇을 근거로 정하는가</b>를 보면 여섯 모델이 한 표로 정리됩니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D5.1.html">D5.1 물리적·논리적 접근 통제</a></td><td>접근 통제의 구조와 ACL·능력 테이블. 이 단원은 인가 모델 (1절, 2절)</td></tr>
+<tr><td><a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a></td><td>그룹과 역할, 역할 폭증 (4절)</td></tr>
+<tr><td><a class="xr" href="D3.2.html">D3.2 보안 모델</a></td><td>Bell-LaPadula, Biba 등 보안 모델. MAC의 형식화 (3절)</td></tr>
+<tr><td><a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a></td><td>참조 모니터와 완전한 중재. PEP 우회 불가의 근거 (7절)</td></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a></td><td>제로 트러스트, 직무 분리, fail-secure (4절, 6절, 9절)</td></tr>
+<tr><td><a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a></td><td>분류와 라벨. MAC과 외부 공유 차단 (2절, 3절)</td></tr>
+<tr><td><a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a></td><td>방화벽 운영. 규칙 기반 통제의 대표 사례 (5절)</td></tr>
+<tr><td><a class="xr" href="D8.5.html">D8.5 안전한 코딩</a></td><td>API 인가와 코드 수준 취약점. 7절의 PDP/PEP를 참조 (7절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>인가의 질문과 여섯 모델</h2>
+<div class="tw"><table>
+<tr><th>모델</th><th>결정 근거</th><th>한 줄로</th></tr>
+<tr><td><b>DAC</b> 임의적</td><td>객체 소유자의 재량</td><td>소유자가 정한다</td></tr>
+<tr><td><b>MAC</b> 강제적</td><td>시스템이 집행하는 라벨</td><td>시스템이 라벨로 강제한다</td></tr>
+<tr><td><b>RBAC</b> 역할 기반</td><td>주체에 부여된 역할</td><td>직무로 정한다</td></tr>
+<tr><td><b>Rule based</b> 규칙 기반</td><td>관리자가 정한 규칙</td><td>조건으로 모두에게 똑같이</td></tr>
+<tr><td><b>ABAC</b> 속성 기반</td><td>주체·객체·환경 속성</td><td>속성 조합으로 정한다</td></tr>
+<tr><td><b>Risk based</b> 위험 기반</td><td>실시간 위험 점수</td><td>상황에 따라 변한다</td></tr>
+</table></div>
+<div class="box think"><p><span class="tag">판단 순서</span>원본이 권하는 접근법입니다. 상황을 보면 먼저 <b>“누가 접근을 결정하는가”</b>를 묻습니다. ① 소유자가 정하면 DAC ② 시스템이 라벨로 강제하면 MAC ③ 직무로 정하면 RBAC ④ 신원과 무관한 조건으로 모두에게 같으면 규칙 기반 ⑤ 여러 속성의 조합이면 ABAC ⑥ 같은 사람이라도 요청 시점 상황에 따라 바뀌면 위험 기반. 이름이 아니라 <b>결과를 바꾸는 값</b>이 무엇인지 찾는 것이 핵심입니다.</p></div>
+<div class="box add"><p><span class="tag">보충</span>인가는 인증이 끝난 뒤의 단계입니다. 로그인은 성공했는데 특정 보고서를 열 때 “접근 거부”가 뜬다면, 신원은 확인되었지만 그 신원의 권한에 해당 자원이 없다는 뜻이므로 인가 단계의 거부입니다. 이 구분이 흐려지면 “MFA를 강화하자” 같은 엉뚱한 대책이 나옵니다(<a class="xr" href="D5.1.html">D5.1 물리적·논리적 접근 통제</a>의 6절).</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D5.4-Q20</div>
+<p>어떤 사용자가 로그인에는 성공했으나 보고서를 열 때 접근 거부 메시지를 받았다. 어느 단계가 거부한 것인가?</p><ol type="A"><li>사용자명이 인식되지 않았으므로 식별.</li><li>행위가 기록되지 않았으므로 책임추적성.</li><li>비밀번호가 틀렸으므로 인증.</li><li>사용자의 신원은 확립되었으나 그 권한에 해당 자원이 포함되지 않으므로 인가.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 로그인 성공은 식별과 인증을 통과했다는 뜻이다. 그 뒤 특정 자원에 대한 접근이 막혔다면 인가 단계의 결정이다. 두 단계를 구분하지 못하면 문제 해결 방향이 어긋난다. 인증 실패는 비밀번호나 다중 인증 문제이고 인가 실패는 역할과 권한 배정 문제다.</p><ul><li>A · 로그인에 성공했으므로 식별은 통과했다.</li><li>B · 기록은 사후 단계다.</li><li>C · 로그인에 성공했으므로 인증은 통과했다.</li></ul><div class="src">원문 위치 · D5.4-Q20</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.4.md §2 · 공식 개요 5.4 “Implement and manage authorization mechanisms” · 기존 문제 Q20 주제</div>
+<h2 id="s2"><span class="n">2</span>DAC — 임의적 접근 통제</h2>
+<p><b>객체 소유자가 자기 재량으로</b> 다른 주체에게 권한을 줍니다. 파일 시스템 ACL, 공유 드라이브 권한, 문서 공유 링크가 전형입니다. 객체마다 ACL을 두어 주체별 권한을 기록합니다.</p>
+<div class="tw"><table>
+<tr><th>장점</th><th>단점·위험</th></tr>
+<tr><td>유연하고 직관적, 협업에 적합</td><td><b>권한 확산을 통제할 수 없음</b>. 소유자가 임의로 공유하면 조직 정책을 우회. 전체 접근 그림을 알기 어려움</td></tr>
+<tr><td></td><td><b>권한 전파</b>: 받은 사람이 또 공유</td></tr>
+<tr><td></td><td><b>악성코드가 사용자 권한으로 실행되면 그 사용자의 모든 권한을 그대로 행사</b></td></tr>
+<tr><td></td><td>권한 상속이 깊어지면 상위 폴더 변경이 예측 못 한 노출을 만듦</td></tr>
+</table></div>
+<p><b>원문 사례 — 소유자 재량이 만든 노출.</b> 한 직원이 재무 자료 폴더를 “링크를 가진 모든 사람”으로 공유했고 그 링크가 외부로 전달되었습니다. DAC에서는 소유자가 조직 정책보다 앞서 공유할 수 있습니다. 대응은 <b>분류 라벨이 붙은 자료의 외부 공유를 시스템이 차단</b>하게 한 것, 즉 <b>DAC 위에 강제적 제약을 얹은 것</b>입니다.</p>
+<div class="box link"><p><span class="tag">연결</span>분류 라벨과 취급 규칙은 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>, 외부 유출 탐지(DLP)는 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.4.md §3 DAC, §7 사례 2 · 공식 개요 5.4 “Discretionary access control (DAC)”</div>
+<h2 id="s3"><span class="n">3</span>MAC — 강제적 접근 통제</h2>
+<p><b>시스템이 라벨과 정책으로 강제</b>합니다. <b>소유자도 권한을 넘길 수 없습니다.</b> 군사·정보기관 환경, SELinux, 다중등급 보안(MLS) 시스템이 전형입니다.</p>
+<div class="tw"><table>
+<tr><th>구성요소</th><th>의미</th></tr>
+<tr><td>주체의 <b>인가 등급</b> clearance</td><td>사람이 다룰 수 있는 최고 등급</td></tr>
+<tr><td>객체의 <b>분류</b> classification</td><td>자료의 민감도 등급</td></tr>
+<tr><td><b>구획</b> compartment</td><td>알 필요성(need-to-know)의 범위</td></tr>
+</table></div>
+<p>접근 조건: <b>등급 ≥ 분류</b> <b>그리고 동시에</b> 해당 구획에 알 필요성이 인정되어야 합니다. 등급이 높아도 구획이 다르면 거부됩니다.</p>
+<p>장점은 정책이 일관되게 강제되고 소유자 재량으로 우회되지 않는다는 것, 단점은 경직되고 라벨 관리·재분류 비용이 크다는 것입니다. 원본은 <b>MAC 환경에서 사용자가 자기 문서를 임의로 공유할 수 없다는 점이 DAC와의 결정적 차이</b>라고 정리합니다.</p>
+<div class="box warn"><p><span class="tag">확인 필요</span>원본은 MAC이 “D3.1의 Bell-LaPadula와 Biba 모델로 형식화된다”고 적었지만, 원본 묶음에서 두 모델이 실제로 다뤄지는 곳은 <a class="xr" href="D3.2.html">D3.2 보안 모델</a>입니다. 이 교재는 D3.2로 연결했습니다. 요지: Bell-LaPadula는 기밀성(no read up / no write down), Biba는 무결성(no read down / no write up)입니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D5.4-Q01</div>
+<p>어떤 정부 시스템에서 문서에는 분류 라벨이, 사용자에게는 인가 등급이 부여된다. 문서를 작성한 사용자도 다른 사용자에게 그 문서의 접근 권한을 줄 수 없고 시스템이 라벨만으로 결정한다. 사용 중인 접근 통제 모델은?</p><ol type="A"><li>시스템이 라벨을 강제하고 소유자에게 재량이 없으므로 강제적 접근 통제.</li><li>작성자가 문서를 소유하므로 임의적 접근 통제.</li><li>인가 등급이 역할처럼 작동하므로 역할 기반 접근 통제.</li><li>동일한 규칙이 모든 사용자에게 적용되므로 규칙 기반 접근 통제.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 소유자가 권한을 넘길 수 없고 시스템이 라벨과 정책으로 강제하는 것이 MAC 의 결정적 특징이다. DAC 는 소유자 재량이 핵심이므로 이 설명과 반대다. MAC 에서는 등급이 분류보다 높거나 같고 동시에 해당 구획에 알 필요성이 있어야 접근된다.</p><ul><li>B · 소유자 재량이 없다는 점이 DAC 를 배제한다.</li><li>C · 인가 등급은 역할이 아니라 라벨이며 RBAC 은 직무 기반이다.</li><li>D · 규칙 기반은 신원과 무관한 조건을 적용하며 라벨 기반 강제와 다르다.</li></ul><div class="src">원문 위치 · D5.4-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.4.md §3 MAC · 공식 개요 5.4 “Mandatory access control (MAC)” · 기존 문제 Q01 주제</div>
+<h2 id="s4"><span class="n">4</span>RBAC — 역할 기반 접근 통제</h2>
+<div class="flow">
+<div class="nd"><b>사용자</b></div><div class="ar">→</div>
+<div class="nd"><b>역할</b></div><div class="ar">→</div>
+<div class="nd"><b>권한</b></div><div class="ar">→</div>
+<div class="nd"><b>객체</b></div>
+</div>
+<p><b>직무(역할)에 권한을 묶고 사람을 역할에 배정</b>합니다. 기업 환경에서 가장 널리 쓰입니다.</p>
+<div class="tw"><table>
+<tr><th>장점</th><th>단점</th></tr>
+<tr><td>입퇴사·전보 처리가 간단, 권한 검토 가능, <b>직무 분리를 역할 설계로 구현</b></td><td><b>역할 폭증</b>: 예외를 역할로 계속 만들면 사용자 수에 가까운 역할이 생김</td></tr>
+</table></div>
+<h3 id="s4-sod">직무 분리의 구현</h3>
+<div class="tw"><table>
+<tr><th>방식</th><th>의미</th></tr>
+<tr><td><b>상호 배타적 역할</b>(정적 분리)</td><td>두 역할을 <b>동시에 보유할 수 없음</b>(구매 요청자 ↔ 승인자)</td></tr>
+<tr><td><b>동적 분리</b></td><td>두 역할을 보유할 수는 있지만 <b>같은 거래에서 동시에 행사할 수 없음</b></td></tr>
+<tr><td>역할 계층</td><td>상위 역할이 하위 역할 권한을 상속</td></tr>
+</table></div>
+<p><b>원문 사례 — 역할 폭증으로 무너진 RBAC.</b> 부서별·공장별·예외별 요청을 모두 새 역할로 처리하다 3년 뒤 <b>직원 4,000명에 역할 3,200개</b>가 되어 접근 검토가 사실상 불가능해졌습니다. 공통 직무 역할을 수십 개로 줄이고, 변동이 큰 조건(공장 코드, 프로젝트, 기기 상태)은 <b>ABAC 속성으로 옮겼습니다.</b> 역할은 안정적인 직무만, 속성은 변하는 조건을 맡게 했습니다.</p>
+<p><b>원문 사례 — 상호 배타적 역할로 구현한 직무 분리.</b> 구매 시스템에서 한 사용자가 요청과 승인을 모두 할 수 있었습니다. 두 역할을 상호 배타로 선언하고 배정 단계에서 검증하게 했으며, 규모가 작아 분리할 수 없는 팀에는 동적 분리를 적용했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>‘의사’라는 역할만으로 모든 환자 기록을 볼 수 있게 하면 권한이 과도합니다. 담당 환자인지, 진료 목적인지 같은 조건은 역할로 표현하기 어렵고, 억지로 역할로 만들면 역할 폭증이 됩니다. 이런 조건을 속성으로 넣을 때는 그 속성의 출처(진료 배정 시스템)와 갱신 시점을 함께 정해야 합니다. 이것이 6절의 ABAC로 넘어가는 이유입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>직무 분리 원칙은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>·<a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>, 그룹과 역할의 관리는 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 5절, 접근 검토는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.4.md §3 RBAC, §7 사례 1, 사례 6 · 공식 개요 5.4 “Role-based access control (RBAC)”</div>
+<h2 id="s5"><span class="n">5</span>규칙 기반 접근 통제</h2>
+<p><b>관리자가 정한 조건(if-then)을 모든 주체에 똑같이</b> 적용합니다. 방화벽 ACL, 업무 시간 외 접근 차단, 특정 국가 IP 차단이 전형입니다.</p>
+<ul>
+<li>주체의 신원이 아니라 <b>조건</b>이 결정합니다. “모두에게 같은 규칙”이 특징입니다.</li>
+<li>규칙 순서가 결과를 바꾸므로 <b>평가 순서와 기본 거부 규칙</b>이 중요합니다.</li>
+<li>방화벽이 가장 흔한 예이며 <b>마지막에 암묵적 거부(implicit deny)</b>가 놓입니다.</li>
+</ul>
+<div class="box warn"><p><span class="tag">주의</span>RBAC와 규칙 기반은 약어가 같아(RBAC) 혼동되기 쉽습니다. 보통 RBAC는 역할 기반을 뜻하고, 규칙 기반은 “Rule-based”로 풀어 씁니다.</p></div>
+<div class="box add"><p><span class="tag">보충</span>시간대나 출발 위치가 <b>모든 사용자에게 공통 조건</b>으로 작용하면 규칙 기반으로 읽습니다. 사용자의 직무, 대상 문서의 민감도, 로그인 상태를 <b>함께 계산</b>한다면 속성 기반 설명이 더 직접적입니다. 실제 정책은 둘이 섞여 있으므로 “무엇이 결과를 바꾸는가”부터 찾습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>방화벽 규칙 운영은 <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a>, 방화벽 유형은 <a class="xr" href="D4.2.html">D4.2 네트워크 구성요소</a>의 1절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.4.md §3 Rule-Based Access Control · 공식 개요 5.4 “Rule based access control”</div>
+<h2 id="s6"><span class="n">6</span>ABAC와 위험 기반 접근 통제</h2>
+<h3 id="s6-abac">ABAC — 속성 기반</h3>
+<p><b>주체 속성 + 객체 속성 + 작업 + 환경 속성</b>의 조합을 정책으로 평가합니다. 표현력이 가장 높습니다.</p>
+<div class="box ex"><p><span class="tag">원문 예시</span>허용 조건: 주체.부서 = 재무 AND 주체.직급 ≥ 과장 AND 객체.분류 ≤ 내부 AND 객체.소속부서 = 주체.부서 AND 환경.시간 ∈ 업무시간 AND 환경.기기상태 = 관리됨</p></div>
+<div class="tw"><table>
+<tr><th>장점</th><th>단점·전제</th></tr>
+<tr><td>역할 폭증 없이 세밀한 정책. 조건이 바뀌면 속성만 갱신</td><td><b>정책 복잡도와 디버깅 난이도</b>. <b>속성 품질에 전적으로 의존</b> — 속성 원천이 틀리면 정책이 조용히 잘못 동작. 신뢰할 수 있는 속성 원천과 속성 거버넌스가 전제</td></tr>
+</table></div>
+<p>원본은 ABAC를 <b>제로 트러스트와 클라우드 환경의 기본 모델</b>로 봅니다. 사용자와 자원이 폭발적으로 늘어나는 환경에서는 역할로 표현할 수 없기 때문입니다.</p>
+<h3 id="s6-risk">위험 기반</h3>
+<p><b>요청 시점의 위험 점수</b>로 결정을 조정합니다. 적응형 인증(adaptive authentication)과 결합됩니다.</p>
+<div class="tw"><table>
+<tr><th>신호</th><th>결정</th></tr>
+<tr><td>위치와 이동 속도, 기기 상태·등록 여부, 시간대, 비정상 행위 패턴, 자격증명 유출 정보, 요청 자원의 민감도</td><td><b>허용 / 추가 인증 요구(step-up) / 제한된 접근 / 거부</b></td></tr>
+</table></div>
+<p>정상 사용자의 마찰을 줄이면서 이상 상황에만 통제를 강화하는 것이 장점이고, 점수 산정이 불투명하고 오탐이 사용자 차단으로 이어진다는 것이 단점입니다. 원본은 위험 기반을 <b>ABAC의 환경 속성을 동적으로 확장한 형태</b>, 제로 트러스트의 <b>지속 평가</b>를 구현하는 수단으로 봅니다.</p>
+<p><b>원문 사례 — 위험 기반 통제의 오탐.</b> “익숙하지 않은 국가에서의 로그인”을 고위험으로 처리해 추가 인증을 요구했더니, 출장이 잦은 영업팀이 공항 와이파이에서 추가 인증 수단에 접근하지 못해 업무가 멈췄습니다. 승인된 출장 정보를 신호로 반영하고, 네트워크 의존성이 없는 하드웨어 키로 보강했습니다. 원본의 결론은 <b>신호 품질이 통제 품질을 결정한다</b>입니다.</p>
+<div class="box link"><p><span class="tag">연결</span>제로 트러스트와 지속 평가는 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 기기 상태 기반 접근은 <a class="xr" href="D4.2.html">D4.2 네트워크 구성요소</a>(NAC)·<a class="xr" href="D5.1.html">D5.1 물리적·논리적 접근 통제</a>의 3절에서 다룹니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D5.4-Q07</div>
+<p>어떤 시스템이 평소에는 비밀번호와 등록된 보안 키로 로그인을 허용하지만 인식되지 않은 기기와 비정상적인 위치에서 요청이 오면 비민감 데이터에 대한 읽기 접근만 허용하고 그 외에는 추가 인증을 요구한다. 적용 중인 모델은?</p><ol type="A"><li>사용자가 추가 인증을 선택할 수 있으므로 임의적 접근 통제.</li><li>비정상 위치가 고정 규칙으로 거부되므로 규칙 기반 접근 통제.</li><li>요청의 평가된 위험에 따라 결정이 달라지므로 위험 기반 접근 통제.</li><li>시스템이 사용자의 선택을 무시하므로 강제적 접근 통제.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 같은 사용자라도 요청 시점의 신호에 따라 결정이 달라지는 것이 위험 기반 접근 통제다. 결정은 허용, 추가 인증 요구, 제한된 접근, 거부로 조정된다. 제로 트러스트의 지속 평가를 구현하는 수단이며 신호 품질이 통제 품질을 결정한다.</p><ul><li>A · DAC 는 객체 소유자의 권한 부여 재량을 뜻한다.</li><li>B · 고정 거부가 아니라 조건에 따라 접근 수준이 달라지고 있다.</li><li>D · MAC 은 분류 라벨 기반 강제이며 위험 점수와 무관하다.</li></ul><div class="src">원문 위치 · D5.4-Q07</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.4.md §3 ABAC, Risk-Based Access Control, §7 사례 5 · 공식 개요 5.4 “Attribute-based access control (ABAC)”, “Risk based access control” · 기존 문제 Q07 주제</div>
+<h2 id="s7"><span class="n">7</span>접근 정책 집행 구조 (PDP / PEP)</h2>
+<p>공식 개요가 명시한 항목입니다. 인가는 <b>결정과 집행을 분리</b>합니다.</p>
+<div class="tw"><table>
+<tr><th>구성요소</th><th>역할</th></tr>
+<tr><td><b>PEP</b> Policy Enforcement Point</td><td>요청을 가로채 허용·거부를 <b>집행</b></td></tr>
+<tr><td><b>PDP</b> Policy Decision Point</td><td>정책을 평가해 <b>결정</b> 산출</td></tr>
+<tr><td><b>PIP</b> Policy Information Point</td><td>결정에 필요한 <b>속성 공급</b></td></tr>
+<tr><td><b>PAP</b> Policy Administration Point</td><td>정책 <b>작성·관리</b></td></tr>
+</table></div>
+<div class="flow">
+<div class="nd"><b>요청</b></div><div class="ar">→</div>
+<div class="nd"><b>PEP</b><br/>가로채기·집행</div><div class="ar">⇄</div>
+<div class="nd"><b>PDP</b><br/>결정</div><div class="ar">⇄</div>
+<div class="nd"><b>PIP</b> 속성<br/><b>PAP</b> 정책</div>
+</div>
+<p><b>분리하는 이유</b>: 정책을 한 곳에서 관리해 여러 집행 지점에 일관되게 적용하기 위해서입니다. 애플리케이션마다 자체 인가 로직을 가지면 정책 변경이 전부에 반영되지 않습니다.</p>
+<p><b>집행의 전제는 우회 불가능성</b>입니다. PEP를 거치지 않는 경로가 하나라도 있으면 정책 전체가 무의미해집니다. 흔한 우회 경로는 <b>직접 DB 접속, 관리 API, 레거시 인터페이스, “내부 전용”이라 가정한 서비스 간 호출</b>입니다.</p>
+<p><b>원문 사례 — PEP 우회 경로.</b> API 게이트웨이를 PEP로 두고 중앙 PDP에서 결정했지만, 배치 작업과 레거시 리포팅 도구가 DB에 직접 접속하고 있었습니다. 직접 접속을 차단하고, 배치도 게이트웨이를 경유하게 하고, DB에서 애플리케이션 계정 외 접속을 거부했습니다.</p>
+<p>제로 트러스트(NIST SP 800-207)는 같은 구조를 <b>PE(Policy Engine) + PA(Policy Administrator) + PEP</b>로 부릅니다. PE가 결정하고, PA가 세션을 구성·종료하며, PEP가 경로를 통제합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>PEP의 “우회 불가”는 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>에서 다룬 참조 모니터의 요건(항상 호출됨, 변조 불가, 검증 가능)과 같은 생각입니다. 웹 화면은 자기 기록만 보여 주는데 같은 데이터를 주는 API가 아무 식별자나 받는다면, 인가가 하나의 결정 지점이 아니라 화면(표현 계층)에서만 이루어지고 있다는 뜻입니다. 데이터에 이르는 모든 경로가 같은 PEP를 지나야 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>참조 모니터와 완전한 중재는 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>, 제로 트러스트 구조는 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, API 수준의 인가 결함은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>·<a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D5.4-Q14</div>
+<p>웹 인터페이스는 사용자가 자기 기록만 조회하도록 강제하는데 같은 데이터를 제공하는 REST API 는 임의의 기록 식별자를 수락한다. 이것이 가리키는 것은?</p><ol type="A"><li>중복 검사를 생략하므로 API 가 더 효율적이다.</li><li>웹 인터페이스에 불필요한 제약이 있으므로 제거해야 한다.</li><li>API 에 속도 제한이 없다는 것만 문제다.</li><li>인가가 단일 권위 지점이 아니라 표현 계층에서 강제되고 있다. 데이터에 이르는 모든 접근 경로가 같은 결정을 적용해야 하며 공유된 강제 구성요소를 쓰는 것이 바람직하다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 인가를 화면 쪽에 구현하면 같은 데이터로 가는 다른 경로가 검사를 건너뛴다. API, 배치 작업, 보고 도구, 데이터베이스 직접 접근이 모두 경로다. 완전 매개 원칙에 따라 모든 접근이 같은 결정 지점을 거쳐야 하며 공유 인가 구성요소나 데이터 계층 통제로 보장한다.</p><ul><li>A · 효율이 아니라 통제 누락이다.</li><li>B · 웹 쪽 제약이 올바른 쪽이다.</li><li>C · 속도 제한은 무단 접근 자체를 막지 않는다.</li></ul><div class="src">원문 위치 · D5.4-Q14</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.4.md §3 접근 정책 집행 구조, §7 사례 3 · 공식 개요 5.4 “Access policy enforcement (e.g., policy decision point, policy enforcement point)” · 기존 문제 Q14 주제</div>
+<h2 id="s8"><span class="n">8</span>모델 선택과 조합</h2>
+<div class="tw"><table>
+<tr><th>상황</th><th>모델</th></tr>
+<tr><td>협업이 중심이고 소유자 판단이 적절하다</td><td>DAC</td></tr>
+<tr><td>분류된 정보를 다루고 사용자 재량을 허용할 수 없다</td><td>MAC</td></tr>
+<tr><td>직무가 명확하고 조직 규모가 크다</td><td>RBAC</td></tr>
+<tr><td>신원과 무관한 조건으로 일괄 통제한다</td><td>규칙 기반</td></tr>
+<tr><td>자원과 조건이 다양해 역할로 표현할 수 없다</td><td>ABAC</td></tr>
+<tr><td>같은 사용자라도 상황에 따라 다르게 다뤄야 한다</td><td>위험 기반</td></tr>
+</table></div>
+<p>원본은 실제 조직이 <b>여러 모델을 계층적으로 조합</b>한다고 말합니다. 예: 네트워크 계층은 규칙 기반, 애플리케이션 접근은 RBAC, 데이터 수준은 ABAC, 로그인 시점은 위험 기반.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>의료기기 지원 포털에서 모든 현장 기사는 점검 문서를 읽을 수 있지만, 원격 설정 변경은 담당 장비에 대해 정해진 작업 기간에만 가능해야 합니다. 모든 조합을 역할 이름으로 만들자는 제안이 나왔습니다. 기사 역할(RBAC)로 기본 기능을 주고, 설정 변경은 장비의 고객 소속, 작업 승인 기간, 작업 위험 같은 속성(ABAC)을 더해 판단하는 편이 역할 폭증을 피합니다. 정책의 근거가 되는 속성의 출처와 변경 책임자도 함께 정합니다.</p></div>
+<div class="src">원문 위치: D5.4.md §3 모델 선택 기준</div>
+<h2 id="s9"><span class="n">9</span>인가 결정의 기본값과 실패 처리</h2>
+<div class="tw"><table>
+<tr><th>항목</th><th>원칙</th></tr>
+<tr><td><b>기본 거부</b> default deny</td><td>명시적으로 허용되지 않은 것은 거부. 모든 모델의 공통 원칙</td></tr>
+<tr><td><b>PDP 무응답</b></td><td><b>거부(fail-secure)</b>가 기본. fail-open을 택하면 공격자가 PDP를 방해해 통제를 무력화할 수 있음</td></tr>
+<tr><td><b>결정 캐싱</b></td><td>성능을 위해 캐시하면 <b>권한 회수가 캐시 만료까지 지연</b>. 민감 작업은 캐시를 쓰지 않거나 TTL을 짧게</td></tr>
+</table></div>
+<p><b>원문 사례 — 결정 캐싱이 지연시킨 권한 회수.</b> 인가 결정을 15분간 캐시했는데, 사고 대응 중 특정 사용자의 권한을 즉시 회수해도 그 세션은 최대 15분간 계속 접근할 수 있었습니다. 민감 작업은 캐시를 쓰지 않고, 권한 회수 때 <b>캐시 무효화 이벤트를 전파</b>했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>fail-secure와 fail-safe의 구분은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 같은 원리가 연합 IdP 장애에 적용된 사례는 <a class="xr" href="D5.3.html">D5.3 연합 식별</a>의 9절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.4.md §3 인가 결정의 기본값과 실패 처리, §7 사례 4</div>
+<h2 id="s10"><span class="n">10</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>다음 네 상황에 맞는 모델을 순서대로 고르면? ㉠ 문서 작성자가 원하는 동료에게 편집 권한을 준다. ㉡ 업무 시간 외에는 모든 사용자의 원격 접속을 막는다. ㉢ 재무 부서 과장 이상이, 관리되는 기기로, 자기 부서 내부 자료에만 접근한다. ㉣ 평소에는 바로 허용하지만 처음 보는 기기·위치에서는 추가 인증을 요구한다.</p>
+<ol type="A">
+<li>MAC / RBAC / 규칙 기반 / ABAC</li>
+<li>DAC / 규칙 기반 / ABAC / 위험 기반</li>
+<li>DAC / ABAC / RBAC / 규칙 기반</li>
+<li>RBAC / 위험 기반 / MAC / ABAC</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> ㉠ 소유자 재량(2절). ㉡ 신원과 무관하게 모두에게 같은 조건(5절). ㉢ 주체(부서·직급)·객체(분류·소속)·환경(기기 상태) 속성의 조합(6절). ㉣ 요청 시점 위험에 따라 결정이 변함(6절). 1절의 “결과를 바꾸는 값이 무엇인가”로 읽으면 됩니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">11</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>역할과 속성 중 하나만 사용할 수 있나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>역할로 일상 기능의 권한 집합을 정하고, 데이터 소속이나 시간 같은 속성으로 조건을 좁힐 수 있습니다. 정책이 맞아도 요청이 통과하는 모든 경로에서 실제로 집행돼야 합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">12</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>첫 질문: <b>누가, 무엇을 근거로 결정하는가.</b> 소유자=DAC, 라벨=MAC, 직무=RBAC, 공통 조건=규칙 기반, 속성 조합=ABAC, 실시간 위험=위험 기반.</li>
+<li><b>DAC</b>: 유연하지만 권한 확산·전파, 악성코드가 사용자 권한 그대로 행사. 민감 자료는 DAC 위에 강제 제약.</li>
+<li><b>MAC</b>: 등급 ≥ 분류 <b>그리고</b> 구획(알 필요성). 소유자도 권한을 넘길 수 없음. BLP(기밀성), Biba(무결성).</li>
+<li><b>RBAC</b>: 사용자→역할→권한. 직무 분리 = <b>상호 배타적 역할(정적)</b>, <b>같은 거래 동시 행사 금지(동적)</b>. 위험은 <b>역할 폭증</b> → 변하는 조건은 속성으로.</li>
+<li><b>규칙 기반</b>: 모두에게 같은 if-then. 순서 중요, 끝에 <b>암묵적 거부</b>(방화벽).</li>
+<li><b>ABAC</b>: 주체·객체·작업·환경 속성. 표현력 최고, <b>속성 품질에 의존</b>. 제로 트러스트·클라우드의 기본.</li>
+<li><b>위험 기반</b>: 허용 / step-up / 제한 / 거부. ABAC 환경 속성의 동적 확장, 지속 평가. 신호 품질 = 통제 품질.</li>
+<li><b>PEP(집행) / PDP(결정) / PIP(속성) / PAP(정책)</b>. 결정과 집행 분리. <b>PEP 우회 경로가 하나라도 있으면 무의미.</b> 800-207은 PE·PA·PEP.</li>
+<li>실무는 <b>여러 모델의 계층적 조합</b>.</li>
+<li>기본 거부, PDP 무응답 시 <b>fail-secure</b>, 결정 캐싱은 회수 지연 → 민감 작업 캐시 금지·무효화 전파.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D5.4.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 “시험 접근법” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">13</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">DAC (Discretionary Access Control)</span> <span class="term-ko">· 임의적 접근 통제</span></h3>
+<p>객체 소유자가 재량으로 권한을 부여하는 모델. ACL 로 구현된다.</p>
+<h3 id="glossary-2"><span lang="en">MAC (Mandatory Access Control)</span> <span class="term-ko">· 강제적 접근 통제</span></h3>
+<p>시스템이 라벨과 정책으로 강제하는 모델. 소유자가 권한을 넘길 수 없다.</p>
+<h3 id="glossary-3"><span lang="en">Clearance / Classification</span> <span class="term-ko">· 인가 등급 / 분류</span></h3>
+<p>주체에게 부여된 등급과 객체에 부여된 등급. MAC 접근 판단의 두 축이다.</p>
+<h3 id="glossary-4"><span lang="en">RBAC (Role-Based Access Control)</span> <span class="term-ko">· 역할 기반 접근 통제</span></h3>
+<p>역할에 권한을 묶고 사용자를 역할에 배정하는 모델.</p>
+<h3 id="glossary-5"><span lang="en">Role Explosion</span> <span class="term-ko">· 역할 폭증</span></h3>
+<p>예외를 역할로 계속 만들어 역할 수가 관리 불가능해지는 현상.</p>
+<h3 id="glossary-6"><span lang="en">Mutually Exclusive Roles</span> <span class="term-ko">· 상호 배타적 역할</span></h3>
+<p>동시에 보유할 수 없도록 지정된 역할. 직무 분리를 RBAC 으로 구현한다.</p>
+<h3 id="glossary-7"><span lang="en">Rule-Based Access Control</span> <span class="term-ko">· 규칙 기반 접근 통제</span></h3>
+<p>관리자가 정한 조건을 모든 주체에 동일하게 적용하는 모델. 방화벽 ACL 이 전형이다.</p>
+<h3 id="glossary-8"><span lang="en">ABAC (Attribute-Based Access Control)</span> <span class="term-ko">· 속성 기반 접근 통제</span></h3>
+<p>주체·객체·작업·환경 속성의 조합을 평가하는 모델. 표현력이 가장 높다.</p>
+<h3 id="glossary-9"><span lang="en">Risk-Based Access Control</span> <span class="term-ko">· 위험 기반 접근 통제</span></h3>
+<p>요청 시점의 위험 점수로 결정을 조정하는 모델. 적응형 인증과 결합된다.</p>
+<h3 id="glossary-10"><span lang="en">PEP — Policy Enforcement Point</span> <span class="term-ko">· 정책 집행 지점</span></h3>
+<p>요청을 가로채 결정을 집행하는 구성요소.</p>
+<h3 id="glossary-11"><span lang="en">PDP — Policy Decision Point</span> <span class="term-ko">· 정책 결정 지점</span></h3>
+<p>정책을 평가해 허용·거부를 산출하는 구성요소.</p>
+<h3 id="glossary-12"><span lang="en">PIP — Policy Information Point</span> <span class="term-ko">· 정책 정보 지점</span></h3>
+<p>결정에 필요한 속성을 공급하는 구성요소.</p>
+<h3 id="glossary-13"><span lang="en">PAP — Policy Administration Point</span> <span class="term-ko">· 정책 관리 지점</span></h3>
+<p>정책을 작성하고 관리하는 구성요소.</p>
+<h3 id="glossary-14"><span lang="en">Default Deny</span> <span class="term-ko">· 기본 거부</span></h3>
+<p>명시적으로 허용되지 않은 모든 접근을 거부하는 원칙.</p>
+<div class="src">원문 위치 · D5.4.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">14</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-162</strong> — ABAC 정의와 고려사항, PDP/PEP/PIP/PAP 구조</li>
+<li><strong>NIST SP 800-207</strong> — 제로 트러스트의 PE / PA / PEP</li>
+<li><strong>NIST SP 800-53 AC 통제군</strong> — AC-3 접근 집행, AC-5 직무 분리, AC-6 최소권한</li>
+<li><strong>ISO/IEC 27002:2022</strong> — 5.15 접근 통제, 5.18 접근 권한</li>
+<li><strong>ANSI INCITS 359</strong> — RBAC 참조 모델(역할 계층, 직무 분리 제약)</li>
+<li><strong>XACML</strong> — ABAC 정책 표현과 PDP/PEP 통신 표준</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D5.4.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">어떤 사용자가 로그인에는 성공했으나 보고서를 열 때 접근 거부 메시지를 받았다. 어느 단계가 거부한 것인가?</a></li>
+<li><a href="#question-2">어떤 정부 시스템에서 문서에는 분류 라벨이, 사용자에게는 인가 등급이 부여된다. 문서를 작성한 사용자도 다른 사용자에게 그 문서의 접근 권한을 줄 수 없고 시스템이 라벨만으로 결정한다. 사용 중인 접근 통제 모델은?</a></li>
+<li><a href="#question-3">어떤 시스템이 평소에는 비밀번호와 등록된 보안 키로 로그인을 허용하지만 인식되지 않은 기기와 비정상적인 위치에서 요청이 오면 비민감 데이터에 대한 읽기 접근만 허용하고 그 외에는 추가 인증을 요구한다. 적용 중인 모델은?</a></li>
+<li><a href="#question-4">웹 인터페이스는 사용자가 자기 기록만 조회하도록 강제하는데 같은 데이터를 제공하는 REST API 는 임의의 기록 식별자를 수락한다. 이것이 가리키는 것은?</a></li>
+<li><a href="#question-5">다음 네 상황에 맞는 모델을 순서대로 고르면? ㉠ 문서 작성자가 원하는 동료에게 편집 권한을 준다. ㉡ 업무 시간 외에는 모든 사용자의 원격 접속을 막는다. ㉢ 재무 부서 과장 이상이, 관리되는 기기로, 자기 부서 내부 자료에만 접근한다. ㉣ 평소에는 바로 허용하지만 처음 보는 기기·위치에서는 추가 인증을 요구한다.</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D5.3.html"><small>← 이전 단원</small>5.3 연합 식별</a><a href="D5.5.html" style="text-align:right"><small>다음 단원 →</small>5.5 프로비저닝 생애주기</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

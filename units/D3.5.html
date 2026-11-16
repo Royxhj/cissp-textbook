@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D3.5 보안 아키텍처, 설계, 솔루션 요소의 취약점 평가와 완화 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D3.5">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 3 보안 아키텍처 및 엔지니어링 › 3.5</div>
+<h1>보안 아키텍처, 설계, 솔루션 요소의 취약점 평가와 완화</h1>
+<div class="en">Assess and mitigate the vulnerabilities of security architectures, designs, and solution elements · ISC2 CISSP Exam Outline(2024-04-15 발효) 3.5</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">같은 “서버 보안”이라도 병원 영상 장비, 공장의 PLC, 클라우드의 서버리스 함수는 약점이 전혀 다릅니다. 이 단원은 시스템 유형마다 어디가 고유하게 약하고 무엇으로 완화하는지를 훑습니다. 공식 개요 3.5가 나열하는 유형이 많아 범위가 넓지만, 판단의 축은 두 가지입니다. <b>그 시스템이 무엇을 가장 중요하게 여기는가</b>, 그리고 <b>그 시스템만의 구조적 제약이 무엇인가</b>.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a></td><td>설계 원칙과 공동 책임 모델. 이 단원은 원칙이 깨지는 구체적인 자리를 본다 (7절)</td></tr>
+<tr><td><a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a></td><td>격리·메모리 보호·보안 부팅 같은 기반 기능. 컨테이너와 VM의 격리 강도 (11절, 15절)</td></tr>
+<tr><td><a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a></td><td>집계와 추론. 이 단원은 데이터베이스 고유의 대응(다중 인스턴스화)을 본다 (4절)</td></tr>
+<tr><td><a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a></td><td>교체할 수 없는 레거시와 보완 통제. OT·임베디드의 현실 (6절, 13절)</td></tr>
+<tr><td><a class="xr" href="D3.6.html">D3.6 암호 솔루션</a></td><td>암호 시스템의 알고리즘과 키 관리 상세 (5절)</td></tr>
+<tr><td><a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a></td><td>네트워크 분할, 마이크로세그멘테이션 (6절, 9절)</td></tr>
+<tr><td><a class="xr" href="D8.5.html">D8.5 안전한 코딩</a></td><td>입력 검증, SQL 삽입, API 보안의 코드 수준 대응 (2절, 4절, 10절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>시스템마다 위협 모델이 다르다</h2>
+<p>원본의 출발점은 <b>일반 IT 시스템의 통제를 그대로 가져다 쓰면 맞지 않는다</b>입니다. 가장 큰 차이는 CIA의 우선순위입니다.</p>
+<div class="tw"><table>
+<tr><th>환경</th><th>우선순위</th></tr>
+<tr><td>일반 IT</td><td><b>기밀성 → 무결성 → 가용성</b></td></tr>
+<tr><td><b>ICS / OT</b></td><td><b>가용성·안전 → 무결성 → 기밀성</b></td></tr>
+</table></div>
+<p>산업 제어 환경에서는 <b>인명 안전과 공정 가용성이 최우선</b>입니다. 보안 패치를 위해 생산 라인을 멈추는 판단이 IT와 전혀 다른 이유입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>표의 순서는 “늘 이렇다”는 규칙이 아니라 출발점입니다. 일반 IT 안에서도 결제 시스템은 무결성이, 응급실 전자의무기록은 가용성이 앞설 수 있습니다(<a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 본 의료기관 사례). 이 단원의 각 절을 읽을 때마다 “이 시스템에서 무엇이 깨지면 가장 큰 피해가 나는가”를 먼저 묻는 습관을 들이면, 처음 보는 시스템 유형에도 같은 방식으로 접근할 수 있습니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D3.5-Q01</div>
+<p>산업제어시스템 환경의 보안 목표 우선순위는 전통적 IT 환경과 통상 어떻게 다른가?</p><ol type="A"><li>두 환경의 우선순위는 동일하다.</li><li>제어 데이터는 민감하지 않으므로 무결성은 무관하다.</li><li>가용성과 안전이 기밀성보다 우선한다.</li><li>기밀성이 다른 모든 목표보다 우선한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> ICS/OT 환경에서는 중단이 생산 손실과 안전 사고로 직결되므로 가용성과 인명 안전이 최우선이고 그다음이 무결성, 기밀성 순이다. 일반 IT 의 기밀성 우선과 반대이며 이 때문에 IT 통제를 그대로 적용할 수 없다.</p><ul><li>A · 우선순위가 다른 것이 핵심 차이다.</li><li>B · 제어 명령의 무결성은 안전과 직결되어 매우 중요하다.</li><li>D · 기밀성 우선은 일반 IT 환경의 특징이다.</li></ul><div class="src">원문 위치 · D3.5-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.5.md §2, §5 첫 표 · 공식 개요 3.5 “Assess and mitigate the vulnerabilities of security architectures, designs, and solution elements” · 기존 문제 Q01 주제</div>
+<h2 id="s2"><span class="n">2</span>클라이언트 기반 시스템</h2>
+<p>핵심 위협은 <b>클라이언트를 신뢰하는 설계</b>입니다. 원본의 원칙은 <b>클라이언트에서 오는 모든 입력은 신뢰할 수 없다</b>입니다. 공격자는 클라이언트를 완전히 통제할 수 있기 때문입니다.</p>
+<ul>
+<li><b>클라이언트 측 검증만 믿는 것</b> — 검증은 반드시 서버에서도 한다</li>
+<li>로컬 캐시와 저장소에 남는 민감 데이터</li>
+<li>브라우저·플러그인 취약점, 악성 확장</li>
+<li>실행 코드 변조(리버싱, 메모리 패치)</li>
+</ul>
+<p>완화: 서버 측 검증, 저장 최소화, 코드 서명, 단말 보호, 최신 패치.</p>
+<p><b>원문 사례 — 클라이언트 검증만 믿은 결제.</b> 모바일 앱이 할인율을 앱 안에서 계산해 서버로 보냈습니다. 공격자가 앱을 조작해 99% 할인을 적용한 요청을 보냈고 서버는 그대로 받아들였습니다. 할인율은 서버가 다시 계산했어야 했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>앱 화면의 입력 검사는 사용자 편의(빨리 오류를 알려 줌)를 위한 것이지 보안 통제가 아닙니다. 공격자는 앱을 거치지 않고 서버에 직접 요청을 보낼 수 있으므로, 서버 입장에서 클라이언트는 “누구든 될 수 있는 상대”입니다. 가격, 권한, 수량처럼 결과에 영향을 주는 값은 서버가 자기 데이터로 다시 계산하거나 확인해야 합니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 클라이언트 기반 시스템, §7 사례 1 · 공식 개요 3.5 “Client-based systems”</div>
+<h2 id="s3"><span class="n">3</span>서버 기반 시스템</h2>
+<ul>
+<li>데이터 흐름 통제 — 서버 간 신뢰 경계 설정</li>
+<li>가용성 — 부하 분산, 이중화</li>
+<li>강화와 최소 기능</li>
+<li>서버 간 횡적 이동 차단 — 세그멘테이션</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>서버를 볼 때는 고객이 쓰는 경로와 운영자가 쓰는 경로를 나눠 봐야 합니다. 고객용 웹 포트만 검토하고, 관리 콘솔·원격 접속·로그·백업에 누가 어느 경로로 들어오는지는 놓치기 쉽습니다. 관리 기능은 별도의 승인 경계(전용 관리망, 강한 인증) 뒤에 두고, 공개 기능은 최소 권한으로 운영합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>강화와 최소 기능은 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, 세그멘테이션은 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>, 이중화와 가용성은 <a class="xr" href="D7.10.html">D7.10 복구 전략</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 서버 기반 시스템 · 공식 개요 3.5 “Server-based systems”</div>
+<h2 id="s4"><span class="n">4</span>데이터베이스 시스템</h2>
+<div class="tw"><table>
+<tr><th>위협</th><th>설명</th></tr>
+<tr><td><b>SQL 삽입</b></td><td>입력이 질의문으로 해석된다</td></tr>
+<tr><td><b>집계</b> Aggregation</td><td>개별 권한만으로 전체를 모아 민감 정보를 얻는다</td></tr>
+<tr><td><b>추론</b> Inference</td><td>허용된 질의 결과로 허용되지 않은 정보를 유추한다</td></tr>
+<tr><td>동시성 문제</td><td>여러 거래가 동시에 같은 데이터를 바꾸며 무결성이 손상된다</td></tr>
+</table></div>
+<h3 id="s4-poly">다중 인스턴스화</h3>
+<p><b>다중 인스턴스화(Polyinstantiation)</b>는 <b>같은 키에 대해 등급별로 서로 다른 레코드가 존재하게 하는 기법</b>입니다. 원본의 예로, “화물 302편 목적지”에 대해 Secret 사용자는 실제 목적지를, Unclassified 사용자는 다른 값을 봅니다. 저등급 사용자는 기밀 데이터가 있다는 사실 자체를 알 수 없습니다.</p>
+<p><b>원문 사례 — 추론을 막은 다중 인스턴스화.</b> 저등급 사용자가 특정 화물 번호로 레코드를 입력하려 하자 “이미 존재함” 오류가 떴고, 그 오류만으로 고등급 레코드의 존재가 드러났습니다. 다중 인스턴스화를 적용해 등급별로 별도 레코드를 유지하자, 저등급 사용자는 자기 레코드만 보게 되었습니다.</p>
+<h3 id="s4-other">그 밖의 대응</h3>
+<div class="tw"><table>
+<tr><th>기법</th><th>막는 것</th></tr>
+<tr><td>데이터베이스 뷰 View</td><td>필요한 열·행만 노출</td></tr>
+<tr><td>셀 단위 접근 통제</td><td>개별 값 단위 노출</td></tr>
+<tr><td>질의 제한</td><td>결과 건수가 너무 적거나 많은 질의(집계·추론 공격)</td></tr>
+<tr><td>노이즈 추가</td><td>통계 질의를 미세하게 왜곡해 개인 값 추론 방지</td></tr>
+<tr><td><b>매개변수화 질의</b> Prepared Statement</td><td><b>SQL 삽입 방어의 표준</b></td></tr>
+<tr><td>다중 인스턴스화</td><td>추론과 존재 노출</td></tr>
+</table></div>
+<div class="box add"><p><span class="tag">보충</span>질의 제한이 왜 “너무 적은 결과”를 막을까요. 통계만 볼 수 있는 사용자도 조건을 좁혀 결과가 한 명이 되게 만들면 그 사람의 값을 알아냅니다. “영업팀 평균 급여”와 “김 대리를 뺀 영업팀 평균 급여”를 차례로 물으면 김 대리의 급여가 계산됩니다. 결과 집합이 너무 작으면 거부하고, 통계에 작은 잡음을 섞는 것이 대응입니다. 반대로 결과가 너무 크면 집계로 대량 수집하는 것을 의심합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>집계와 추론의 개념은 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>, 등급 체계와 BLP는 <a class="xr" href="D3.2.html">D3.2 보안 모델</a>, SQL 삽입을 막는 코드 작성은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D3.5-Q11</div>
+<p>집계 통계에만 접근 권한이 있는 사용자가 작은 부분집합을 반복 질의해 특정 개인의 급여를 추론할 수 있게 되었다. 이것은 무엇이며 무엇으로 완화하는가?</p><ol type="A"><li>SQL 주입이며 매개변수화 쿼리로 완화한다.</li><li>집계를 통한 추론 공격이며 질의 집합 크기 제한, 셀 억제, 노이즈 또는 차분 프라이버시, 질의 양상 모니터링으로 완화한다.</li><li>권한 상승 결함이며 해당 사용자 계정 제거로 완화한다.</li><li>서비스 거부이며 질의 속도 제한만으로 완화한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 각 질의는 인가된 범위 안에 있어 접근 통제가 위반되지 않는다. 문제는 여러 합법적 결과를 조합하면 보호되어야 할 개별 값이 드러난다는 것이다. 그래서 통제가 질의 단위가 아니라 질의 집합 수준에서 작동해야 한다. 최소 집합 크기를 요구하고, 민감한 셀을 억제하고, 결과에 노이즈를 더하고, 반복 질의 양상을 감시한다.</p><ul><li>A · 주입이 아니라 인가된 질의의 조합이다.</li><li>C · 권한은 정상이며 결과 조합이 문제다.</li><li>D · 가용성 공격이 아니다.</li></ul><div class="src">원문 위치 · D3.5-Q11</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.5.md §3 데이터베이스 시스템, §5 둘째 표, §7 사례 3 · 공식 개요 3.5 “Database systems” · 기존 문제 Q11 주제</div>
+<h2 id="s5"><span class="n">5</span>암호 시스템</h2>
+<p>원본의 핵심 문장은 <b>대부분의 실패는 알고리즘이 아니라 구현과 운영에서 발생한다</b>입니다.</p>
+<ul>
+<li>약한 알고리즘, 짧은 키, 구식 프로토콜</li>
+<li><b>키 관리 실패</b> — 하드코딩, 평문 저장, 교체 없음</li>
+<li><b>난수 품질 부족</b> — 예측 가능한 키</li>
+<li>인증서 검증 생략</li>
+<li>직접 구현한 암호(roll-your-own crypto)</li>
+</ul>
+<p>완화: 검증된 라이브러리, 하드웨어 난수, HSM/KMS 기반 키 관리, <b>알고리즘 민첩성(crypto-agility)</b> 확보.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>장비 소프트웨어가 로그 파일을 AES-256으로 암호화하는데, 키가 모든 장비의 프로그램 안에 같은 값으로 들어 있다고 합시다. 알고리즘은 강하지만, 누군가 장비 하나에서 프로그램을 분석해 키를 꺼내면 전 세계 모든 장비의 로그를 풀 수 있습니다. 장비마다 다른 키를 쓰고, 그 키를 장비의 보안 요소나 TPM에 보관하면 장비 하나가 털려도 그 장비로 피해가 한정됩니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>알고리즘 선택과 키 수명주기는 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 하드웨어 난수와 TPM·HSM은 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>, 암호 분석 공격은 <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D3.5-Q22</div>
+<p>어떤 애플리케이션이 AES-256 을 올바르게 사용하지만 모든 고객 설치본에 같은 암호화 키가 컴파일되어 들어 있다. 약점은?</p><ol type="A"><li>AES-256 이 불충분하므로 더 긴 키가 필요하다.</li><li>암호 모드를 스트림 암호로 변경해야 한다.</li><li>암호 시스템이 알고리즘이 아니라 키 관리에서 실패한다. 키 하나가 추출되면 모든 고객이 침해되며 소프트웨어를 재배포하지 않고는 키를 교체할 수 없다.</li><li>키가 컴파일된 바이너리 안에 있으므로 약점이 없다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 암호 시스템의 실패는 알고리즘보다 키 관리에서 훨씬 자주 일어난다. 바이너리에 박힌 키는 역공학으로 추출할 수 있고 공유 키이므로 한 번 추출되면 전체 고객의 데이터가 열린다. 교체하려면 전원에게 새 버전을 배포해야 하므로 사실상 교체가 불가능하다. 고객별 키를 생성해 안전한 저장소에 두고 교체 가능한 구조로 설계해야 한다.</p><ul><li>A · 키 길이 문제가 아니다.</li><li>B · 모드 변경이 키 공유 문제를 해결하지 않는다.</li><li>D · 컴파일은 은닉이며 보호가 아니다.</li></ul><div class="src">원문 위치 · D3.5-Q22</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.5.md §3 암호 시스템 · 공식 개요 3.5 “Cryptographic systems” · 기존 문제 Q22 주제</div>
+<h2 id="s6"><span class="n">6</span>산업제어시스템 (ICS / SCADA / OT)</h2>
+<h3 id="s6-why">왜 IT와 다른가</h3>
+<div class="tw"><table>
+<tr><th>제약</th><th>내용</th></tr>
+<tr><td>가용성 최우선</td><td>중단이 생산 손실·안전 사고로 직결</td></tr>
+<tr><td><b>패치 어려움</b></td><td>재부팅 불가, 벤더 인증 필요</td></tr>
+<tr><td><b>레거시 프로토콜</b></td><td>Modbus, DNP3 등 <b>인증·암호화 없음</b></td></tr>
+<tr><td>긴 수명</td><td>10~20년 운영, 지원 종료 상태</td></tr>
+<tr><td>실시간 요구</td><td>지연을 유발하는 통제를 적용하기 어렵다</td></tr>
+<tr><td><b>안전(Safety)</b></td><td>보안보다 인명 안전이 상위</td></tr>
+</table></div>
+<h3 id="s6-how">완화 — 격리가 핵심</h3>
+<ul>
+<li><b>네트워크 분할</b> — Purdue 모델 기반 계층 분리</li>
+<li><b>단방향 게이트웨이(data diode)</b> — OT → IT 방향만 허용</li>
+<li><b>가상 패치</b></li>
+<li>전용 원격 접근 경로와 강한 인증</li>
+<li>OT 전용 모니터링 — 산업 프로토콜을 이해하는 탐지</li>
+<li><b>안전 계장 시스템(SIS)은 별도로 분리</b></li>
+</ul>
+<p>원본의 경고는 이것입니다. IT 보안의 “일단 차단하고 본다”가 OT에서는 <b>안전 사고를 일으킬 수 있다.</b> 통제를 적용하기 전에 공정 영향 평가가 필수입니다.</p>
+<p><b>원문 사례 — ICS에 IT 통제를 적용한 결과.</b> 보안팀이 생산 네트워크에 일반 취약점 스캐너를 돌렸고, 스캔 트래픽이 PLC를 재부팅시켜 생산 라인이 멈췄습니다. 원본은 OT에서는 능동 스캔이 위험할 수 있으므로 패시브 모니터링과 벤더가 승인한 도구를 쓰고 공정 영향 평가를 거쳐야 한다고 정리합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>Purdue 모델은 공장 네트워크를 현장 장치(센서·액추에이터) → 제어기(PLC) → 감시·운전(HMI, SCADA) → 공장 운영 → 기업 IT 순의 층으로 나누고, 층 사이 경계에서 통신을 통제하는 참조 구조입니다(층 구성은 일반 지식에 근거한 보충). 단방향 게이트웨이는 물리적으로 한 방향만 신호가 가게 만든 장치라서, OT의 운전 데이터를 IT로 보낼 수는 있어도 IT에서 OT로 명령이 들어올 수는 없습니다. 안전 계장 시스템은 공정이 위험 상태가 되면 자동으로 멈추게 하는 마지막 안전장치이므로, 제어망이 침해되어도 영향을 받지 않도록 따로 둡니다.</p></div>
+<div class="box ex"><p><span class="tag">가상 예시</span>병원의 영상 진단 장비도 OT와 비슷한 성격을 가집니다. 검사 중인 환자가 있으면 장비를 멈출 수 없고, 운영체제 업데이트는 제조사 검증 뒤에만 할 수 있으며, 10년 넘게 씁니다. 그래서 병원 IT팀의 일반 취약점 스캔이 장비를 멈추게 하지 않도록 스캔 대상에서 빼거나 제조사가 검증한 방식으로만 점검하고, 장비 구역을 분리하며, 원격 지원은 정해진 경로로만 열리게 합니다. <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>의 영상 진단 장비 사례가 이 상황입니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>OT 상황에서는 ① 우선순위가 가용성·안전이라는 점을 먼저 떠올리고 ② 즉시 패치·전면 차단·능동 스캔처럼 공정을 멈출 수 있는 선택지는 경계하며 ③ 격리(분할, 단방향 게이트웨이), 가상 패치, 패시브 모니터링, 공정 영향 평가 쪽을 봅니다. 사람의 안전이 걸려 있으면 그것이 다른 모든 고려보다 앞섭니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>교체할 수 없는 레거시의 보완 통제는 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>, 네트워크 분할은 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>, 탐지 수단의 운영은 <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a>에서 다룹니다. 원본은 NIST SP 800-82(OT 보안)와 IEC 62443(산업 자동화·제어 시스템 보안)을 관련 표준으로 듭니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 산업제어시스템, §6 NIST SP 800-82·IEC 62443, §7 사례 2 · 공식 개요 3.5 “Industrial Control Systems (ICS)”</div>
+<h2 id="s7"><span class="n">7</span>클라우드 기반 시스템</h2>
+<p>서비스 모델별 고객 책임(IaaS: 운영체제 이상 전부, PaaS: 애플리케이션·데이터, SaaS: 데이터·IAM·설정)은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>에서 다뤘습니다. 원본이 드는 주요 취약점입니다.</p>
+<ul>
+<li><b>잘못된 구성(misconfiguration)</b> — 원본은 클라우드 침해의 최대 원인으로 꼽는다. 공개 스토리지, 과다 권한</li>
+<li><b>과도한 IAM 권한</b> — 와일드카드 정책</li>
+<li><b>멀티테넌시</b> — 논리적 격리 실패, 부채널</li>
+<li><b>메타데이터 서비스 악용</b> — SSRF로 임시 자격증명 탈취</li>
+<li>데이터 소재지와 국경 간 이전</li>
+<li>섀도 IT와 미관리 리소스</li>
+</ul>
+<p>완화: IaC와 정책 코드화, <b>CSPM(Cloud Security Posture Management, 클라우드 보안 상태 관리)</b>, 최소권한 IAM, 임시 자격증명, 암호화와 키 관리 분리, CASB.</p>
+<p><b>원문 사례 — 메타데이터 서비스를 통한 자격증명 탈취.</b> 웹 애플리케이션의 SSRF 취약점으로 공격자가 클라우드 인스턴스 메타데이터 서비스에 접근해 임시 자격증명을 얻었습니다. 그 역할에 과도한 권한이 있어 스토리지 전체를 읽을 수 있었습니다. 최소권한 IAM 역할과 메타데이터 서비스 접근 제한이 필요했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>이 사례는 작은 취약점 두 개가 이어져 큰 사고가 된 경우입니다. SSRF(Server-Side Request Forgery)는 서버가 공격자 대신 내부 주소로 요청을 보내게 만드는 취약점이고, 클라우드 인스턴스 안에서만 접근할 수 있는 메타데이터 주소가 그 대상이 되었습니다. 둘째 고리는 인스턴스 역할의 과다 권한입니다. 어느 한쪽만 막혀 있었어도 피해는 작았을 것이므로, <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>의 심층 방어가 클라우드에서 어떻게 작동해야 하는지 보여 줍니다. 같은 데이터베이스라도 직접 운영할 때와 관리형 서비스를 쓸 때 패치·백업·접근 정책의 담당이 달라지므로, “클라우드”라는 이름 대신 구성 요소마다 누가 무엇을 하는지 적어 두는 것이 좋습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>IaC와 태깅 강제는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, CASB는 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>, 국경 간 이전은 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>, 도입 클라우드 서비스의 평가는 <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>에서 다룹니다. 원본은 NIST SP 800-144/800-145(클라우드 보안과 정의), CSA Cloud Controls Matrix를 관련 자료로 듭니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D3.5-Q32</div>
+<p>어떤 공급자가 가상 머신을 제공하고 고객이 그 위에 자기 운영체제와 애플리케이션을 설치한다. 어떤 서비스 모델인가?</p><ol type="A"><li>서비스형 함수(FaaS).</li><li>서비스형 소프트웨어(SaaS).</li><li>서비스형 플랫폼(PaaS).</li><li>서비스형 인프라(IaaS).</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> IaaS 는 연산과 저장, 네트워크를 제공하고 운영체제 위쪽은 고객이 맡는다. PaaS 는 런타임까지 공급자가 제공해 고객은 애플리케이션만 배포하고, SaaS 는 완성된 애플리케이션을 제공한다. FaaS 는 함수 단위로 실행되는 서버리스 모델이다. 모델이 올라갈수록 고객의 통제 범위와 책임이 줄어든다.</p><ul><li>A · FaaS 는 함수 단위 실행 모델이다.</li><li>B · SaaS 는 완성된 애플리케이션을 제공한다.</li><li>C · PaaS 는 런타임까지 제공한다.</li></ul><div class="src">원문 위치 · D3.5-Q32</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.5.md §3 클라우드 기반 시스템, §6, §7 사례 4 · 공식 개요 3.5 “Cloud-based systems (e.g., SaaS, IaaS, PaaS)” · 기존 문제 Q32 주제</div>
+<h2 id="s8"><span class="n">8</span>분산 시스템</h2>
+<ul>
+<li>구성 요소 사이의 <b>신뢰 경계</b>가 많아 공격면이 넓다</li>
+<li><b>시간 동기화</b> — 로그 상관분석과 인증서 검증에 필수</li>
+<li>일관성과 가용성의 트레이드오프</li>
+<li>서비스 간 인증 부재 — 내부망 신뢰 가정</li>
+</ul>
+<p>완화: 상호 인증(mTLS), 메시지 무결성, 중앙 시간 동기화, 서비스 메시.</p>
+<div class="box add"><p><span class="tag">보충</span>시간 동기화가 보안 목록에 있는 이유는 두 가지입니다. 사고 조사에서 여러 서버의 로그를 시간순으로 맞춰야 공격 흐름이 보이는데, 시계가 몇 분씩 다르면 순서가 뒤집힙니다. 또 인증서와 토큰은 유효 시간을 가지므로 시계가 틀린 시스템은 만료된 인증서를 받아들이거나 유효한 것을 거부합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>서비스 간에도 위치를 믿지 않는 것은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>의 제로 트러스트, TLS와 인증서 기반 통신은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>·<a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a>, 로그 상관분석은 <a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 분산 시스템 · 공식 개요 3.5 “Distributed systems”</div>
+<h2 id="s9"><span class="n">9</span>사물인터넷 (IoT)</h2>
+<p>원본은 IoT를 <b>구조적으로 취약하다</b>고 표현합니다.</p>
+<ul>
+<li><b>기본 자격증명</b>을 바꾸지 않은 채 배포</li>
+<li><b>업데이트 메커니즘 부재</b> 또는 서명 검증 없음</li>
+<li>물리적 접근 용이 — 디버그 포트, 펌웨어 추출</li>
+<li>제한된 연산 자원 — 강한 암호 적용 곤란</li>
+<li><b>대규모 배포</b> — 침해되면 봇넷이 된다</li>
+<li>벤더 지원 조기 종료</li>
+</ul>
+<p>완화: 전용 네트워크 분할, 기본 자격증명 강제 변경, 서명된 펌웨어 업데이트, 인증서 기반 기기 식별, 아웃바운드 통제, 수명주기 관리.</p>
+<div class="box add"><p><span class="tag">보충</span>“아웃바운드 통제”는 IoT에서 특히 효과가 큽니다. 온도 센서가 접속해야 할 곳은 관리 서버 하나뿐이므로 그 외의 바깥 통신을 막으면, 기기가 털려도 봇넷 명령 서버에 접속하거나 다른 곳을 공격하는 데 쓰이기 어렵습니다. 기기마다 다른 초기 비밀번호를 쓰게 하는 것도 대규모 배포의 약점을 줄이는 방법입니다. 원본은 NIST IR 8259(IoT 기기 제조자의 보안 역량)를 관련 자료로 듭니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>기본 자격증명과 골든 이미지는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, 서명된 업데이트와 보안 부팅은 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>, 기기 인증은 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 사물인터넷, §6 NIST IR 8259 · 공식 개요 3.5 “Internet of Things (IoT)”</div>
+<h2 id="s10"><span class="n">10</span>마이크로서비스와 API</h2>
+<ul>
+<li><b>인증·인가 미흡</b> — 서비스 간 호출에 검증이 없다</li>
+<li><b>과다 데이터 노출</b> — API가 필요 이상을 반환하고 클라이언트가 걸러낸다</li>
+<li><b>객체 수준 인가 부재(IDOR)</b> — 식별자만 바꾸면 남의 데이터가 조회된다</li>
+<li>속도 제한 부재</li>
+<li>버전 난립과 방치된 엔드포인트(shadow API)</li>
+</ul>
+<p>완화: API 게이트웨이, 서비스 간 mTLS, 토큰 기반 인가와 <b>객체 단위 권한 검증</b>, 스키마 검증, 속도 제한, API 인벤토리.</p>
+<div class="box add"><p><span class="tag">보충</span>IDOR(Insecure Direct Object Reference)은 단순하지만 흔합니다. 주소창의 <code>/orders/1001</code>을 <code>/orders/1002</code>로 바꿨더니 남의 주문이 보이는 경우입니다. 로그인했는지(인증)만 확인하고 “이 주문이 이 사용자의 것인가”(객체 수준 인가)를 확인하지 않아서 생깁니다. 과다 데이터 노출은 2절의 “클라이언트를 믿지 마라”의 다른 얼굴입니다. 화면에 안 보이게 걸러도 응답에 들어 있으면 공격자는 봅니다. 원본은 OWASP API Security Top 10을 관련 자료로 듭니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>인가 메커니즘은 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>, 토큰 기반 인증(OAuth 등)은 <a class="xr" href="D5.3.html">D5.3 연합 식별</a>, API 보안 코딩은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>, 인벤토리의 공백(섀도 API도 섀도 IT의 한 형태)은 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 마이크로서비스와 API, §6 OWASP API Security Top 10 · 공식 개요 3.5 “Microservices (e.g., API)”</div>
+<h2 id="s11"><span class="n">11</span>컨테이너화</h2>
+<ul>
+<li><b>이미지 신뢰</b> — 공개 레지스트리의 오염된 이미지</li>
+<li><b>커널 공유</b> — 격리 약화와 탈출</li>
+<li>특권 컨테이너 실행</li>
+<li><b>비밀 관리</b> — 이미지나 환경변수에 평문 자격증명</li>
+<li>오케스트레이터 API 노출</li>
+<li>이미지 취약점 누적</li>
+</ul>
+<p>완화: 신뢰 레지스트리와 이미지 서명, 이미지 스캔, 비특권 실행, 읽기 전용 파일 시스템, 비밀 관리 도구, 네트워크 정책, 런타임 보호.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>여러 팀의 업무를 한 호스트에 올리면서 팀마다 필요한 라이브러리가 달라 컨테이너로 나누자는 제안에 “가상 머신과 똑같이 격리된다”는 설명이 붙었습니다. 같은 회사 팀들이라면 컨테이너 + 비특권 실행 + 커널 패치로 충분할 수 있습니다. 하지만 서로 신뢰하지 않는 외부 고객의 코드를 함께 올린다면 커널을 공유하는 구조 자체가 위험이므로 VM이나 경량 VM을 써야 합니다. “얼마나 격리되는가”는 기술 이름이 아니라 함께 놓이는 대상이 서로 믿을 수 있는지로 판단합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>컨테이너와 VM의 격리 강도는 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>, 이미지 서명과 공급망은 <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>, 비밀 관리는 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>에서 다룹니다. 원본은 NIST SP 800-190(컨테이너 보안)을 듭니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 컨테이너화, §6 NIST SP 800-190 · 공식 개요 3.5 “Containerization”</div>
+<h2 id="s12"><span class="n">12</span>서버리스</h2>
+<ul>
+<li><b>이벤트 주입</b> — 다양한 이벤트 소스(파일 업로드, 메시지 큐, HTTP)가 모두 입력 경로다</li>
+<li><b>과도한 함수 권한</b> — 함수마다 최소권한을 적용하기 어렵다</li>
+<li>의존성 취약점</li>
+<li><b>가시성 부족</b> — 수명이 짧아 포렌식이 어렵다</li>
+<li>비동기 흐름의 복잡성</li>
+</ul>
+<p>완화: 함수별 최소권한 역할, 입력 검증, 의존성 관리와 SBOM, 구조화 로깅과 추적, 실행 시간·동시성 제한.</p>
+<div class="box add"><p><span class="tag">보충</span>서버리스에서는 서버가 사라지는 대신 <b>함수와 권한</b>이 자산이 됩니다. 함수 수십 개가 모두 같은 넓은 역할을 쓰면 하나만 털려도 전부를 쓸 수 있습니다. 또 실행이 끝나면 환경이 사라지므로 사고 뒤에 “그 순간의 상태”를 볼 수 없습니다. 그래서 사건 기록을 남기는 일을 실행 중에 미리 해 둬야 합니다(구조화 로그, 추적 ID).</p></div>
+<div class="box link"><p><span class="tag">연결</span>SBOM과 의존성 관리는 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>·<a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>, 로깅과 추적은 <a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 서버리스 · 공식 개요 3.5 “Serverless”</div>
+<h2 id="s13"><span class="n">13</span>임베디드 시스템</h2>
+<ul>
+<li>자원 제약으로 보안 기능을 탑재하기 어렵다</li>
+<li><b>업데이트 경로 부재</b> 또는 현장 접근 필요</li>
+<li>펌웨어 추출과 리버싱</li>
+<li>하드코딩된 키와 자격증명</li>
+<li>긴 수명과 지원 종료</li>
+</ul>
+<p>완화: 보안 부팅과 신뢰 루트, 서명된 펌웨어, 디버그 인터페이스 비활성화, 하드웨어 보안 요소, 네트워크 격리.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>의료 장비 안의 제어 보드를 생각해 봅시다. 개발 중에 쓰던 디버그 포트(JTAG, 시리얼 콘솔)가 양산품에 그대로 열려 있으면, 장비를 열 수 있는 사람은 펌웨어를 꺼내 분석하고 그 안의 키를 찾을 수 있습니다. 양산 시 디버그 인터페이스를 잠그고, 펌웨어는 서명 검증 후에만 실행되게 하며(보안 부팅), 키는 보안 요소에 넣는 것이 원본의 완화 목록을 이 장비에 적용한 모습입니다. 업데이트 경로를 설계 단계에서 만들어 두지 않으면, 취약점이 발견되었을 때 현장 방문 말고는 고칠 방법이 없습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>보안 부팅과 신뢰 루트는 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>, 하드웨어 신뢰 루트와 PUF는 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, 지원 종료 자산은 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 임베디드 시스템 · 공식 개요 3.5 “Embedded systems”</div>
+<h2 id="s14"><span class="n">14</span>고성능 컴퓨팅과 엣지 컴퓨팅</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>고유 위험</th><th>완화</th></tr>
+<tr><td><b>HPC</b> 고성능 컴퓨팅</td><td>다수 사용자가 공유하는 대규모 자원, 작업 스케줄러 권한, 공유 파일 시스템의 데이터 분리, 연산 자원 자체가 탈취 대상(암호화폐 채굴), 성능 때문에 보안 기능을 끄는 관행</td><td>다중 사용자 격리, 스케줄러 접근 통제, 작업 단위 감사, 자원 사용 이상 탐지</td></tr>
+<tr><td><b>엣지 컴퓨팅</b></td><td><b>물리 보안 취약</b>(통제되지 않은 장소), 분산 관리(패치·구성 일관성), 연결이 끊겼을 때의 자율 동작과 로컬 데이터, 대수가 많아 운영 부담</td><td>저장 암호화, 기기 인증과 증명, 변조 감지, 중앙 집중 관리와 자동 배포, 최소 데이터 보관</td></tr>
+</table></div>
+<div class="box add"><p><span class="tag">보충</span>엣지 장비는 누군가 가져갈 수 있다는 전제로 설계합니다. 그래서 저장 데이터는 암호화하고, 장비가 변조되지 않았음을 중앙에 증명하게 하며(<a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>의 측정 부팅과 증명), 장비에 꼭 필요한 데이터만 둡니다. HPC에서 “연산 자원 자체가 탈취 대상”이라는 점은, 데이터 유출이 없어도 무단 채굴만으로 큰 비용 피해가 날 수 있다는 뜻입니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 고성능 컴퓨팅, 엣지 컴퓨팅 · 공식 개요 3.5 “High-Performance Computing systems”, “Edge computing systems”</div>
+<h2 id="s15"><span class="n">15</span>가상화 시스템</h2>
+<div class="tw"><table>
+<tr><th>위협</th><th>설명</th></tr>
+<tr><td><b>VM 탈출</b></td><td>게스트에서 하이퍼바이저로 침투</td></tr>
+<tr><td><b>VM 난립(sprawl)</b></td><td>관리되지 않는 VM이 늘어나 패치·인벤토리 공백</td></tr>
+<tr><td><b>휴면 VM</b></td><td>꺼져 있어 패치되지 않다가 오래된 상태로 기동</td></tr>
+<tr><td>스냅샷·이미지</td><td>민감 데이터와 메모리 상태 포함</td></tr>
+<tr><td>자원 경쟁과 부채널</td><td>공유 하드웨어</td></tr>
+<tr><td>하이퍼바이저 관리 평면</td><td>침해 시 전체 장악</td></tr>
+</table></div>
+<p>완화: 하이퍼바이저 패치와 최소 기능, 관리 평면 분리, VM 수명주기 관리, 스냅샷 암호화와 보존 정책, 테넌트 분리, 휴면 VM 정기 점검.</p>
+<p><b>원문 사례 — 휴면 VM이 만든 구멍.</b> 프로젝트가 끝난 뒤 꺼 둔 가상 머신을 1년 뒤 테스트용으로 켰는데, 1년치 패치가 빠진 채 네트워크에 연결되어 곧바로 침해되었습니다. 원본은 휴면 VM도 인벤토리 대상이며, 기동 전에 격리된 네트워크에서 패치하는 절차가 필요했다고 정리합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>스냅샷은 “그 순간의 메모리”까지 담을 수 있어서, 실행 중이던 프로그램의 키나 비밀번호가 스냅샷 파일 안에 남을 수 있습니다. 그래서 스냅샷은 그 VM과 같은 등급의 데이터로 취급하고 암호화·보존 기간·폐기를 정해야 합니다. <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>의 “모든 사본은 원본과 같은 등급”이 가상화에서 나타나는 모습입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>VM 탈출과 Ring -1은 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>, 인벤토리와 휴면 자산은 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, 관리 평면 보호는 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>의 특권 관리에서 다룹니다. 원본은 NIST SP 800-125(가상화 보안)를 듭니다.</p></div>
+<div class="src">원문 위치: D3.5.md §3 가상화 시스템, §5 셋째 표, §6 NIST SP 800-125, §7 사례 5 · 공식 개요 3.5 “Virtualized systems”</div>
+<h2 id="s16"><span class="n">16</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>보안 점검 결과 다음이 발견되었다. ㉠ 생산 라인의 PLC가 사무망과 같은 네트워크에 있다. ㉡ 쇼핑 앱이 상품 가격을 앱에서 계산해 서버로 보낸다. ㉢ 주문 조회 API가 로그인만 확인하고 주문 소유자는 확인하지 않는다. ㉣ 1년간 꺼 두었던 VM을 운영망에 바로 연결해 켜려 한다. 가장 적절한 조치 묶음은?</p>
+<ol type="A">
+<li>㉠ 공정 영향 평가 후 OT 구역 분리와 단방향 게이트웨이 검토 / ㉡ 서버에서 가격 재계산 / ㉢ 객체 단위 권한 검증 / ㉣ 격리망에서 패치 후 기동</li>
+<li>㉠ PLC에 즉시 능동 취약점 스캔 / ㉡ 앱 난독화 / ㉢ 속도 제한만 추가 / ㉣ 그대로 기동</li>
+<li>㉠ PLC 전원을 내려 패치 / ㉡ 클라이언트 검증 강화 / ㉢ HTTPS 적용 / ㉣ 스냅샷 삭제</li>
+<li>㉠ 사무망 백신 업데이트 / ㉡ 가격 암호화 / ㉢ 로그인 강화 / ㉣ 기동 후 패치</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 6절(격리가 핵심, 능동 스캔과 즉시 중단은 위험), ㉡ 2절(클라이언트 입력은 신뢰 불가), ㉢ 10절(IDOR — 인증이 아니라 객체 수준 인가 문제), ㉣ 15절(휴면 VM). B의 앱 난독화와 C의 클라이언트 검증 강화는 여전히 클라이언트를 믿는 것이고, D의 “로그인 강화”는 ㉢의 원인(소유자 확인 누락)을 고치지 않습니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">17</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>같은 웹 기능을 가상 머신에서 관리형 서비스로 바꾸면 위협 검토에서 무엇을 다시 그려야 하나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>데이터, 신뢰 경계와 관리 주체를 다시 그립니다. 운영체제나 실행 환경의 책임은 바뀔 수 있지만 애플리케이션 권한, 데이터 보호와 로그에 대해 누가 실제 통제를 운영하는지는 계약과 구성으로 확인합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">18</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>시스템마다 위협 모델이 다르다. <b>ICS/OT = 가용성·안전 우선</b>, 일반 IT = 기밀성 우선.</li>
+<li><b>클라이언트에서 오는 모든 입력은 신뢰 불가.</b> 서버 측 검증 필수.</li>
+<li>서버: 신뢰 경계, 이중화, 강화, 세그멘테이션. 관리 경로와 업무 경로 분리.</li>
+<li>DB 위협: <b>SQL 삽입 / 집계 / 추론 / 동시성</b>. <b>다중 인스턴스화 = 등급별 별도 레코드 = 추론·존재 노출 방어.</b> 뷰, 셀 단위 통제, 질의 제한, 노이즈, <b>매개변수화 질의</b>.</li>
+<li>암호 실패는 <b>알고리즘이 아니라 키 관리·난수·구현</b>에서. 알고리즘 민첩성.</li>
+<li>OT 제약: 패치 곤란, <b>레거시 프로토콜 무인증·무암호</b>, 긴 수명, 실시간, 안전. 완화의 핵심은 <b>격리</b>(Purdue 분할, <b>단방향 게이트웨이</b>, 가상 패치, SIS 분리). 통제 전 <b>공정 영향 평가</b>.</li>
+<li><b>클라우드 최대 위험 = 잘못된 구성</b>, 과도한 IAM. <b>메타데이터 서비스 + SSRF = 임시 자격증명 탈취.</b> IaC, CSPM, 최소권한.</li>
+<li>분산: 신뢰 경계 다수, 시간 동기화, mTLS.</li>
+<li>IoT·임베디드: <b>기본 자격증명, 업데이트 부재, 물리 접근(디버그 포트), 하드코딩 키, 긴 수명</b>. 분할, 서명된 펌웨어, 보안 부팅, 아웃바운드 통제.</li>
+<li>API: <b>객체 수준 인가(IDOR), 과다 노출, 속도 제한, 섀도 API</b>.</li>
+<li>컨테이너: <b>이미지 신뢰, 커널 공유, 특권 실행, 비밀 관리</b>. 서버리스: <b>이벤트 주입, 과도한 함수 권한, 가시성 부족</b>.</li>
+<li>HPC: 공유 자원과 자원 탈취. 엣지: <b>물리 보안 취약 + 분산 관리</b> → 저장 암호화, 변조 감지, 증명.</li>
+<li>가상화: <b>VM 탈출 / VM 난립 / 휴면 VM / 스냅샷 / 관리 평면</b>.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D3.5.md §8 CISSP 시험 관점, §9 핵심 암기 요약(16항목). 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">19</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Client-Side Validation</span> <span class="term-ko">· 클라이언트 측 검증</span></h3>
+<p>클라이언트에서 수행하는 입력 검증. 공격자가 우회할 수 있어 서버 측 검증을 대체할 수 없다.</p>
+<h3 id="glossary-2"><span lang="en">Polyinstantiation</span> <span class="term-ko">· 다중 인스턴스화</span></h3>
+<p>같은 키에 대해 등급별로 다른 레코드를 존재하게 해 추론을 방지하는 데이터베이스 기법.</p>
+<h3 id="glossary-3"><span lang="en">ICS / SCADA / OT — Industrial Control Systems / Supervisory Control and Data Acquisition / Operational Technology</span> <span class="term-ko">· 산업제어시스템 / 감시 제어·데이터 수집 / 운영 기술</span></h3>
+<p>산업제어시스템과 운영기술 환경. 가용성과 안전이 기밀성보다 우선한다.</p>
+<h3 id="glossary-4"><span lang="en">Purdue Model</span> <span class="term-ko">· 퍼듀 모델</span></h3>
+<p>OT 환경을 계층으로 나누어 IT 와 OT 사이의 분리 구조를 정의하는 참조 모델.</p>
+<h3 id="glossary-5"><span lang="en">Data Diode</span> <span class="term-ko">· 단방향 게이트웨이</span></h3>
+<p>물리적으로 한 방향 통신만 허용하는 장치. OT 에서 IT 로의 단방향 전송에 쓰인다.</p>
+<h3 id="glossary-6"><span lang="en">SIS — Safety Instrumented System</span> <span class="term-ko">· 안전 계장 시스템</span></h3>
+<p>위험 상황에서 공정을 안전 상태로 전환하는 시스템. 제어 네트워크와 분리해야 한다.</p>
+<h3 id="glossary-7"><span lang="en">Misconfiguration</span> <span class="term-ko">· 잘못된 구성</span></h3>
+<p>클라우드 침해의 최대 원인. 공개 스토리지, 과도한 권한이 대표적이다.</p>
+<h3 id="glossary-8"><span lang="en">Instance Metadata Service</span> <span class="term-ko">· 인스턴스 메타데이터 서비스</span></h3>
+<p>클라우드 인스턴스에 임시 자격증명을 제공하는 내부 서비스. SSRF 로 악용될 수 있다.</p>
+<h3 id="glossary-9"><span lang="en">IDOR — Insecure Direct Object Reference</span> <span class="term-ko">· 안전하지 않은 직접 객체 참조</span></h3>
+<p>식별자를 변경해 권한 없는 객체에 접근하는 취약점. 객체 수준 인가 검증으로 막는다.</p>
+<h3 id="glossary-10"><span lang="en">Shadow API</span> <span class="term-ko">· 관리 범위에 등록되지 않은 API</span></h3>
+<p>문서화되지 않거나 방치된 API 엔드포인트. 인벤토리 공백이 된다.</p>
+<h3 id="glossary-11"><span lang="en">Privileged Container</span> <span class="term-ko">· 특권 컨테이너</span></h3>
+<p>호스트 권한으로 실행되는 컨테이너. 탈출 위험이 크게 증가한다.</p>
+<h3 id="glossary-12"><span lang="en">Event Injection</span> <span class="term-ko">· 이벤트 주입</span></h3>
+<p>서버리스 함수의 다양한 이벤트 소스를 통한 악성 입력 주입.</p>
+<h3 id="glossary-13"><span lang="en">VM Sprawl</span> <span class="term-ko">· VM 난립</span></h3>
+<p>관리되지 않는 가상머신이 증가해 패치와 인벤토리에 공백이 생기는 현상.</p>
+<h3 id="glossary-14"><span lang="en">Dormant VM</span> <span class="term-ko">· 휴면 VM</span></h3>
+<p>장기간 꺼져 있어 패치되지 않은 채 구형 상태로 기동되는 가상머신.</p>
+<div class="src">원문 위치 · D3.5.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">20</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-82</strong> — OT 보안 지침. ICS 환경의 특수성</li>
+<li><strong>IEC 62443</strong> — 산업 자동화 및 제어 시스템 보안</li>
+<li><strong>NIST SP 800-190</strong> — 컨테이너 보안</li>
+<li><strong>NIST SP 800-144 / 800-145</strong> — 클라우드 보안과 정의</li>
+<li><strong>CSA Cloud Controls Matrix</strong> — 클라우드 통제 매트릭스</li>
+<li><strong>OWASP API Security Top 10</strong> — API 취약점</li>
+<li><strong>NIST SP 800-125</strong> — 가상화 보안</li>
+<li><strong>NIST IR 8259</strong> — IoT 기기 제조자 보안 역량</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D3.5.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">산업제어시스템 환경의 보안 목표 우선순위는 전통적 IT 환경과 통상 어떻게 다른가?</a></li>
+<li><a href="#question-2">집계 통계에만 접근 권한이 있는 사용자가 작은 부분집합을 반복 질의해 특정 개인의 급여를 추론할 수 있게 되었다. 이것은 무엇이며 무엇으로 완화하는가?</a></li>
+<li><a href="#question-3">어떤 애플리케이션이 AES-256 을 올바르게 사용하지만 모든 고객 설치본에 같은 암호화 키가 컴파일되어 들어 있다. 약점은?</a></li>
+<li><a href="#question-4">어떤 공급자가 가상 머신을 제공하고 고객이 그 위에 자기 운영체제와 애플리케이션을 설치한다. 어떤 서비스 모델인가?</a></li>
+<li><a href="#question-5">보안 점검 결과 다음이 발견되었다. ㉠ 생산 라인의 PLC가 사무망과 같은 네트워크에 있다. ㉡ 쇼핑 앱이 상품 가격을 앱에서 계산해 서버로 보낸다. ㉢ 주문 조회 API가 로그인만 확인하고 주문 소유자는 확인하지 않는다. ㉣ 1년간 꺼 두었던 VM을 운영망에 바로 연결해 켜려 한다. 가장 적절한 조치 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D3.4.html"><small>← 이전 단원</small>3.4 시스템 보안 기능</a><a href="D3.6.html" style="text-align:right"><small>다음 단원 →</small>3.6 암호 솔루션</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

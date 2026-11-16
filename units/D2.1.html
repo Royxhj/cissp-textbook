@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D2.1 정보 및 자산의 식별과 분류 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D2.1">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 7개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 2 자산 보안 › 2.1</div>
+<h1>정보 및 자산의 식별과 분류</h1>
+<div class="en">Identify and classify information and assets · ISC2 CISSP Exam Outline(2024-04-15 발효) 2.1</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 7개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">모든 것을 똑같이 지키려 하면 돈이 모자라고, 결국 정말 중요한 것도 제대로 지키지 못합니다. 무엇을 가지고 있는지 알아내고, 그것을 중요도에 따라 나누는 일이 자산 보안의 출발점입니다. 이 단원은 그 ‘나누는 기준’과 ‘누가 나누는가’를 다룹니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<p>도메인 2는 하나의 흐름입니다. 식별하고 분류한 뒤(2.1), 등급별로 다루는 규칙을 정하고(2.2), 자산을 들여와 관리하고(2.3), 데이터의 생애 전체를 관리하며(2.4·2.5), 통제를 고릅니다(2.6).</p>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.9.html">D1.9 위험 관리</a></td><td>위험 관리의 첫 단계 ‘자산 식별과 가치 평가’가 이 단원이다. 분류 등급이 자산 가치의 판단 근거가 된다 (1절)</td></tr>
+<tr><td><a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a></td><td>FIPS 199·200의 ‘가장 높은 값을 따른다’는 원칙이 자산 분류의 최고 등급 원칙과 같은 발상이다 (3절)</td></tr>
+<tr><td><a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a></td><td>Data Owner와 Custodian의 역할 구분이 분류 결정에 적용된다 (6절)</td></tr>
+<tr><td><a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a></td><td>분류 등급마다 어떻게 다룰지를 정한다. 분류는 그 자체로는 아무것도 보호하지 않는다 (1절)</td></tr>
+<tr><td><a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a></td><td>자산 인벤토리를 만들고 유지하는 방법 (8절)</td></tr>
+<tr><td><a class="xr" href="D3.2.html">D3.2 보안 모델</a> · <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a></td><td>등급과 구획을 접근 통제 모델로 강제하는 방법(Bell-LaPadula, 강제적 접근 통제) (4절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>왜 식별하고 분류하는가</h2>
+<h3 id="s1-why">왜 필요한가</h3>
+<p>원본의 출발점은 두 문장입니다. <b>가진 것을 모르면 보호할 수 없다.</b> 그리고 분류(classification)의 목적은 라벨을 붙이는 것이 아니라 <b>보호 수준을 차등 적용</b>하는 것이다.</p>
+<p>모든 데이터를 최고 수준으로 보호하면 비용이 감당되지 않고, 모두를 최저 수준으로 보호하면 민감 정보가 노출됩니다. 분류는 그 사이에서 “어디에 얼마나 쓸 것인가”를 정하는 근거입니다.</p>
+<div class="flow">
+<div class="nd"><b>자산 식별</b>무엇을 가지고 있나</div><div class="ar">→</div>
+<div class="nd"><b>분류</b>얼마나 중요한가</div><div class="ar">→</div>
+<div class="nd"><b>취급 요구사항</b>등급별로 어떻게 다루나</div><div class="ar">→</div>
+<div class="nd"><b>통제 적용</b></div><div class="ar">→</div>
+<div class="nd"><b>폐기까지 추적</b></div>
+</div>
+<p><b>원문 사례 — 분류하지 않아 과잉 투자한 조직.</b> 모든 파일 서버에 최고 수준의 암호화, 다단계 승인, 전수 감사를 적용했습니다. 비용이 치솟았고 업무 속도가 떨어졌으며 직원들은 개인 클라우드로 우회했습니다. 분석해 보니 전체 데이터 중 민감 정보는 4% 미만이었습니다. 분류 후 그 4%에만 고강도 통제를 적용하고 나머지는 기본 통제로 낮추자 <b>비용은 줄고 보호 수준은 오히려 올라갔습니다.</b></p>
+<div class="box add"><p><span class="tag">보충</span>보호 수준이 올라간 이유는 두 가지입니다. 같은 예산과 감시 인력을 4%에 집중할 수 있게 되었고, 나머지 96%에서 불편이 사라져 직원들이 개인 클라우드로 빠져나갈 이유가 없어졌습니다. 우회가 줄면 조직이 볼 수 있는 범위가 넓어집니다. 분류는 통제를 줄이는 일이 아니라 통제를 옮기는 일입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span><a class="xr" href="D1.9.html">D1.9 위험 관리</a>의 위험 관리 절차가 “자산 식별과 가치 평가”에서 시작한다고 했는데, 그 첫 단계를 실제로 하는 방법이 이 단원입니다. 분류 등급은 그 단원의 자산 가치(AV)를 정하는 근거가 되고, 위험이 위협·취약점·자산 가치의 결합이므로 등급이 다르면 같은 취약점이라도 위험이 달라집니다. <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 “CIA의 균형은 자산과 위험 수용 수준에 맞춘다”고 한 것의 ‘자산’ 쪽 기준이 분류입니다. 그리고 분류는 다음 단원 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>의 취급 요구사항으로 이어져야 의미가 생깁니다.</p></div>
+<div class="src">원문 위치: D2.1.md §2, §7 사례 1 · 암기노트 K01, K02 · 기존 문제 Q09, Q10, Q18 주제</div>
+<h2 id="s2"><span class="n">2</span>자산의 범위</h2>
+<div class="tw"><table>
+<tr><th>구분</th><th>예시</th></tr>
+<tr><td><b>유형 자산</b> Tangible</td><td>서버, 네트워크 장비, 단말, 시설, 매체</td></tr>
+<tr><td><b>무형 자산</b> Intangible</td><td>데이터, 소프트웨어, 지식재산, 평판, 브랜드</td></tr>
+</table></div>
+<p><b>무형 자산이 더 큰 가치를 갖는 경우가 많습니다.</b> 서버는 다시 살 수 있지만 유출된 고객 데이터는 되돌릴 수 없습니다. 사람도 자산이자 위험 요인이며, <b>라이선스와 계약 권리</b>도 자산으로 관리합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>무형 자산의 종류는 앞 단원에서 이미 만났습니다. 지식재산(특허·저작권·영업비밀)과 라이선스는 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>, 사람은 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>, 평판은 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>의 정성적 영향 평가에서 나왔습니다. <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>의 BIA가 서버 목록이 아니라 업무 기능에서 출발해야 한다고 한 것과 같은 이유로, 자산 식별도 장비 목록에서 멈추면 가장 값진 것을 빠뜨립니다.</p></div>
+<div class="src">원문 위치: D2.1.md §3 자산의 범위, §4 Asset · 기존 문제 Q06 주제</div>
+<h2 id="s3"><span class="n">3</span>데이터 분류와 자산 분류</h2>
+<h3 id="s3-easy">쉬운 설명</h3>
+<p>공식 개요 2.1의 세부 항목이 이 둘입니다. 대상이 다릅니다.</p>
+<div class="tw"><table>
+<tr><th>구분</th><th>대상</th><th>기준</th></tr>
+<tr><td><b>데이터 분류</b> Data Classification</td><td>정보 자체</td><td>노출·변조·손실 시 영향</td></tr>
+<tr><td><b>자산 분류</b> Asset Classification</td><td>시스템·매체·장비</td><td>담고 있는 데이터의 <b>최고 등급</b></td></tr>
+</table></div>
+<p><b>자산의 등급은 그 안에 담긴 데이터의 가장 높은 등급을 따릅니다.</b> 1급 기밀 하나가 들어 있는 서버는 1급으로 취급합니다.</p>
+<h3 id="s3-how">작동 방식: 분리가 비용을 줄인다</h3>
+<p>이 원칙이 실무에 주는 결과가 큽니다. 민감 데이터를 따로 저장하지 않으면 <b>시스템 전체가 최고 등급 통제를 요구</b>하게 되어 비용이 급증합니다. 그래서 <b>데이터 분리(segmentation)</b>가 비용 통제 수단이 됩니다.</p>
+<p><b>원문 사례 — 하나의 민감 데이터가 올린 등급.</b> 범용 분석 서버에 마케팅 데이터와 함께 주민등록번호가 포함된 원본 테이블 하나가 적재되어 있었습니다. 자산 등급이 최고 수준으로 올라가 서버 전체에 고강도 통제와 감사가 요구되었습니다. 그 테이블을 따로 분리하자 분석 서버는 중간 등급으로 내려갔습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>현장 장비가 보내는 서비스 로그를 모으는 서버가 있습니다. 로그의 대부분은 오류 코드와 부품 상태이지만, 일부 로그에 검사 대상자의 식별번호가 섞여 들어옵니다. 이 서버는 식별번호 때문에 개인정보를 다루는 시스템이 되고, 접근 통제·암호화·감사·보존 기간 모두 그 수준에 맞춰야 합니다. 선택지는 둘입니다. 식별번호가 든 부분을 별도 저장소로 분리해 그곳만 높은 등급으로 관리하거나, 더 근본적으로 장비가 보내기 전에 식별번호를 빼는 것입니다. 후자는 분류 대상 자체를 없애는 방법입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>원본은 이 원칙을 FIPS 199의 최고값(high water mark) 적용과 연결합니다. 정확히는 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 정리했듯 FIPS 199는 시스템의 기밀성·무결성·가용성 각각에 대해 정보 유형들 중 최고값을 기록하고, FIPS 200이 최소 통제 수준을 정할 때 세 값 중 최고값을 시스템 전체 영향 수준으로 씁니다(<a class="xr" href="D1.9.html">D1.9 위험 관리</a>도 같은 원리를 언급). 어느 쪽이든 “가장 민감한 것에 맞춘다”는 발상이 같으므로, 민감한 정보 하나가 시스템 전체의 통제 비용을 올리고, 그래서 분리 설계가 비용 통제 수단이 됩니다. 위 예시의 두 번째 방법은 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>의 Privacy by Design과 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>의 데이터 최소화입니다. 네트워크에서 구역을 나누는 방법은 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>의 세그멘테이션에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D2.1-Q01</div>
+<p>공용 분석 서버에 대부분 공개 마케팅 데이터가 저장되어 있으나 한 테이블에 주민등록번호가 포함되어 있다. 이 서버 자체는 어떻게 분류되어야 하는가?</p><ol type="A"><li>담고 있는 데이터 중 가장 높은 분류 등급으로.</li><li>시스템에 존재하는 가장 낮은 분류 등급으로.</li><li>서버는 인프라이므로 분류 대상이 아니다.</li><li>저장된 모든 데이터의 평균 분류 등급으로.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 자산의 등급은 그 안에 담긴 데이터의 가장 높은 등급을 따른다. 민감 데이터를 분리 저장하지 않으면 시스템 전체가 최고 등급 통제를 요구하게 되므로 데이터 분리가 비용 통제 수단이 된다.</p><ul><li>B · 최저 등급을 적용하면 민감 데이터가 보호되지 않는다.</li><li>C · 시스템과 매체도 자산 분류 대상이다.</li><li>D · 평균을 쓰면 저장 중인 더 높은 등급 자료에 필요한 보호가 누락될 수 있습니다.</li></ul><div class="src">원문 위치 · D2.1-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.1.md §3 데이터 분류와 자산 분류, §4 Data Classification·Asset Classification, §5 첫 표, §7 사례 2 · 암기노트 K03 · 기존 문제 Q01, Q11 주제 · 공식 개요 2.1 “Data classification, Asset classification”</div>
+<h2 id="s4"><span class="n">4</span>분류 체계: 민간과 정부·군</h2>
+<h3 id="s4-priv">민간 부문</h3>
+<p>조직마다 다르지만 통상 3~4단계를 씁니다.</p>
+<div class="tw"><table>
+<tr><th>등급</th><th>의미</th></tr>
+<tr><td>Public</td><td>공개되어도 무방</td></tr>
+<tr><td>Internal / Private</td><td>내부 전용</td></tr>
+<tr><td>Confidential</td><td>노출 시 중대한 손실</td></tr>
+<tr><td>Restricted / Highly Confidential</td><td>노출 시 조직 생존 위협</td></tr>
+</table></div>
+<p><b>단계가 많을수록 좋은 것이 아닙니다.</b> 구성원이 구분하지 못하면 분류 자체가 작동하지 않습니다. 각 등급에 <b>구체적 취급 규칙</b>이 붙어야 의미가 생깁니다.</p>
+<h3 id="s4-gov">정부·군</h3>
+<div class="tw"><table>
+<tr><th>등급</th><th>노출 시 영향</th></tr>
+<tr><td><b>Top Secret</b></td><td><b>예외적으로 중대한(exceptionally grave)</b> 손상</td></tr>
+<tr><td><b>Secret</b></td><td><b>심각한(serious)</b> 손상</td></tr>
+<tr><td><b>Confidential</b></td><td>손상</td></tr>
+<tr><td>Unclassified</td><td>분류 대상 아님</td></tr>
+</table></div>
+<p>그 밖에 <b>SBU(Sensitive But Unclassified)</b>, <b>CUI(Controlled Unclassified Information)</b>처럼 분류 등급은 아니지만 통제가 필요한 정보 범주가 있습니다.</p>
+<h3 id="s4-comp">구획화</h3>
+<p>군 체계에서는 등급과 함께 <b>구획화(Compartmentalization)</b>가 쓰입니다. 등급이 충분해도 그 구획에 대한 <b>알 필요성(need-to-know)</b>이 없으면 접근할 수 없습니다. 이것이 강제적 접근 통제(MAC, Mandatory Access Control)의 기반이 됩니다.</p>
+<div class="box add"><p><span class="tag">보충</span>등급과 구획은 방향이 다른 두 개의 자물쇠입니다. 등급은 <b>위아래</b>(얼마나 민감한가), 구획은 <b>옆</b>(어느 주제인가)을 나눕니다. Top Secret 인가를 받은 사람이라도 자기와 무관한 작전의 Top Secret 자료는 볼 수 없습니다. 두 자물쇠가 모두 열려야 접근이 허용됩니다. 한 가지 주의할 점은 ‘Confidential’이라는 단어입니다. 민간 체계에서는 위에서 두 번째의 높은 등급이지만, 정부 체계에서는 분류 등급 중 가장 낮습니다. 같은 단어라도 어느 체계인지에 따라 무게가 다릅니다. 민간 조직끼리도 마찬가지입니다. 두 회사가 모두 Confidential을 써도 한 곳은 사내 전체 열람, 다른 곳은 특정 역할만 열람을 뜻할 수 있으므로, 협업할 때는 등급 이름이 아니라 그 등급에 붙은 취급 규칙(열람 범위, 반출, 보존)을 맞춰 봐야 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>알 필요성은 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 최소권한과 함께 소개했습니다(최소권한은 무엇을 할 수 있는가, 알 필요성은 무엇을 볼 수 있는가). 등급과 구획을 시스템이 강제하는 방식은 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>의 강제적 접근 통제에서, 등급 사이의 정보 흐름을 수학적으로 정의한 모델은 <a class="xr" href="D3.2.html">D3.2 보안 모델</a>의 Bell-LaPadula와 격자 기반 접근 통제에서 다룹니다. 약어 주의: 여기의 MAC은 Mandatory Access Control이며 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>의 메시지 인증 코드와 다릅니다. CUI 보호 요구사항은 원본이 관련 표준으로 드는 NIST SP 800-171에 있습니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>분류 체계 상황에서는 ① 지문이 정부·군 체계인지 민간 체계인지 먼저 가리고(민간은 조직마다 등급 이름이 다르다) ② 정부 체계라면 각 등급에 붙는 손상의 표현(exceptionally grave / serious / damage)을 구분하고 ③ 등급이 충분한데도 접근이 거부되는 상황이면 구획과 알 필요성을 떠올립니다. 단계 수를 설계하는 상황이라면 구성원이 구분해 쓸 수 있는지와 등급마다 취급 규칙이 있는지가 기준입니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D2.1-Q07</div>
+<p>조직이 9개의 서로 다른 등급으로 구성된 데이터 분류 체계를 제안한다. 이 설계의 가장 가능성 높은 문제는?</p><ol type="A"><li>사용자가 등급을 일관되게 구분하지 못해 체계가 실제로 적용되지 않는다.</li><li>등급이 많을수록 정의상 항상 더 강한 보호를 제공한다.</li><li>규정상 정확히 3개 등급이 요구된다.</li><li>분류 체계는 기술적으로 5개 등급을 초과할 수 없다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 등급이 많다고 보호가 강해지지 않는다. 구성원이 구분하지 못하면 분류 자체가 작동하지 않는다. 통상 3~4단계가 실용적이며 각 등급에 구체적 취급 규칙이 붙어야 의미가 생긴다.</p><ul><li>B · always 라는 절대 표현이며 사실과 다르다.</li><li>C · 규정이 특정 등급 수를 강제하지 않는다.</li><li>D · 기술적 상한이 있는 것이 아니라 운영상 실효성의 문제다.</li></ul><div class="src">원문 위치 · D2.1-Q07</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.1.md §3 민간 부문 분류 체계, 정부·군 분류 체계, §4 Compartmentalization·CUI, §5 둘째 표, §6 NIST SP 800-171 · 암기노트 K05, K06, K07 · 기존 문제 Q04, Q07, Q08 주제</div>
+<h2 id="s5"><span class="n">5</span>분류 기준과 재분류</h2>
+<h3 id="s5-crit">무엇을 보고 등급을 정하는가</h3>
+<ul>
+<li><b>노출 시 피해 규모</b> — 재무, 법적, 평판</li>
+<li><b>법규·계약 요구사항</b> — 개인정보, 의료정보, 카드정보</li>
+<li><b>유용성과 적시성</b> — 시간이 지나면 가치가 떨어지는가</li>
+<li><b>데이터 소유권과 출처</b></li>
+<li><b>수명(age)</b> — 분류는 영구적이지 않다</li>
+</ul>
+<h3 id="s5-re">분류는 변한다</h3>
+<p>합병 협상 정보는 발표 전에는 최고 등급이지만 발표 후에는 공개 정보가 됩니다. 그래서 <b>재분류(Reclassification)</b> 절차가 필요합니다. 등급을 올리는 것을 상향 분류, 내리는 것을 <b>하향 분류(Declassification)</b>라 합니다.</p>
+<p><b>원문 사례 — 재분류를 하지 않아 생긴 과잉 통제.</b> 3년 전 종료된 프로젝트 자료가 여전히 최고 등급으로 분류되어 있어, 참고하려는 직원마다 임원 승인을 받아야 했습니다. 실무자들은 결국 개인 사본을 돌려쓰기 시작했습니다. 분류는 주기적으로 재검토되어야 하며, <b>과잉 분류는 우회를 유발해 오히려 통제를 무너뜨립니다.</b></p>
+<div class="box add"><p><span class="tag">보충</span>분류의 실패는 양쪽에 있습니다. 낮게 분류하면 보호가 모자라고, 높게 분류하면 우회가 생깁니다. 사람들은 대개 “모르겠으면 높게”를 안전한 선택으로 여기지만, 그렇게 쌓인 과잉 분류는 통제된 저장소 밖에 개인 사본을 만들어 냅니다. 개인 사본은 조직이 볼 수도 지울 수도 없으므로, 높게 분류한 결과가 가장 낮은 보호가 됩니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>기준의 첫 두 줄은 다른 단원이 채워 줍니다. 피해 규모는 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>의 기밀성·무결성·가용성 영향과 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>의 영향 평가로, 법규·계약 요구사항은 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>의 프라이버시 법규와 PCI DSS로 정해집니다. 법이 특정 데이터 유형에 보호 수준을 요구하면 조직의 분류는 그보다 낮을 수 없습니다. 과잉 통제가 우회를 낳는다는 것은 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>의 균형, <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>의 보안 문화에서 본 것과 같은 현상입니다. 분류가 내려가거나 수명이 다한 데이터의 처리는 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>의 보존과 파기로 이어집니다.</p></div>
+<div class="src">원문 위치: D2.1.md §3 분류 기준, §4 Reclassification / Declassification, §7 사례 4 · 암기노트 K08, K10 · 기존 문제 Q05, Q12, Q17 주제</div>
+<h2 id="s6"><span class="n">6</span>누가 분류하고 누가 표시하는가</h2>
+<div class="tw"><table>
+<tr><th>역할</th><th>책임</th></tr>
+<tr><td><b>Data Owner</b> 데이터 소유자</td><td><b>분류 결정</b>, 접근 승인, 재검토</td></tr>
+<tr><td>Data Custodian 데이터 관리자</td><td>분류에 따른 보호 조치 수행</td></tr>
+<tr><td>User 사용자</td><td>라벨에 따라 취급, 새로 만든 산출물의 분류</td></tr>
+</table></div>
+<p><b>분류를 결정하는 것은 Data Owner입니다. 보안팀이 아닙니다.</b> 보안팀은 체계를 만들고 지원하지만, 그 데이터의 업무적 가치를 아는 것은 해당 업무 관리자입니다.</p>
+<h3 id="s6-label">라벨링과 마킹</h3>
+<p><b>라벨링(Labeling)</b>은 분류 결과를 자산에 표시하는 것입니다. 전자 문서의 메타데이터·머리말, 물리 매체의 외부 표시가 해당합니다. <b>마킹(Marking)</b>과 구분하는 교재도 있습니다. 사람이 읽는 표시를 마킹, 시스템이 읽는 표시를 라벨링으로 나누기도 하며, 원본은 맥락으로 판단하라고 안내합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>표시는 분류의 결과이지 분류 자체가 아닙니다. 표시가 필요한 이유는 분류를 결정한 사람과 그 데이터를 다루는 사람이 다르기 때문입니다. 소유자의 결정이 표시를 통해 관리자, 사용자, 그리고 유출 방지 도구 같은 시스템에 전달됩니다. 표시가 없으면 다음 단원의 취급 규칙을 적용할 방법이 없습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>이 역할 구분은 <a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a>에서 먼저 나왔고(소유자는 결정, 관리자는 수행. IT 부서는 대개 관리자), 그곳의 보충대로 소유자가 업무 관리자인 이유는 데이터가 새거나 바뀌었을 때의 사업 피해를 아는 사람이기 때문입니다. 개인정보 맥락의 컨트롤러·프로세서를 포함한 전체 데이터 역할은 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>에서 다룹니다. 표시된 매체를 실제로 다루는 규칙은 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>, 소유자가 승인한 접근을 주기적으로 다시 확인하는 일은 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>의 접근 검토입니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D2.1-Q19</div>
+<p>데이터 집합의 분류를 결정하는 주체는?</p><ol type="A"><li>저장소를 관리하는 시스템 관리자.</li><li>분류 체계를 유지하는 보안팀.</li><li>업무 가치와 공개 시 영향을 이해하고 그 결정에 책임을 지는 데이터 소유자.</li><li>데이터 파일을 만든 사람.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 분류는 "이 정보가 유출되면 업무에 어떤 영향이 있는가" 를 판단하는 일이다. 그 판단은 업무 맥락을 아는 소유자만 할 수 있다. 보안팀은 체계와 기준을 제공하고, 관리자는 소유자가 정한 보호 수준을 구현한다. 작성자는 소유자와 다를 수 있고 역할이 바뀌므로 책임 주체로 부적절하다.</p><ul><li>A · 관리자는 구현 주체다.</li><li>B · 보안팀은 체계를 제공한다.</li><li>D · 작성자가 곧 소유자는 아니다.</li></ul><div class="src">원문 위치 · D2.1-Q19</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.1.md §3 분류 결정과 라벨링의 책임, §4 Data Owner·Labeling / Marking · 암기노트 K04 · 기존 문제 Q02, Q19 주제</div>
+<h2 id="s7"><span class="n">7</span>집계와 추론: 등급이 올라가는 경우</h2>
+<h3 id="s7-easy">쉬운 설명</h3>
+<p>하나씩 보면 민감하지 않은 데이터가 <b>모이면 민감해집니다.</b></p>
+<div class="tw"><table>
+<tr><th>현상</th><th>뜻</th><th>원본의 예</th></tr>
+<tr><td><b>집계</b> Aggregation</td><td>개별적으로는 민감하지 않은 데이터가 모여 더 높은 민감도를 갖게 됨</td><td>이름·부서·내선번호는 각각 내부 공개 수준이지만 전체 조직도와 결합되면 사회공학 공격의 지도가 된다</td></tr>
+<tr><td><b>추론</b> Inference</td><td>공개된 정보에서 비공개 정보를 유추함</td><td>특정 부서의 야근 수당 급증과 채용 공고를 조합해 신규 프로젝트의 존재를 알아낸다</td></tr>
+</table></div>
+<p>그래서 <b>데이터베이스 뷰 단위, 쿼리 결과 단위로도 분류를 고려</b>해야 합니다. 개별 레코드만 보고 분류하면 빈틈이 생깁니다.</p>
+<p><b>원문 사례 — 집계가 만든 위험.</b> 사내 디렉터리는 이름·부서·내선번호만 담아 내부 공개로 분류되어 있었습니다. 공격자가 전체를 내려받아 조직도를 재구성하고, 재무팀 보고 라인을 파악해 정밀한 BEC 공격을 수행했습니다. 개별 항목은 민감하지 않았지만 전체 집합은 민감했습니다. 대량 조회에 속도 제한과 이상 탐지를 적용하는 것이 대응책입니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>여러 자료를 합친 보고서나 추출본은 원자료와 별개의 산출물입니다. ① 결합본을 별도 자산으로 등록하고 ② 원자료에는 없던, 결합으로 새로 드러나는 사실이 무엇인지 적은 뒤 ③ 소유자가 그 결과물의 등급을 정합니다. 원자료가 모두 공개라도 결합본은 기밀일 수 있고, 반대로 민감한 필드를 빼고 만든 배포본은 원본보다 낮은 등급일 수 있습니다. 이때도 남은 필드로 무엇을 알아낼 수 있는지 다시 평가해야 합니다.</p></div>
+<div class="box add"><p><span class="tag">보충</span>둘의 차이는 <b>가지고 있는 것</b>과 <b>알아낸 것</b>입니다. 집계는 실제로 많은 데이터를 손에 넣은 결과이고, 추론은 손에 넣지 못한 정보를 손에 넣은 정보로부터 짐작해 낸 결과입니다. 대응도 다릅니다. 집계에는 한 번에 가져갈 수 있는 양을 제한하고 대량 조회를 탐지하는 것이, 추론에는 조합하면 답이 드러나는 정보를 함께 내주지 않는 것이 대응입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>이 사례의 BEC는 <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>에서 다룬 사회공학 수법이고, 공격자가 한 일은 <a class="xr" href="D1.10.html">D1.10 위협 모델링</a> Kill Chain의 첫 단계인 정찰입니다. 데이터베이스에서 추론을 막는 기법은 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>에서 다룹니다. 집계는 사람의 권한에서도 일어납니다. <a class="xr" href="D1.8.html">D1.8 인적 보안</a>의 권한 누적(Privilege Creep / Aggregation)은 하나씩은 정당한 권한이 한 사람에게 모여 위험해지는 같은 구조입니다.</p></div>
+<div class="quiz" id="question-4">
+<div class="qh">이해 확인 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>병원에 납품한 장비의 설치 목록(병원명, 모델, 설치일)은 영업 자료로 쓰여 ‘내부용’으로 분류되어 있다. 한 직원이 전체 목록 수천 건을 한 번에 내려받는 기능을 요청했다. 보안 담당자가 고려해야 할 점으로 가장 적절한 것은?</p>
+<ol type="A">
+<li>개별 항목이 내부용이므로 전체 목록도 내부용이다. 제한할 이유가 없다.</li>
+<li>개별 항목은 민감하지 않아도 전체 집합은 어느 병원이 어떤 취약한 모델을 쓰는지 보여 주는 자료가 될 수 있으므로, 집합 단위의 등급과 대량 조회 통제를 검토한다.</li>
+<li>모든 항목을 최고 등급으로 올려 누구도 조회하지 못하게 한다.</li>
+<li>추론 문제이므로 병원명을 암호화하면 해결된다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 집계의 문제입니다. 모이면 개별 항목보다 민감해질 수 있으므로 집합 단위로 분류를 다시 보고, 대량 조회에 제한과 탐지를 둡니다.</p>
+<ul><li>A: 개별 레코드만 보고 분류하면 빈틈이 생깁니다.</li>
+<li>C: 영업에 필요한 자료를 쓸 수 없게 됩니다. 과잉 분류는 우회를 부릅니다.</li>
+<li>D: 여기서 일어나는 것은 추론이 아니라 집계이고, 업무에 필요한 사람은 병원명을 봐야 합니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.1.md §3 집계와 추론, §4 Aggregation·Inference, §5 셋째 표, §7 사례 3 · 암기노트 K09 · 기존 문제 Q03 주제</div>
+<h2 id="s8"><span class="n">8</span>인벤토리와 자동화</h2>
+<p>분류가 작동하려면 <b>자산 인벤토리</b>가 먼저 있어야 합니다.</p>
+<ul>
+<li><b>발견(discovery)</b> — 네트워크 스캔, 에이전트, 클라우드 API</li>
+<li><b>데이터 발견(Data Discovery)</b> — 저장된 데이터에서 민감 정보를 자동으로 찾아내는 활동. 패턴 기반(주민번호, 카드번호), 콘텐츠 분석</li>
+<li><b>자동 분류</b> — 규칙·머신러닝 기반. 정확도에 한계가 있어 <b>소유자 검토</b>가 필요하다</li>
+<li><b>섀도 IT(Shadow IT)</b> — 조직의 승인과 인벤토리를 거치지 않고 쓰이는 시스템·서비스. 승인되지 않은 SaaS 사용이 대표적이며 가장 큰 공백 요인이다</li>
+</ul>
+<p><b>인벤토리는 한 번으로 끝나는 작업이 아닙니다.</b> 계속 갱신되지 않으면 몇 달 만에 현실과 멀어집니다.</p>
+<div class="box add"><p><span class="tag">보충</span>자동 분류 도구가 잘하는 일과 못하는 일을 나누면 소유자 검토가 왜 필요한지 보입니다. 도구는 형식이 정해진 것(카드번호, 주민번호 같은 패턴)을 잘 찾습니다. 형식이 없는 것(미발표 합병 계획, 설계 아이디어)은 내용의 사업적 의미를 알아야 등급을 정할 수 있고, 그것은 소유자의 몫입니다. 도구는 소유자의 결정을 대신하는 것이 아니라 소유자가 볼 범위를 좁혀 줍니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>인벤토리를 만들고 유지하는 방법(자산 태그, 구성 관리 데이터베이스, 소프트웨어 자산 관리)은 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>에서 다룹니다. 섀도 IT는 그 단원과 <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>(도입 소프트웨어 평가, 클라우드 접근 보안 중개 CASB)에서 다시 나오고, <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>에서 본 “직원이 외부 AI 서비스에 민감 정보를 입력하는 문제”도 섀도 IT의 한 모습입니다. “한 번으로 끝나지 않는다”는 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>의 지속적 모니터링, <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>의 공급자 재평가와 같은 원칙입니다. 인벤토리에 없는 자산은 <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>의 취약점 점검에서도 빠지고, <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>의 SBOM은 이 인벤토리를 소프트웨어 구성요소 수준까지 내린 것입니다.</p></div>
+<div class="quiz" id="question-5">
+<div class="qh">이해 확인 · 자작 상황 문제</div>
+<p>회사가 데이터 분류 프로젝트를 시작한다. 프로젝트 팀이 제안한 첫 작업 네 가지 중 가장 먼저 해야 할 것은?</p>
+<ol type="A">
+<li>모든 문서에 등급 라벨을 붙이는 도구를 구매해 배포한다.</li>
+<li>조직이 어떤 정보와 자산을 어디에 가지고 있는지 인벤토리를 만든다.</li>
+<li>등급별 암호화 강도를 정한다.</li>
+<li>분류 위반자에 대한 징계 기준을 정한다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 가진 것을 모르면 분류할 대상을 알 수 없습니다. 자산 식별이 분류보다 앞섭니다.</p>
+<ul><li>A: 라벨링은 분류의 결과입니다. 무엇을 어떤 등급으로 할지가 먼저입니다.</li>
+<li>C: 등급별 취급 요구사항(다음 단원)은 분류 체계가 정해진 뒤의 일입니다.</li>
+<li>D: 집행은 체계와 규칙, 교육이 갖춰진 뒤에 가능합니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.1.md §3 인벤토리와 자동화, §4 Shadow IT·Data Discovery · 암기노트 K01 · 기존 문제 Q09, Q14, Q16 주제</div>
+<h2 id="s9"><span class="n">9</span>종합 이해 확인</h2>
+<p>본문의 여러 절을 함께 써야 풀리는 문제와, 저장소 원본 문제 중 본문 절에 넣지 않은 문제입니다.</p>
+<div class="quiz" id="question-6">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>한 회사의 분류 운영을 점검하니 다음과 같았다. ㉠ 데이터 등급은 IT 운영팀이 저장 용량과 비용을 보고 정한다. ㉡ 5년 전 끝난 프로젝트 자료가 모두 최고 등급으로 남아 있어 직원들이 개인 PC에 사본을 두고 쓴다. ㉢ 최고 등급 문서 한 건이 들어 있는 공용 서버가 ‘내부용’ 자산으로 관리되고 있다. 각 항목의 문제와 원칙을 바르게 짝지은 것은?</p>
+<ol type="A">
+<li>㉠ 문제없음 / ㉡ 높게 분류할수록 안전하므로 문제없음 / ㉢ 문서가 한 건뿐이므로 문제없음</li>
+<li>㉠ 분류 결정은 Data Owner의 몫 / ㉡ 분류는 주기적으로 재검토하며 과잉 분류는 우회를 부른다 / ㉢ 자산 등급은 담긴 데이터의 최고 등급을 따른다</li>
+<li>㉠ 분류 결정은 보안팀의 몫 / ㉡ 사본 보유자를 징계하면 해결된다 / ㉢ 서버 등급은 문서 수의 평균으로 정한다</li>
+<li>㉠ 분류 결정은 사용자 각자의 몫 / ㉡ 모든 자료를 공개로 낮춘다 / ㉢ 서버를 폐기한다</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b></p>
+<ul>
+<li>㉠ IT 운영팀은 Custodian입니다. 데이터의 업무적 가치를 아는 소유자가 결정합니다(6절).</li>
+<li>㉡ 재분류가 없어 생긴 과잉 통제이고, 개인 사본은 조직이 통제도 파악도 할 수 없습니다(5절). 징계는 원인을 고치지 못합니다.</li>
+<li>㉢ 한 건이라도 최고 등급이면 자산은 그 등급입니다. 분리하면 서버의 등급을 내릴 수 있습니다(3절).</li>
+</ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-7"><div class="qh">원본 연습문제 · D2.1-Q13</div>
+<p>개인정보를 분류할 때 간접 식별자를 고려해야 하는 이유는?</p><ol type="A"><li>간접 식별자는 암호화할 수 없으므로.</li><li>간접 식별자가 항상 직접 식별자보다 민감하므로.</li><li>규제가 모든 데이터 항목을 동등하게 민감한 것으로 취급하므로.</li><li>우편번호, 생년월일, 성별 같은 속성의 조합이 이름과 번호를 제거해도 개인을 특정할 수 있으므로 직접 식별자만 제거하는 것으로는 데이터셋이 비개인정보가 되지 않기 때문에.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 이름과 주민번호를 지웠으니 익명화되었다고 보는 것이 흔한 오류다. 몇 개 속성의 조합만으로 모집단에서 한 사람만 남는 경우가 많고 외부 데이터와 결합하면 재식별이 더 쉬워진다. 그래서 분류 판단은 항목 단위가 아니라 데이터셋 단위로, 결합 가능성까지 고려해야 한다.</p><ul><li>A · 암호화 가능 여부와 무관하다.</li><li>B · 민감도 서열이 고정된 것이 아니다.</li><li>C · 규제도 항목별 위험을 구분한다.</li></ul><div class="src">원문 위치 · D2.1-Q13</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">10</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>자료의 라벨이 정확해도 자산 인벤토리에 빠진 서버가 있으면 어떤 문제가 생기나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>서버의 소유자와 보관 자료를 알아야 등급을 적용하고 백업·폐기까지 추적할 수 있습니다. 데이터 라벨을 정하는 작업과 그 데이터를 담는 자산의 목록 유지는 서로 보완합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">11</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>가진 것을 모르면 보호할 수 없다.</b> 자산 식별이 분류보다 먼저다.</li>
+<li>분류의 목적은 라벨이 아니라 <b>보호 수준의 차등 적용</b>.</li>
+<li>자산은 <b>유형 + 무형</b>(데이터·소프트웨어·지식재산·평판·라이선스).</li>
+<li><b>데이터 분류</b> = 정보의 민감도(노출·변조·손실 시 영향), <b>자산 분류</b> = 담긴 데이터의 <b>최고 등급</b>. 분리가 비용을 줄인다.</li>
+<li>민간: Public / Internal / Confidential / Restricted. <b>통상 3~4단계</b>, 등급마다 취급 규칙이 있어야 한다.</li>
+<li>정부: <b>Top Secret(exceptionally grave) &gt; Secret(serious) &gt; Confidential(damage) &gt; Unclassified</b>. SBU·CUI는 비분류 민감 정보.</li>
+<li><b>구획화 + 알 필요성</b> → 강제적 접근 통제의 기반.</li>
+<li>분류 기준: 피해 규모, 법규·계약 요구, 유용성과 적시성, 소유권과 출처, 수명.</li>
+<li><b>분류는 변한다.</b> 재분류·하향 분류 절차가 필요하고, <b>과잉 분류는 우회를 유발</b>한다.</li>
+<li><b>분류 결정은 Data Owner</b>, 보호 조치 수행은 Custodian, 라벨에 따른 취급은 사용자.</li>
+<li><b>집계</b>(모이면 민감해짐) / <b>추론</b>(공개 정보로 비공개 정보를 유추)으로 등급이 올라갈 수 있다.</li>
+<li>인벤토리는 계속 갱신한다. <b>섀도 IT</b>가 가장 큰 공백. 자동 분류는 소유자 검토가 필요하다.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D2.1.md §8 CISSP 시험 관점, §9 핵심 암기 요약(12항목). 원본의 “문제가 나온다 / 자주 출제된다”류의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다. 원본 §6의 NIST SP 800-60(정보 유형별 보안 범주 매핑 지침), ISO/IEC 27002:2022(정보 분류와 라벨링 통제)는 여기에 적어 둡니다. 기존 문제 Q13(직접 식별자와 간접 식별자), Q15(데이터 탐지 커버리지 계산)의 주제는 원본 이론(D2.1.md)에 설명이 없어 본문에 싣지 않았습니다.</div>
+<h2 id="glossary"><span class="n">12</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Asset</span> <span class="term-ko">· 자산</span></h3>
+<p>보호할 가치가 있는 모든 것. 유형(장비·시설)과 무형(데이터·지식재산·평판)을 포함한다.</p>
+<h3 id="glossary-2"><span lang="en">Data Classification</span> <span class="term-ko">· 데이터 분류</span></h3>
+<p>정보의 민감도에 따라 등급을 부여하는 것. 노출·변조·손실 시 영향이 기준이다.</p>
+<h3 id="glossary-3"><span lang="en">Asset Classification</span> <span class="term-ko">· 자산 분류</span></h3>
+<p>시스템·매체·장비에 등급을 부여하는 것. 담고 있는 데이터의 최고 등급을 따른다.</p>
+<h3 id="glossary-4"><span lang="en">Data Owner</span> <span class="term-ko">· 데이터 소유자</span></h3>
+<p>분류를 결정하고 접근을 승인하는 업무 관리자. 보안팀이 아니다.</p>
+<h3 id="glossary-5"><span lang="en">Labeling / Marking</span> <span class="term-ko">· 라벨링 / 마킹</span></h3>
+<p>분류 결과를 자산에 표시하는 것. 전자 메타데이터, 문서 머리말, 물리 매체 표시가 해당한다.</p>
+<h3 id="glossary-6"><span lang="en">Reclassification / Declassification</span> <span class="term-ko">· 재분류 / 하향 분류</span></h3>
+<p>시간이나 상황 변화에 따라 등급을 조정하는 것. 분류는 영구적이지 않다.</p>
+<h3 id="glossary-7"><span lang="en">Aggregation</span> <span class="term-ko">· 집계</span></h3>
+<p>개별적으로는 민감하지 않은 데이터가 모여 더 높은 민감도를 갖게 되는 현상.</p>
+<h3 id="glossary-8"><span lang="en">Inference</span> <span class="term-ko">· 추론</span></h3>
+<p>공개된 정보로부터 비공개 정보를 유추해 내는 것.</p>
+<h3 id="glossary-9"><span lang="en">Compartmentalization</span> <span class="term-ko">· 구획화</span></h3>
+<p>등급과 별개로 특정 구획에 대한 알 필요성이 있어야 접근을 허용하는 방식. MAC 의 기반이다.</p>
+<h3 id="glossary-10"><span lang="en">CUI — Controlled Unclassified Information</span> <span class="term-ko">· 통제 비분류 정보</span></h3>
+<p>분류 등급은 아니지만 통제가 필요한 정부 정보 범주.</p>
+<h3 id="glossary-11"><span lang="en">Shadow IT</span> <span class="term-ko">· 섀도 IT</span></h3>
+<p>조직의 승인과 인벤토리를 거치지 않고 사용되는 시스템·서비스.</p>
+<h3 id="glossary-12"><span lang="en">Data Discovery</span> <span class="term-ko">· 데이터 발견</span></h3>
+<p>저장된 데이터에서 민감 정보를 자동으로 찾아내는 활동. 패턴·콘텐츠 분석을 사용한다.</p>
+<div class="src">원문 위치 · D2.1.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">13</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST FIPS 199</strong> — CIA 영향도 기반 보안 범주화. 최고값(high water mark) 적용</li>
+<li><strong>NIST SP 800-60</strong> — 정보 유형별 보안 범주 매핑 지침</li>
+<li><strong>ISO/IEC 27002:2022</strong> — 정보 분류와 라벨링 통제</li>
+<li><strong>NIST SP 800-171</strong> — CUI 보호 요구사항</li>
+<li><strong>GDPR / 개인정보 관련 법규</strong> — 특정 데이터 유형에 법정 보호 수준을 부과</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D2.1.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 7개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">공용 분석 서버에 대부분 공개 마케팅 데이터가 저장되어 있으나 한 테이블에 주민등록번호가 포함되어 있다. 이 서버 자체는 어떻게 분류되어야 하는가?</a></li>
+<li><a href="#question-2">조직이 9개의 서로 다른 등급으로 구성된 데이터 분류 체계를 제안한다. 이 설계의 가장 가능성 높은 문제는?</a></li>
+<li><a href="#question-3">데이터 집합의 분류를 결정하는 주체는?</a></li>
+<li><a href="#question-4">병원에 납품한 장비의 설치 목록(병원명, 모델, 설치일)은 영업 자료로 쓰여 ‘내부용’으로 분류되어 있다. 한 직원이 전체 목록 수천 건을 한 번에 내려받는 기능을 요청했다. 보안 담당자가 고려해야 할 점으로 가장 적절한 것은?</a></li>
+<li><a href="#question-5">회사가 데이터 분류 프로젝트를 시작한다. 프로젝트 팀이 제안한 첫 작업 네 가지 중 가장 먼저 해야 할 것은?</a></li>
+<li><a href="#question-6">한 회사의 분류 운영을 점검하니 다음과 같았다. ㉠ 데이터 등급은 IT 운영팀이 저장 용량과 비용을 보고 정한다. ㉡ 5년 전 끝난 프로젝트 자료가 모두 최고 등급으로 남아 있어 직원들이 개인 PC에 사본을 두고 쓴다. ㉢ 최고 등급 문서 한 건이 들어 있는 공용 서버가 ‘내부용’ 자산으로 관리되고 있다. 각 항목의 문제와 원칙을 바르게 짝지은 것은?</a></li>
+<li><a href="#question-7">개인정보를 분류할 때 간접 식별자를 고려해야 하는 이유는?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D1.12.html"><small>← 이전 단원</small>1.12 인식·교육·훈련</a><a href="D2.2.html" style="text-align:right"><small>다음 단원 →</small>2.2 자산 취급 요구사항</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

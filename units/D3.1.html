@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D3.1 안전한 설계 원칙에 따른 엔지니어링 프로세스 연구, 구현, 관리 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D3.1">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 6개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 3 보안 아키텍처 및 엔지니어링 › 3.1</div>
+<h1>안전한 설계 원칙에 따른 엔지니어링 프로세스 연구, 구현, 관리</h1>
+<div class="en">Research, implement and manage engineering processes using secure design principles · ISC2 CISSP Exam Outline(2024-04-15 발효) 3.1</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 6개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">어떤 보안 제품을 고르든, 어떤 시스템을 만들든 같은 질문이 반복됩니다. 권한은 최소인가, 하나가 뚫려도 다음이 막는가, 아무 설정도 안 했을 때 안전한가, 고장 나면 어느 쪽으로 넘어지는가. 공식 개요 3.1은 이 질문들을 11개의 설계 원칙으로 정리합니다. 원칙은 개별 기술이 아니라 <b>설계를 평가하는 기준</b>입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<p>도메인 3은 “안전하게 설계하고 만드는 법”입니다. 이 단원의 원칙이 뒤의 보안 모델(3.2), 통제 선택(3.3), 시스템 보안 기능(3.4), 취약점 평가(3.5)의 기준이 됩니다.</p>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.10.html">D1.10 위협 모델링</a></td><td>원칙 1 위협 모델링의 방법(STRIDE, 데이터 흐름도, 신뢰 경계) (1절)</td></tr>
+<tr><td><a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a> · <a class="xr" href="D1.8.html">D1.8 인적 보안</a></td><td>알 필요성·최소권한, 권한 누적, 직무 분리와 이중 통제 (2절, 6절)</td></tr>
+<tr><td><a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a> · <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a></td><td>“기본값이 곧 정책”, 데이터 최소화·목적 제한 (4절, 9절)</td></tr>
+<tr><td><a class="xr" href="D3.2.html">D3.2 보안 모델</a> · <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a></td><td>원칙을 형식 규칙으로 만든 보안 모델, TCB와 참조 모니터 (7절)</td></tr>
+<tr><td><a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a> · <a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a></td><td>제로 트러스트와 마이크로세그멘테이션, ZTNA와 VPN (8절, 11절)</td></tr>
+<tr><td><a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a></td><td>클라우드 서비스 모델별 공동 책임 (10절)</td></tr>
+<tr><td><a class="xr" href="D7.14.html">D7.14 물리적 보안</a></td><td>물리 출입문의 fail-safe와 fail-secure (5절)</td></tr>
+</table></div>
+<p>원본의 공통 전제는 <b>보안은 나중에 덧붙일 수 없다</b>입니다. 설계에 들어가지 않은 보안은 나중에 넣으려면 비용이 크게 늘거나 아예 불가능해집니다. 핵심 구조를 바꿔야 하는 문제를 운영 단계에서 발견하면 바꿀 범위가 그만큼 커지기 때문입니다.</p>
+<div class="tw"><table>
+<tr><th>번호</th><th>원칙</th><th>한 줄 질문</th></tr>
+<tr><td>1</td><td>위협 모델링 Threat modeling</td><td>무엇이 잘못될 수 있는가</td></tr>
+<tr><td>2</td><td>최소권한 Least privilege</td><td>권한이 필요한 만큼, 필요한 동안만인가</td></tr>
+<tr><td>3</td><td>심층 방어 Defense in depth</td><td>성격이 다른 통제가 겹쳐 있는가</td></tr>
+<tr><td>4</td><td>안전한 기본값 Secure defaults</td><td>아무 설정도 안 하면 안전한가</td></tr>
+<tr><td>5</td><td>안전한 실패 Fail securely</td><td>고장 나면 어느 쪽으로 넘어지는가</td></tr>
+<tr><td>6</td><td>직무 분리 Segregation of Duties</td><td>한 사람이 혼자 끝낼 수 있는가</td></tr>
+<tr><td>7</td><td>단순하고 작게 Keep it simple and small</td><td>검증할 수 있을 만큼 작은가</td></tr>
+<tr><td>8</td><td>제로 트러스트 / 신뢰하되 검증 Zero trust / Trust but verify</td><td>위치를 믿고 있지 않은가</td></tr>
+<tr><td>9</td><td>설계 단계 프라이버시 Privacy by design</td><td>개인정보 보호가 설계에 들어 있는가</td></tr>
+<tr><td>10</td><td>공동 책임 Shared responsibility</td><td>누가 어디까지 책임지는가</td></tr>
+<tr><td>11</td><td>SASE Secure access service edge</td><td>사용자 가까이에서 정책을 집행하는가</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>위협 모델링</h2>
+<p>설계 단계에서 <b>무엇이 잘못될 수 있는지</b>를 체계적으로 찾아내는 일입니다. 방법(STRIDE, PASTA, 데이터 흐름도와 신뢰 경계)은 <a class="xr" href="D1.10.html">D1.10 위협 모델링</a>에서 자세히 다뤘습니다.</p>
+<p>원본은 설계 원칙으로서 위협 모델링의 의미를 이렇게 정리합니다. <b>다른 모든 원칙을 어디에 적용할지 알려 준다.</b> 위협을 모르면 심층 방어의 계층을 어디에 둘지, 무엇을 최소권한으로 묶을지 정할 수 없습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>위협 모델이 설계 문서에서 끝나면 효과가 반만 남습니다. 새로 생긴 신뢰 경계마다 “여기에 어떤 통제가 꼭 있어야 하는가”를 정하고, 그것을 시험 항목으로 바꿔야 구현이 설계를 따랐는지 확인할 수 있습니다. 예를 들어 승인 API와 조회 API의 역할이 다르면, 설계 문서에는 역할별 동작을, 시험에는 “잘못된 역할로 호출하면 거부되는가”를 남깁니다.</p></div>
+<div class="src">원문 위치: D3.1.md §2 11원칙 목록·공통 전제, §3 1) 위협 모델링 · 공식 개요 3.1 “Threat modeling”</div>
+<h2 id="s2"><span class="n">2</span>최소권한</h2>
+<p>주체에게 <b>업무 수행에 필요한 최소한의 권한만, 필요한 기간만</b> 부여합니다.</p>
+<ul>
+<li><b>알 필요성(need-to-know)</b>과 함께 적용된다</li>
+<li><b>적시 권한(Just-in-Time, JIT)</b> — 필요할 때만 일시적으로 권한을 올린다</li>
+<li><b>적정 관리(Just-Enough-Administration, JEA)</b> — 전체 관리자 대신 작업별 최소 권한</li>
+</ul>
+<p>위반의 대표 증상이 <b>권한 누적(Privilege Creep)</b>입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>“필요한 기간만”이라는 부분이 자주 빠집니다. 상시 관리자 권한은 그 계정이 탈취되는 순간 공격자에게 그대로 넘어갑니다. 적시 권한은 평소에는 권한이 없고, 작업할 때 승인을 받아 정해진 시간만 권한을 갖게 합니다. 탈취되더라도 권한이 없는 시간대가 대부분이 되므로 피해 가능성이 줄어듭니다. 적정 관리는 “서버 관리자” 대신 “이 서비스 재시작만 가능” 같은 좁은 권한을 줍니다.</p></div>
+<div class="box ex"><p><span class="tag">가상 예시</span>현장 장비의 원격 지원 계정이 모든 장비에 대해 상시 관리자 권한을 가지고 있다고 합시다. 최소권한을 적용하면 ① 엔지니어는 지원 요청이 들어온 장비에만 ② 요청 승인 후 몇 시간만 ③ 로그 수집과 진단 명령만 가능한 권한을 받습니다. 펌웨어 교체처럼 큰 작업은 별도 승인을 거칩니다. 지원 계정 하나가 유출되어도 모든 장비가 동시에 위험해지지 않습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>최소권한과 알 필요성의 차이(할 수 있는 것 vs 볼 수 있는 것)는 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>, 권한 누적은 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>, 특권 계정 관리는 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>, 권한을 부여하고 회수하는 생애주기는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D3.1-Q23</div>
+<p>최소 권한 원칙이 요구하는 것은?</p><ol type="A"><li>모든 사용자가 업무 시간에만 관리자 권한을 받는 것.</li><li>시스템마다 관리자가 한 명만 존재하는 것.</li><li>권한을 넓게 부여하고 연간 검토하는 것.</li><li>각 주체가 자기 기능을 수행하는 데 요구되는 권한만, 그것이 필요한 기간 동안만 부여받는 것.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 최소 권한은 범위와 기간 두 축을 모두 포함한다. 필요한 권한만 주는 것과 필요 없어지면 회수하는 것이 함께 적용되어야 한다. 기간을 빠뜨리면 권한이 누적되고, 이것이 역할 변경 시 이전 권한을 회수하지 않아 생기는 권한 누적의 원인이다.</p><ul><li>A · 시간 제한만으로는 범위 제한이 없다.</li><li>B · 관리자 수를 규정하는 원칙이 아니다.</li><li>C · 넓은 부여는 원칙에 반한다.</li></ul><div class="src">원문 위치 · D3.1-Q23</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.1.md §3 2) 최소권한, §4 Least Privilege · 공식 개요 3.1 “Least privilege” · 기존 문제 Q23 주제</div>
+<h2 id="s3"><span class="n">3</span>심층 방어</h2>
+<h3 id="s3-easy">쉬운 설명</h3>
+<p><b>심층 방어(Defense in Depth)</b>는 여러 계층의 통제를 겹쳐서 하나가 뚫려도 다음이 막게 하는 설계입니다. 다층 방어(layered defense)라고도 합니다.</p>
+<div class="flow">
+<div class="nd"><b>물리 보안</b></div><div class="ar">→</div>
+<div class="nd"><b>네트워크 분할</b></div><div class="ar">→</div>
+<div class="nd"><b>호스트 강화</b></div><div class="ar">→</div>
+<div class="nd"><b>애플리케이션 통제</b></div><div class="ar">→</div>
+<div class="nd"><b>데이터 암호화</b></div>
+</div>
+<h3 id="s3-how">단순히 많이 쌓는 것이 아니다</h3>
+<p>원본은 <b>같은 유형의 통제를 겹치면 같은 공격에 함께 뚫린다</b>고 경고합니다. 성격이 다른 통제를 배치해야 합니다. 예방·탐지·대응을 섞고, 관리적·기술적·물리적 통제를 섞습니다. 단일 장애점(SPOF) 제거와 짝을 이루는 개념입니다.</p>
+<p><b>원문 사례 — 심층 방어를 잘못 이해한 경우.</b> 조직이 서로 다른 벤더의 방화벽 3대를 직렬로 두고 심층 방어라고 불렀습니다. 같은 유형의 통제라서 애플리케이션 계층 공격은 세 대를 모두 그대로 통과했습니다. 조직은 방화벽(네트워크) + WAF(애플리케이션) + 입력 검증(코드) + 최소권한 DB 계정(데이터)으로 바꿨습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>방화벽 세 대가 실패한 이유는 셋 다 같은 질문(“이 패킷의 주소와 포트가 허용되는가”)만 했기 때문입니다. 애플리케이션 공격은 허용된 포트로 들어오므로 셋 모두 “예”라고 답합니다. 계층을 설계할 때는 “각 계층이 서로 다른 질문을 하는가”를 확인하면 됩니다. 원본 사례의 바뀐 구성은 네트워크(누가 어디로), 애플리케이션(요청 내용이 정상인가), 코드(입력이 기대한 형식인가), 데이터(이 계정이 이 테이블을 지울 수 있는가)로 네 가지 다른 질문을 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>통제의 기능 분류(예방·탐지·교정 등)와 유형 분류(관리적·기술적·물리적)는 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>, 네트워크 분할은 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>, WAF와 IPS의 운영은 <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a>, 입력 검증은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D3.1-Q01</div>
+<p>조직이 서로 다른 벤더의 방화벽 3대를 직렬로 배치하고 이를 심층 방어라 불렀다. 애플리케이션 계층 공격이 세 대를 모두 그대로 통과했다. 어떤 설계 오류인가?</p><ol type="A"><li>심층 방어는 일관성을 위해 단일 벤더 사용을 요구한다.</li><li>방화벽을 직렬이 아니라 병렬로 배치했어야 한다.</li><li>3개 계층은 부족하며 최소 5개가 필요하다.</li><li>동일한 유형의 통제를 겹치는 것은 다른 계층의 위협을 다루지 못한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 심층 방어는 같은 통제를 겹치는 것이 아니라 서로 다른 성격의 통제를 배치하는 것이다. 네트워크 방화벽, 애플리케이션 WAF, 코드 수준 입력 검증, 데이터 계층 최소권한처럼 계층과 성격을 달리해야 하나가 뚫려도 다음이 막는다.</p><ul><li>A · 벤더 다양성은 부차적이며 계층 다양성이 핵심이다.</li><li>B · 배치 형태가 아니라 통제 유형의 다양성이 문제다.</li><li>C · 계층의 개수가 아니라 성격의 차이가 중요하다.</li></ul><div class="src">원문 위치 · D3.1-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.1.md §3 3) 심층 방어, §4 Defense in Depth, §7 사례 1 · 공식 개요 3.1 “Defense in depth” · 기존 문제 Q01 주제</div>
+<h2 id="s4"><span class="n">4</span>안전한 기본값</h2>
+<p><b>설정하지 않았을 때 가장 안전한 상태</b>가 되어야 합니다. 사용자가 보안을 켜야 안전해지는 구조가 아니라, 꺼야 덜 안전해지는 구조입니다.</p>
+<ul>
+<li><b>기본 거부(default deny)</b> — 명시적으로 허용한 것만 통과</li>
+<li>불필요한 기능·서비스는 기본 비활성화</li>
+<li>기본 계정 비활성화, 기본 비밀번호 강제 변경</li>
+<li>공유 범위는 기본적으로 최소</li>
+</ul>
+<p>원본의 근거는 단순합니다. <b>대부분의 사용자는 기본값을 바꾸지 않는다.</b> 그래서 기본값이 사실상 조직의 보안 수준을 결정합니다.</p>
+<p><b>원문 사례 — 기본값이 바꾼 결과.</b> 사내 협업 도구에서 새 채널의 기본값이 “전사 공개”여서 민감한 인사 논의가 의도치 않게 전 직원에게 노출되었습니다. 기본값을 “비공개, 초대 기반”으로 바꾸자 비슷한 사건이 사라졌습니다. 원본의 결론은 <b>안전한 기본값은 교육보다 효과적이다</b>입니다.</p>
+<div class="box link"><p><span class="tag">연결</span><a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>의 “기본값이 곧 정책이다”(무기한 공유 링크 사례), <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>의 기본 자격증명 변경과 골든 이미지가 같은 원칙을 다른 장면에서 보여 줍니다. 방화벽 규칙의 기본 거부는 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.1.md §3 4) 안전한 기본값, §4 Secure Defaults, §7 사례 5 · 공식 개요 3.1 “Secure defaults”</div>
+<h2 id="s5"><span class="n">5</span>안전한 실패</h2>
+<h3 id="s5-easy">쉬운 설명</h3>
+<p>시스템은 언젠가 고장 납니다. 그때 <b>안전한 상태로 넘어져야</b> 합니다. 문제는 “안전한 상태”가 무엇을 보호하느냐에 따라 반대가 된다는 점입니다.</p>
+<div class="tw"><table>
+<tr><th>방식</th><th>실패 시</th><th>우선 보호</th><th>예</th></tr>
+<tr><td><b>Fail-secure / Fail-closed</b></td><td><b>차단</b></td><td>기밀성(데이터)</td><td>인증 서버 장애 시 접근 거부</td></tr>
+<tr><td><b>Fail-safe / Fail-open</b></td><td><b>개방</b></td><td>인명 안전</td><td>화재 시 비상구 개방</td></tr>
+</table></div>
+<p>원본은 <b>용어 혼동</b>을 주의시킵니다. 물리 보안에서 fail-safe는 <b>사람의 안전</b>을 뜻해 문이 열리고, 정보 보안에서는 데이터 보호를 위해 차단되는 것이 “안전한” 쪽입니다. <b>판단 기준은 무엇을 보호하는가</b>입니다.</p>
+<p>안전한 실패에는 <b>오류 메시지에 내부 정보를 노출하지 않는 것</b>도 포함됩니다. 스택 트레이스, 쿼리문, 내부 경로가 그대로 나가면 공격자에게 지도를 주는 셈입니다.</p>
+<p><b>원문 사례 — 안전하지 않은 실패.</b> 인증 서버가 장애를 일으키면 애플리케이션이 인증을 건너뛰고 접근을 허용하도록 구현되어 있었습니다. 가용성을 위한 선택이었지만, 공격자는 인증 서버에 부하를 걸어 일부러 장애를 만든 뒤 인증 없이 들어왔습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>이 사례의 교훈은 “실패 동작도 공격자가 이용할 수 있는 기능”이라는 것입니다. 장애 시 열리는 문이 있으면 공격자는 장애를 일으키는 법만 찾으면 됩니다. 물리 출입문은 방향을 나눠 생각하면 두 요구를 함께 맞출 수 있습니다. 정전이 되어도 밖에서 들어오는 쪽은 잠겨 있고(보안), 안에서 나가는 쪽은 열리게(인명) 할 수 있습니다. “차단이냐 개방이냐”를 문 하나의 상태로 묶지 않는 것입니다.</p></div>
+<div class="box think"><p><span class="tag">판단 순서</span>실패 동작을 정하는 상황에서는 ① 이 지점이 지키는 것이 사람인가 데이터인가 ② 사람이면 개방(fail-safe), 데이터면 차단(fail-closed) ③ 둘 다 걸려 있으면 방향이나 대상을 나눌 수 있는지 ④ 실패 시 내보내는 메시지에 내부 정보가 없는지 순서로 봅니다. 지문에 인명 안전이 나오면 다른 모든 고려보다 우선합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>출입문과 잠금 장치의 fail-safe·fail-secure는 <a class="xr" href="D7.14.html">D7.14 물리적 보안</a>, 오류 처리와 안전한 코딩은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>, 사람의 안전이 최우선이라는 원칙은 <a class="xr" href="D7.15.html">D7.15 인원 안전</a>의 인원 안전에서 다시 나옵니다. 인증 서버 장애 시의 동작은 <a class="xr" href="D5.6.html">D5.6 인증 시스템</a>의 인증 시스템 설계와도 이어집니다.</p></div>
+<div class="quiz" id="question-3">
+<div class="qh">이해 확인 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>병원 장비의 관리 콘솔이 권한 정책 서버에 연결하지 못하는 장애가 생겼다. 설계 회의에서 네 가지 안이 나왔다. 가장 적절한 것은?</p>
+<ol type="A">
+<li>정책 서버에 연결되지 않으면 모든 관리 기능을 허용해 진료가 멈추지 않게 한다.</li>
+<li>관리 기능(설정 변경, 사용자 추가)은 차단하고, 환자 검사 같은 진료 기능은 계속 동작하게 하며, 오류 화면에는 내부 주소를 표시하지 않는다.</li>
+<li>장비 전체를 즉시 정지한다.</li>
+<li>오류 원인을 빨리 파악하도록 화면에 정책 서버 주소와 오류 스택을 그대로 보여 준다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 보호 대상을 나눴습니다. 권한이 걸린 관리 기능은 fail-closed, 진료(사람)와 직결된 기능은 계속 동작하게 하고, 오류 메시지에서 내부 정보를 뺐습니다.</p>
+<ul><li>A: 원문 사례 2와 같은 구조입니다. 장애를 일으키면 관리 권한이 열립니다.</li>
+<li>C: 인명과 관련된 진료 기능까지 멈춥니다. 보호 대상을 구분하지 않았습니다.</li>
+<li>D: 안전한 실패에는 오류 메시지의 내부 정보 비노출이 포함됩니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.1.md §3 5) 안전한 실패, §4 Fail Securely, §5 둘째 표, §7 사례 2 · 공식 개요 3.1 “Fail securely”</div>
+<h2 id="s6"><span class="n">6</span>직무 분리</h2>
+<p>한 사람이 <b>전 과정을 혼자 끝내지 못하게</b> 나눕니다. 공모에 약하다는 한계, 이중 통제와의 차이는 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>에서 다뤘습니다.</p>
+<p>원본이 설계 관점에서 강조하는 것은 <b>시스템이 직무 분리를 강제</b>하게 만드는 것입니다. 정책 문서에만 두면 지켜지지 않으므로, 요청자와 승인자를 같은 계정으로 할 수 없게 애플리케이션이 막아야 합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>화면을 요청·승인·실행으로 나눠도 같은 계정이 세 화면에 모두 들어갈 수 있으면 분리는 이름뿐입니다. 설계 단계에서 역할을 나누어 두면 운영 단계에서 “같은 계정에 서로 충돌하는 역할이 함께 부여되었는가”를 자동으로 검사할 수 있습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>운영 단계의 직무 분리와 직무 순환은 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>, 직무 분리를 모델 안에 넣은 보안 모델 Clark-Wilson은 <a class="xr" href="D3.2.html">D3.2 보안 모델</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.1.md §3 6) 직무 분리 · 공식 개요 3.1 “Segregation of Duties (SoD)”</div>
+<h2 id="s7"><span class="n">7</span>단순하고 작게</h2>
+<p>원본의 문장은 <b>복잡성은 보안의 적이다. 이해할 수 없는 시스템은 안전하게 만들 수 없다</b>입니다.</p>
+<ul>
+<li><b>공격면 최소화</b> — 기능이 적을수록 취약점도 적다</li>
+<li><b>메커니즘의 경제성(Economy of Mechanism)</b> — 보호 메커니즘은 작고 단순해야 검증할 수 있다</li>
+<li><b>TCB(Trusted Computing Base)를 작게</b> — 보안을 강제하는 하드웨어·소프트웨어·펌웨어의 집합. 신뢰해야 하는 부분이 작을수록 검증이 쉽다</li>
+</ul>
+<p>원본은 이것이 Saltzer와 Schroeder(1975)의 고전적 설계 원칙과 직접 이어진다고 설명합니다. 그 원칙 목록에는 메커니즘의 경제성, 안전한 기본값, 완전한 조정, 개방 설계, 권한 분리, 최소권한, 공통 메커니즘 최소화, 심리적 수용성이 있습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>Saltzer·Schroeder 목록과 공식 11원칙을 나란히 놓으면 겹치는 것이 많습니다(안전한 기본값, 최소권한, 권한 분리 ≈ 직무 분리, 경제성 ≈ 단순하고 작게). 목록에만 있는 <b>완전한 조정(complete mediation)</b>은 모든 접근을 매번 검사하라는 뜻으로, 제로 트러스트의 “매 요청마다 검증”과 같은 생각입니다. <b>심리적 수용성(psychological acceptability)</b>은 사용자가 받아들일 수 있어야 통제가 작동한다는 뜻으로, 이 교재가 여러 번 본 “과잉 통제는 우회를 낳는다”의 원형입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>TCB와 그 안의 참조 모니터·보안 커널은 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>, 공격면을 줄이는 강화 작업은 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D3.1-Q08</div>
+<p>보안 메커니즘을 단순하고 작게 유지하는 원칙이 중요한 이유는?</p><ol type="A"><li>작은 메커니즘은 현대 하드웨어에서 항상 더 빠르게 실행된다.</li><li>신뢰 컴퓨팅 기반(TCB)이 작을수록 정확성을 분석하고 검증하기 쉽다.</li><li>단순한 설계는 접근 통제의 필요성을 완전히 제거한다.</li><li>작은 코드베이스는 보안 테스트 요건에서 면제된다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 이해할 수 없는 시스템은 안전하게 만들 수 없다. 보호 메커니즘이 작고 단순할수록 검증이 가능하고 공격면도 줄어든다. Saltzer 와 Schroeder 의 경제성(economy of mechanism) 원칙과 직접 연결된다.</p><ul><li>A · 성능은 부수적 효과이며 보안상의 이유가 아니다.</li><li>C · 단순성이 접근 통제를 대체하지 않는다.</li><li>D · 규모와 무관하게 보안 테스트는 필요하다.</li></ul><div class="src">원문 위치 · D3.1-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.1.md §3 7) 단순하고 작게, §4 Economy of Mechanism·TCB, §6 Saltzer &amp; Schroeder · 공식 개요 3.1 “Keep it simple and small” · 기존 문제 Q08 주제</div>
+<h2 id="s8"><span class="n">8</span>제로 트러스트</h2>
+<h3 id="s8-why">왜 필요한가</h3>
+<p>전통적 경계 모델은 <b>내부는 신뢰한다</b>는 전제였습니다. 한 번 들어오면 자유롭게 이동할 수 있어서, 침해되면 <b>횡적 이동(Lateral Movement)</b>이 쉬웠습니다. 제로 트러스트의 구호는 <b>“절대 신뢰하지 않고 항상 검증한다(never trust, always verify)”</b>이고, 전제는 <b>네트워크 위치가 신뢰의 근거가 되지 않는다</b>입니다. 내부망이든 외부망이든 매 요청마다 검증합니다.</p>
+<h3 id="s8-how">작동 방식 (NIST SP 800-207)</h3>
+<div class="flow">
+<div class="nd"><b>주체의 요청</b>사용자·기기·서비스</div><div class="ar">→</div>
+<div class="nd"><b>PEP</b>정책 집행 지점</div><div class="ar">⇄</div>
+<div class="nd"><b>PDP</b>정책 결정 지점<br/>신원·기기 상태·행위·위치</div><div class="ar">→</div>
+<div class="nd"><b>자원</b>세션 단위 허용</div>
+</div>
+<ul>
+<li><b>PDP(Policy Decision Point)</b> — 접근 허용 여부를 결정</li>
+<li><b>PEP(Policy Enforcement Point)</b> — 결정을 집행</li>
+<li>모든 자원에 대한 <b>명시적 검증</b></li>
+<li><b>최소권한</b>과 세션 단위 접근</li>
+<li><b>지속적 평가</b> — 한 번 인증했다고 끝이 아니다</li>
+<li>기기 상태, 사용자 행위, 위치 등 <b>여러 신호를 종합한 동적 판단</b></li>
+</ul>
+<p>네트워크 쪽 구현 수단은 <b>마이크로세그멘테이션</b>이고, 전제 조건은 <b>강한 식별·인증</b>입니다. 원본은 공식 개요가 함께 제시한 <b>신뢰하되 검증(trust but verify)</b>을 제로 트러스트보다 완화된 접근으로 설명합니다.</p>
+<p><b>원문 사례 — 제로 트러스트가 막은 횡적 이동.</b> 피싱으로 직원 한 명의 단말이 침해되었습니다. 전통 모델이었다면 내부망 전체를 탐색할 수 있었겠지만, 애플리케이션 단위 ZTNA가 적용되어 있어서 그 사용자에게 허락된 애플리케이션 2개 외에는 <b>존재 자체가 보이지 않았습니다.</b> 원본의 결론은 <b>제로 트러스트의 가치는 침해를 막는 것이 아니라 침해의 영향 범위를 제한하는 데 있다</b>입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>제로 트러스트는 사람에게만 적용되지 않습니다. 사내 배치 작업이 주문 API를 호출할 때 “사내망 주소에서 왔으니 허용”이면, 같은 망에 새로 들어온 다른 서비스도 똑같이 허용됩니다. 호출한 서비스의 신원과 요청 목적을 확인해 필요한 작업(예: 주문 조회)만 허용해야 합니다. 또 PDP가 장애일 때 어떻게 할지도 미리 정해야 합니다. 정책 서버가 멈추면 모두 허용하는 설계라면 5절의 안전하지 않은 실패가 됩니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>마이크로세그멘테이션과 네트워크 관점의 제로 트러스트는 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>, ZTNA와 VPN의 차이는 <a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a>, 강한 인증과 지속적 인증은 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>·<a class="xr" href="D5.6.html">D5.6 인증 시스템</a>에서 다룹니다. 횡적 이동은 <a class="xr" href="D1.10.html">D1.10 위협 모델링</a>의 공격 흐름에서도 나왔습니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>제로 트러스트 상황에서는 ① 지문의 설계가 네트워크 위치(내부망, VPN 접속 여부)를 신뢰의 근거로 쓰는지 찾고 ② 쓰고 있다면 그것이 문제점이며 ③ 개선안은 매 요청 검증, 최소권한, 지속적 평가 쪽입니다. 효과를 묻는다면 “침해 완전 차단”보다 “횡적 이동 제한, 영향 범위 축소”가 원본의 설명에 맞습니다. PDP는 결정, PEP는 집행입니다.</p></div>
+<div class="src">원문 위치: D3.1.md §3 8) 제로 트러스트, §4 Zero Trust·PDP / PEP·Lateral Movement, §5 셋째 표, §6 NIST SP 800-207, §7 사례 3 · 공식 개요 3.1 “Zero trust or trust but verify”</div>
+<h2 id="s9"><span class="n">9</span>설계 단계 프라이버시</h2>
+<p><b>Privacy by Design</b>은 프라이버시를 나중에 추가하지 않고 <b>설계에 내재</b>시키는 원칙입니다. 원본은 일곱 가지 기초 원칙을 듭니다.</p>
+<ol>
+<li>사후 대응이 아닌 <b>사전 예방</b></li>
+<li><b>기본값으로서의 프라이버시(privacy by default)</b></li>
+<li>설계에 내재</li>
+<li>기능 전체 — 제로섬이 아닌 포지티브섬(보안과 기능을 맞바꾸지 않는다)</li>
+<li>종단 간 보안 — 전 생애주기 보호</li>
+<li><b>가시성과 투명성</b></li>
+<li>이용자 프라이버시 존중</li>
+</ol>
+<p>실무에서는 <b>데이터 최소화, 목적 제한, 보존 기간 설정, 가명화</b>로 나타나고, GDPR 제25조(Data protection by design and by default)가 이를 법적 요구로 명문화했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>최소 수집·목적 제한·보존은 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>, 가명화와 익명화는 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>, GDPR의 원칙과 정보주체 권리는 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>에서 다뤘습니다. “기본값으로서의 프라이버시”는 4절의 안전한 기본값을 개인정보에 적용한 것입니다.</p></div>
+<div class="src">원문 위치: D3.1.md §3 9) 설계 단계 프라이버시, §4 Privacy by Design, §6 GDPR Article 25 · 공식 개요 3.1 “Privacy by design”</div>
+<h2 id="s10"><span class="n">10</span>공동 책임</h2>
+<h3 id="s10-easy">쉬운 설명</h3>
+<p>클라우드에서는 <b>제공자와 고객이 보안 책임을 나눠 갖습니다.</b> 어디까지가 누구 몫인지는 서비스 모델에 따라 달라집니다.</p>
+<div class="tw"><table>
+<tr><th>모델</th><th>제공자 책임</th><th>고객 책임</th></tr>
+<tr><td><b>IaaS</b></td><td>물리, 하이퍼바이저</td><td><b>운영체제 이상 전부</b></td></tr>
+<tr><td><b>PaaS</b></td><td>런타임까지</td><td>애플리케이션, 데이터</td></tr>
+<tr><td><b>SaaS</b></td><td>애플리케이션까지</td><td><b>데이터, 접근 관리, 설정</b></td></tr>
+</table></div>
+<p>원본은 <b>어떤 모델이든 고객이 항상 책임지는 세 가지</b>를 강조합니다. <b>데이터 자체, 접근 권한 관리(IAM), 구성 설정</b>입니다. 원본은 클라우드 침해 대부분이 제공자의 결함이 아니라 고객의 잘못된 설정에서 나온다고 설명하며, “클라우드를 쓰니 보안은 제공자가 알아서 한다”는 가정을 가장 위험한 것으로 꼽습니다.</p>
+<p><b>원문 사례 — 공동 책임 모델의 오해.</b> SaaS로 옮기면서 “보안은 제공자 책임”이라 판단해 접근 권한 검토를 중단했습니다. 2년 뒤 감사에서 퇴사자 계정 다수가 활성 상태로 발견되었습니다. 제공자는 애플리케이션의 보안을 책임지지만, <b>누가 접근할 수 있는지는 고객이 정합니다.</b></p>
+<div class="box add"><p><span class="tag">보충</span>표는 책임의 <b>경계</b>를 보여 주지만, 그 경계 안에서 실제로 누가 일을 하는지는 보여 주지 않습니다. IaaS로 옮긴 뒤 게스트 운영체제 패치를 아무도 하지 않는 일이 생기는 이유입니다. 고객 쪽 책임 항목마다 사내 담당자를 정해 두어야 공동 책임 모델이 실제로 작동합니다. 원본은 이것을 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>의 “책임은 위탁되지 않는다”와 연결합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>공급자에게 맡겨도 최종 책임은 조직에 남는다는 원칙은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, 도입할 클라우드 서비스의 평가와 계약은 <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>, 클라우드 서비스 모델의 취약점은 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>, 퇴사자 계정 회수와 접근 검토는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-5"><div class="qh">원본 연습문제 · D3.1-Q16</div>
+<p>IaaS 로 이전한 뒤 게스트 운영체제를 아무도 패치하지 않아 장애가 발생했다. 이것이 드러내는 것은?</p><ol type="A"><li>공급자가 모든 것을 처리하도록 SaaS 로 이전해야 한다.</li><li>IaaS 는 본질적으로 온프레미스 인프라보다 신뢰성이 낮다.</li><li>공급자가 서비스 수준 협약을 충족하지 못했다.</li><li>공동 책임 경계가 지정된 담당자에게 매핑되지 않았다. IaaS 에서 게스트 운영체제는 고객 책임이므로 책임을 계층별로 문서화해 배정해야 하며 플랫폼이 바뀌면 책임도 자동으로 옮겨 간다고 가정하면 안 된다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 클라우드 이전에서 가장 흔한 사고 유형이 "공급자가 해 줄 것으로 생각했다" 는 공백이다. IaaS 는 하이퍼바이저 아래를 공급자가, 게스트 운영체제 위를 고객이 맡는다. 모델을 아는 것으로 끝나지 않고 각 계층의 책임을 문서화해 실제 담당자 이름까지 배정해야 공백이 없어진다. 서비스 모델을 바꾸는 것은 경계를 옮기는 것이지 없애는 것이 아니다.</p><ul><li>A · SaaS 도 데이터와 접근 책임이 남는다.</li><li>B · 신뢰성 문제가 아니라 책임 배정 문제다.</li><li>C · 게스트 운영체제는 협약 범위가 아니다.</li></ul><div class="src">원문 위치 · D3.1-Q16</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.1.md §3 10) 공동 책임, §4 Shared Responsibility Model, §5 넷째 표, §7 사례 4 · 공식 개요 3.1 “Shared responsibility” · 기존 문제 Q16 주제</div>
+<h2 id="s11"><span class="n">11</span>SASE</h2>
+<h3 id="s11-why">왜 등장했는가</h3>
+<p>전통 모델은 모든 트래픽을 본사 데이터센터로 끌어와(백홀, backhaul) 검사한 뒤 내보냈습니다. 그런데 사용자는 어디에나 있고 애플리케이션은 클라우드에 있습니다. 집에서 클라우드 서비스를 쓰는데 본사를 거쳐 가면 지연이 생기고 비효율적입니다. <b>SASE(Secure Access Service Edge)</b>는 네트워크 기능과 보안 기능을 클라우드에서 통합해 <b>사용자와 가까운 엣지에서 정책을 집행</b>합니다.</p>
+<div class="tw"><table>
+<tr><th>영역</th><th>구성 요소</th></tr>
+<tr><td>네트워크</td><td>SD-WAN</td></tr>
+<tr><td>보안</td><td><b>ZTNA</b>(제로 트러스트 네트워크 접근)</td></tr>
+<tr><td>보안</td><td><b>CASB</b>(클라우드 접근 보안 중개)</td></tr>
+<tr><td>보안</td><td><b>SWG</b>(보안 웹 게이트웨이)</td></tr>
+<tr><td>보안</td><td><b>FWaaS</b>(서비스형 방화벽)</td></tr>
+</table></div>
+<p>보안 기능만 묶은 것을 <b>SSE(Security Service Edge)</b>라 부르며, 원본은 <b>SASE = SD-WAN + SSE</b>로 정리합니다. SASE는 네트워크 위치가 아니라 신원과 상황으로 접근을 결정하므로 <b>제로 트러스트를 구현하는 실천적 아키텍처</b>이기도 합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>CASB의 네 축과 배치 방식은 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>, SD-WAN은 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>, ZTNA와 VPN은 <a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.1.md §3 11) SASE, §4 SASE·SSE·ZTNA · 공식 개요 3.1 “Secure access service edge (SASE)”</div>
+<h2 id="s12"><span class="n">12</span>원칙이 서로 부딪힐 때</h2>
+<p>원칙들은 때로 충돌합니다.</p>
+<ul>
+<li><b>심층 방어 vs 단순성</b> — 계층을 늘리면 복잡해진다</li>
+<li><b>안전한 실패 vs 가용성</b> — 차단하면 서비스가 멈춘다</li>
+<li><b>최소권한 vs 업무 효율</b></li>
+</ul>
+<p>원본의 판단 기준은 <b>보호 대상의 가치와 위험 수준</b>입니다. 인명이 걸리면 안전 우선, 민감 데이터면 기밀성 우선입니다. 그리고 <b>지나친 통제는 우회를 낳는다</b>는 점을 항상 함께 고려합니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>두 원칙이 부딪히는 설계 상황에서는 ① 보호 대상이 사람인지, 어떤 등급의 데이터인지 확인하고 ② 그 대상에 가장 중요한 속성(안전, 기밀성, 무결성, 가용성)을 정한 뒤 ③ 그 속성을 지키는 원칙을 우선하고 ④ 나머지 원칙은 우회가 생기지 않을 만큼 맞춥니다. 예를 들어 계층을 하나 더 넣으면 운영이 너무 복잡해져 설정 오류가 늘어날 정도라면, 단순성을 위해 그 계층을 빼는 것이 오히려 안전할 수 있습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>CIA 사이의 균형은 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>, 과잉 통제가 우회를 낳는 사례는 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>·<a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>에서 봤습니다.</p></div>
+<div class="src">원문 위치: D3.1.md §3 원칙이 충돌할 때</div>
+<h2 id="s13"><span class="n">13</span>종합 이해 확인</h2>
+<div class="quiz" id="question-6">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>새 클라우드 서비스의 설계 검토에서 다음이 발견되었다. ㉠ 사내 VPN으로 접속한 사용자는 모든 내부 애플리케이션에 접근할 수 있다. ㉡ 관리자 계정이 상시 전체 권한을 가진다. ㉢ 새 저장소의 기본 공개 범위가 “조직 외부 포함”이다. ㉣ SaaS 제공자가 보안을 책임진다며 사용자 권한 검토 절차를 두지 않았다. 각 항목이 어긋난 원칙을 바르게 짝지은 것은?</p>
+<ol type="A">
+<li>㉠ 제로 트러스트 / ㉡ 최소권한 / ㉢ 안전한 기본값 / ㉣ 공동 책임</li>
+<li>㉠ 심층 방어 / ㉡ 직무 분리 / ㉢ 안전한 실패 / ㉣ SASE</li>
+<li>㉠ 단순성 / ㉡ 위협 모델링 / ㉢ 최소권한 / ㉣ 설계 단계 프라이버시</li>
+<li>㉠ 안전한 실패 / ㉡ 공동 책임 / ㉢ 제로 트러스트 / ㉣ 최소권한</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b></p>
+<ul>
+<li>㉠ VPN 접속(네트워크 위치)을 신뢰 근거로 썼습니다(8절).</li>
+<li>㉡ 필요한 만큼, 필요한 기간만이라는 최소권한에 어긋납니다. 적시 권한·적정 관리가 대안입니다(2절).</li>
+<li>㉢ 설정하지 않았을 때 가장 넓게 열립니다(4절).</li>
+<li>㉣ 접근 권한 관리는 어떤 서비스 모델에서도 고객 책임입니다(10절).</li>
+</ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">14</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>계층을 여러 개 쌓았는데 같은 관리 계정으로 전부 바꿀 수 있다면 어떤 설계 문제가 남나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>중복 통제가 하나의 실패 지점에 의존하고 있습니다. 관리자 권한을 분리하고 독립적으로 작동하는 경계와 승인·기록을 두어 한 권한의 실패가 모든 층으로 번지는지 검증합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">15</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>공식 11원칙: <b>위협 모델링 / 최소권한 / 심층 방어 / 안전한 기본값 / 안전한 실패 / 직무 분리 / 단순하고 작게 / 제로 트러스트·신뢰하되 검증 / 설계 단계 프라이버시 / 공동 책임 / SASE</b>.</li>
+<li><b>보안은 설계에 내재</b>시킨다. 나중에 덧붙이면 비용이 크게 늘거나 불가능하다.</li>
+<li>위협 모델링은 다른 원칙을 <b>어디에 적용할지</b> 알려 준다.</li>
+<li>최소권한 = <b>필요한 만큼, 필요한 기간만</b>. 적시 권한(JIT), 적정 관리(JEA). 위반 증상은 권한 누적.</li>
+<li><b>심층 방어 = 성격이 다른 통제의 중첩.</b> 같은 통제를 여러 번 겹치면 같은 공격에 함께 뚫린다.</li>
+<li><b>안전한 기본값 = 기본 거부.</b> 사용자는 기본값을 바꾸지 않으므로 기본값이 실제 보안 수준을 정한다.</li>
+<li><b>Fail-closed = 데이터(기밀성) 우선, Fail-open = 인명 안전 우선.</b> 기준은 보호 대상. 오류 메시지에 내부 정보를 노출하지 않는다.</li>
+<li>직무 분리는 <b>시스템이 강제</b>해야 한다.</li>
+<li><b>단순성 = 검증 가능성.</b> TCB는 작게, 공격면은 최소로. Saltzer·Schroeder 원칙과 연결.</li>
+<li><b>제로 트러스트: 네트워크 위치는 신뢰 근거가 아니다.</b> PDP(결정) + PEP(집행) + 지속적 평가 + 마이크로세그멘테이션. 가치는 <b>영향 범위 제한</b>.</li>
+<li>Privacy by Design: 사전 예방, <b>기본값으로서의 프라이버시</b>, 전 생애주기 보호. GDPR 제25조.</li>
+<li><b>공동 책임: 데이터·IAM·설정은 모든 모델에서 고객 책임.</b> IaaS(운영체제 이상) / PaaS(앱·데이터) / SaaS(데이터·IAM·설정).</li>
+<li><b>SASE = SD-WAN + SSE</b>, SSE = ZTNA + CASB + SWG + FWaaS. 사용자 가까운 엣지에서 정책 집행.</li>
+<li>원칙이 충돌하면 <b>보호 대상의 가치와 위험</b>으로 판단하고, 과잉 통제가 우회를 낳는다는 점을 함께 본다.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D3.1.md §8 CISSP 시험 관점, §9 핵심 암기 요약(16항목). 원본의 “대체로 오답”, “틀린 적용” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다. 원본 §6의 NIST SP 800-160 Vol.1(시스템 보안 엔지니어링), OWASP Security Design Principles, ISO/IEC 27001/27002는 여기에 적어 둡니다.</div>
+<h2 id="glossary"><span class="n">16</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Least Privilege</span> <span class="term-ko">· 최소권한</span></h3>
+<p>업무 수행에 필요한 최소한의 권한만 필요한 기간만 부여하는 원칙.</p>
+<h3 id="glossary-2"><span lang="en">Defense in Depth</span> <span class="term-ko">· 심층 방어</span></h3>
+<p>서로 다른 성격의 통제를 여러 계층에 중첩해 하나가 뚫려도 다음이 막게 하는 설계.</p>
+<h3 id="glossary-3"><span lang="en">Secure Defaults</span> <span class="term-ko">· 안전한 기본값</span></h3>
+<p>설정하지 않았을 때 가장 안전한 상태가 되도록 하는 원칙. 기본 거부가 대표적이다.</p>
+<h3 id="glossary-4"><span lang="en">Fail Securely</span> <span class="term-ko">· 안전한 실패</span></h3>
+<p>시스템 실패 시 안전한 상태로 떨어지게 하는 원칙. 보호 대상에 따라 차단(fail-closed) 또는 개방(fail-open)을 택한다.</p>
+<h3 id="glossary-5"><span lang="en">Economy of Mechanism</span> <span class="term-ko">· 메커니즘의 경제성</span></h3>
+<p>보호 메커니즘을 작고 단순하게 유지해 검증 가능하게 하는 원칙.</p>
+<h3 id="glossary-6"><span lang="en">TCB — Trusted Computing Base</span> <span class="term-ko">· 신뢰 컴퓨팅 기반</span></h3>
+<p>보안을 강제하는 하드웨어·소프트웨어·펌웨어의 집합. 작을수록 검증이 쉽다.</p>
+<h3 id="glossary-7"><span lang="en">Zero Trust</span> <span class="term-ko">· 제로 트러스트</span></h3>
+<p>네트워크 위치를 신뢰의 근거로 삼지 않고 매 요청마다 명시적으로 검증하는 모델.</p>
+<h3 id="glossary-8"><span lang="en">PDP / PEP — Policy Decision Point / Policy Enforcement Point</span> <span class="term-ko">· 정책 결정 지점 / 정책 집행 지점</span></h3>
+<p>Policy Decision Point 는 접근 허용 여부를 결정하고, Policy Enforcement Point 는 그 결정을 집행한다.</p>
+<h3 id="glossary-9"><span lang="en">Lateral Movement</span> <span class="term-ko">· 횡적 이동</span></h3>
+<p>침해한 지점에서 내부의 다른 시스템으로 이동하는 공격 행위.</p>
+<h3 id="glossary-10"><span lang="en">Privacy by Design</span> <span class="term-ko">· 설계 단계 프라이버시</span></h3>
+<p>프라이버시를 사후 추가가 아니라 설계에 내재시키는 원칙. 기본값으로서의 프라이버시를 포함한다.</p>
+<h3 id="glossary-11"><span lang="en">Shared Responsibility Model</span> <span class="term-ko">· 공동 책임 모델</span></h3>
+<p>클라우드에서 제공자와 고객이 보안 책임을 나누는 체계. 데이터 처리와 접근 설정에서 고객이 맡는 부분이 있다. 구체적인 책임은 서비스 모델과 기능·계약 범위를 대조해 확인한다.</p>
+<h3 id="glossary-12"><span lang="en">SASE — Secure Access Service Edge</span> <span class="term-ko">· 보안 접근 서비스 엣지</span></h3>
+<p>네트워크(SD-WAN)와 보안(ZTNA, CASB, SWG, FWaaS)을 클라우드 엣지에서 통합 제공하는 아키텍처.</p>
+<h3 id="glossary-13"><span lang="en">SSE — Security Service Edge</span> <span class="term-ko">· 보안 서비스 엣지</span></h3>
+<p>SASE 중 보안 기능만을 묶은 것. SASE = SD-WAN + SSE.</p>
+<h3 id="glossary-14"><span lang="en">ZTNA — Zero Trust Network Access</span> <span class="term-ko">· 제로 트러스트 네트워크 접근</span></h3>
+<p>신원과 상황 기반으로 애플리케이션 단위 접근을 허용하는 기술. 전통 VPN 의 광범위한 네트워크 접근을 대체한다.</p>
+<div class="src">원문 위치 · D3.1.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">17</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-160 Vol.1</strong> — 시스템 보안 엔지니어링. 설계 원칙의 체계적 적용</li>
+<li><strong>NIST SP 800-207</strong> — 제로 트러스트 아키텍처. PDP/PEP 모델</li>
+<li><strong>Saltzer &amp; Schroeder (1975)</strong> — 경제성, 안전한 기본값, 완전한 조정, 개방 설계, 권한 분리, 최소권한, 공통 메커니즘 최소화, 심리적 수용성</li>
+<li><strong>OWASP Security Design Principles</strong> — 애플리케이션 관점</li>
+<li><strong>ISO/IEC 27001 / 27002</strong> — 설계 단계 보안 요구</li>
+<li><strong>GDPR Article 25</strong> — Data protection by design and by default</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D3.1.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 6개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">최소 권한 원칙이 요구하는 것은?</a></li>
+<li><a href="#question-2">조직이 서로 다른 벤더의 방화벽 3대를 직렬로 배치하고 이를 심층 방어라 불렀다. 애플리케이션 계층 공격이 세 대를 모두 그대로 통과했다. 어떤 설계 오류인가?</a></li>
+<li><a href="#question-3">병원 장비의 관리 콘솔이 권한 정책 서버에 연결하지 못하는 장애가 생겼다. 설계 회의에서 네 가지 안이 나왔다. 가장 적절한 것은?</a></li>
+<li><a href="#question-4">보안 메커니즘을 단순하고 작게 유지하는 원칙이 중요한 이유는?</a></li>
+<li><a href="#question-5">IaaS 로 이전한 뒤 게스트 운영체제를 아무도 패치하지 않아 장애가 발생했다. 이것이 드러내는 것은?</a></li>
+<li><a href="#question-6">새 클라우드 서비스의 설계 검토에서 다음이 발견되었다. ㉠ 사내 VPN으로 접속한 사용자는 모든 내부 애플리케이션에 접근할 수 있다. ㉡ 관리자 계정이 상시 전체 권한을 가진다. ㉢ 새 저장소의 기본 공개 범위가 “조직 외부 포함”이다. ㉣ SaaS 제공자가 보안을 책임진다며 사용자 권한 검토 절차를 두지 않았다. 각 항목이 어긋난 원칙을 바르게 짝지은 것은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D2.6.html"><small>← 이전 단원</small>2.6 데이터 보안 통제</a><a href="D3.2.html" style="text-align:right"><small>다음 단원 →</small>3.2 보안 모델</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

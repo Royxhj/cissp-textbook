@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D5.2 식별 및 인증 전략 설계 (사람, 기기, 서비스) — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D5.2">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 5 식별 및 접근 관리 › 5.2</div>
+<h1>식별 및 인증 전략 설계 (사람, 기기, 서비스)</h1>
+<div class="en">Design identification and authentication strategy (e.g., people, devices, and services) · ISC2 CISSP Exam Outline(2024-04-15 발효) 5.2</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">사람이든 기기든 서비스든, 시스템에 들어오는 모든 주체는 “나는 누구다”라고 주장합니다. 이 단원은 그 주장을 어떻게 믿을 수 있게 만드는지를 다룹니다. 처음 등록할 때 신원을 확인하는 일, 로그인할 때 인증 요소를 고르는 일, 로그인 뒤 세션을 지키는 일, 여러 시스템과 조직 사이에서 한 번의 인증을 나눠 쓰는 일입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a> · <a class="xr" href="D5.1.html">D5.1 물리적·논리적 접근 통제</a></td><td>IAAA와 접근 통제의 구조. 이 단원은 식별·인증을 설계한다 (1절)</td></tr>
+<tr><td><a class="xr" href="D5.3.html">D5.3 연합 식별</a></td><td>연합 신원과 제3자 신원 서비스의 상세 (7절)</td></tr>
+<tr><td><a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a></td><td>역할 기반 인가(RBAC). 그룹과 역할 (4절)</td></tr>
+<tr><td><a class="xr" href="D5.6.html">D5.6 인증 시스템</a></td><td>Kerberos·RADIUS 등 인증 시스템의 구현 (6절)</td></tr>
+<tr><td><a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a></td><td>무차별 대입, 크리덴셜 스터핑, Pass the Hash. 인증 수단이 막는 공격 (2절, 9절)</td></tr>
+<tr><td><a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a> · <a class="xr" href="D7.15.html">D7.15 인원 안전</a></td><td>사회공학의 심리 원리와 콜백 확인, MFA 피로·헬프데스크 우회 사례 (2절, 4절)</td></tr>
+<tr><td><a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a> · <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a></td><td>점프 서버와 PAM (8절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>AAA와 IAAA</h2>
+<div class="tw"><table>
+<tr><th>요소</th><th>의미</th></tr>
+<tr><td>(<b>Identification</b> 식별)</td><td>“나는 누구다”라는 주장</td></tr>
+<tr><td><b>Authentication</b> 인증</td><td>주장한 신원이 맞는지 검증</td></tr>
+<tr><td><b>Authorization</b> 인가</td><td>무엇을 할 수 있는지 결정</td></tr>
+<tr><td><b>Accounting</b> 계정 관리·감사</td><td>무엇을 했는지 기록</td></tr>
+</table></div>
+<p>원본의 구분입니다. <b>식별은 주장이고 인증은 검증이다.</b> 사원번호를 입력하는 것이 식별, 비밀번호를 확인하는 것이 인증입니다.</p>
+<div class="src">원문 위치: D5.2.md §2 · 공식 개요 5.2 “Authentication, Authorization and Accounting (AAA)”</div>
+<h2 id="s2"><span class="n">2</span>인증 요소와 다중요소 인증</h2>
+<h3 id="s2-types">세 가지 범주</h3>
+<div class="tw"><table>
+<tr><th>유형</th><th>의미</th><th>예시</th></tr>
+<tr><td><b>Type 1 — 지식</b> something you know</td><td>알고 있는 것</td><td>비밀번호, PIN, 보안 질문</td></tr>
+<tr><td><b>Type 2 — 소유</b> something you have</td><td>가지고 있는 것</td><td>토큰, 스마트카드, 휴대폰</td></tr>
+<tr><td><b>Type 3 — 생체</b> something you are</td><td>고유한 신체·행동 특성</td><td>지문, 홍채, 얼굴, 서명 패턴</td></tr>
+</table></div>
+<p>보조적으로 위치(somewhere you are)와 행동(something you do)을 더하기도 합니다.</p>
+<h3 id="s2-mfa">다중요소의 정의</h3>
+<p>원본의 정의는 분명합니다. <b>MFA는 서로 다른 유형의 요소를 둘 이상 쓰는 것이다.</b></p>
+<div class="tw"><table>
+<tr><th>조합</th><th>MFA인가</th></tr>
+<tr><td>비밀번호 + 보안 질문</td><td><b>아니다</b>(둘 다 Type 1)</td></tr>
+<tr><td>비밀번호 + OTP 토큰</td><td><b>맞다</b>(Type 1 + Type 2)</td></tr>
+<tr><td>지문 + 얼굴 인식</td><td><b>아니다</b>(둘 다 Type 3)</td></tr>
+<tr><td>스마트카드 + PIN</td><td><b>맞다</b>(Type 2 + Type 1)</td></tr>
+</table></div>
+<p>같은 유형을 두 번 쓰는 것은 <b>2단계(two-step)일 뿐 다중요소가 아닙니다.</b></p>
+<p><b>원문 사례 — MFA가 아니었던 2단계 인증.</b> 조직이 MFA를 적용했다고 보고했지만 실제로는 비밀번호 + 보안 질문이었습니다. 둘 다 지식 기반이라 다중요소가 아니었고, 유출된 개인정보로 보안 질문이 모두 뚫렸습니다.</p>
+<h3 id="s2-strength">MFA 수단의 상대적 강도</h3>
+<div class="tw"><table>
+<tr><th>수단</th><th>원본의 평가</th></tr>
+<tr><td>SMS OTP</td><td>가장 약함. <b>SIM 스와핑과 가로채기</b>에 취약</td></tr>
+<tr><td>앱 기반 TOTP</td><td>중간. 피싱으로 실시간 중계 가능</td></tr>
+<tr><td>푸시 알림</td><td>편리하지만 <b>MFA 피로 공격</b>(반복 승인 요청으로 실수 유도)에 취약</td></tr>
+<tr><td><b>FIDO2/WebAuthn 하드웨어 키</b></td><td>가장 강함. <b>피싱 저항성</b>을 구조적으로 제공</td></tr>
+</table></div>
+<p>원본은 FIDO2가 피싱에 강한 이유를 <b>인증이 출처(origin)에 묶이기 때문</b>이라고 설명합니다. 가짜 사이트에서는 올바른 서명이 만들어지지 않습니다.</p>
+<p><b>원문 사례 — MFA 피로 공격.</b> 공격자가 훔친 비밀번호로 밤새 푸시 알림을 수십 번 보냈고, 잠에서 깬 사용자가 알림을 멈추려고 무심코 승인했습니다. 번호 매칭과 시도 횟수 제한을 적용하고 장기적으로 FIDO2로 전환했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>강도 순서는 “공격자가 중간에 끼어들 수 있는가”로 이해하면 외울 필요가 없습니다. SMS·TOTP 코드는 사람이 읽고 입력하므로 가짜 사이트에도 입력할 수 있고, 공격자가 그 코드를 즉시 진짜 사이트에 넣으면 통과합니다. 푸시는 사람이 “승인”만 누르면 되므로 지쳐서 누르게 만들 수 있습니다. FIDO2는 기기가 접속한 사이트 주소를 직접 확인해 그 주소용 서명만 만들기 때문에, 사람이 속아도 기기는 속지 않습니다. 그래서 인증 수단을 하나의 순위로 외우기보다 “어떤 공격을 막아야 하는가”에 맞춰 고릅니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>크리덴셜 스터핑은 <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a>, 사회공학의 심리 원리는 <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>, MFA 피로 공격 사례는 <a class="xr" href="D7.15.html">D7.15 인원 안전</a>, 디지털 서명 원리는 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D5.2-Q01</div>
+<p>어떤 조직이 비밀번호와 보안 질문으로 다중요소 인증을 구현했다고 주장한다. 이것이 다중요소에 해당하지 않는 이유는?</p><ol type="A"><li>비밀번호는 다른 어떤 인증 방법과도 결합할 수 없다.</li><li>보안 질문은 현대 디렉터리 서비스에서 지원되지 않는다.</li><li>다중요소 인증은 최소 세 가지 구별되는 요소를 요구한다.</li><li>둘 다 지식 요소이므로 한 가지 요소 유형만 사용되고 있다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 다중요소 인증은 서로 다른 유형의 요소를 둘 이상 사용하는 것이다. 비밀번호와 보안 질문은 모두 지식(Type 1) 요소이므로 2단계일 뿐 다중요소가 아니다. 유출된 개인정보로 보안 질문이 뚫리는 사례가 흔하며 소유(Type 2)나 생체(Type 3)를 추가해야 진정한 MFA 가 된다.</p><ul><li>A · 비밀번호는 다른 요소와 결합할 수 있다.</li><li>B · 지원 여부가 아니라 요소 유형이 문제다.</li><li>C · 서로 다른 두 유형이면 충족된다.</li></ul><div class="src">원문 위치 · D5.2-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.2.md §3 인증 요소, §7 사례 1, 사례 2 · 공식 개요 5.2 “(e.g., MFA, password-less authentication)” · 기존 문제 Q01 주제</div>
+<h2 id="s3"><span class="n">3</span>생체 인증의 오류율</h2>
+<div class="tw"><table>
+<tr><th>지표</th><th>의미</th><th>오류 유형</th></tr>
+<tr><td><b>FRR</b> False Rejection Rate</td><td><b>정당한 사용자를 거부</b></td><td><b>Type I</b></td></tr>
+<tr><td><b>FAR</b> False Acceptance Rate</td><td><b>부정한 사용자를 수락</b></td><td><b>Type II</b></td></tr>
+<tr><td><b>CER / EER</b> Crossover Error Rate</td><td>FAR과 FRR이 <b>같아지는 지점</b></td><td>정확도 비교 기준</td></tr>
+</table></div>
+<p>원본은 <b>보안상 더 위험한 것은 FAR(Type II)</b>이라고 정리합니다. 침입자를 들여보내기 때문입니다. FRR이 높으면 불편하지만 보안은 유지됩니다. <b>민감도를 높이면 FAR은 내려가고 FRR은 올라가며</b>, 둘은 맞바꾸는 관계입니다. <b>CER이 낮을수록 전반적으로 우수한 시스템</b>입니다. 고보안 환경에서는 FAR을 낮추고, 늘어난 FRR은 대체 인증 수단으로 보완합니다.</p>
+<p>생체 인증의 고유 문제: <b>취소 불가</b>(비밀번호는 바꿀 수 있지만 지문은 못 바꾼다), 프라이버시(생체 정보 자체가 민감 정보), <b>템플릿 보호</b>(원본이 아닌 변환된 템플릿 저장), 위조(presentation attack) → 생체 검출(liveness detection).</p>
+<p><b>원문 사례 — 생체 민감도 조정.</b> 출입 지문 인식기의 FRR이 높아 불만이 많아 민감도를 낮췄더니, FAR이 올라가 타인의 지문이 수락되는 일이 생겼습니다. 민감도를 되돌리고, FRR로 인한 불편은 사원증 병행(Type 2)으로 보완했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>Type I·II라는 이름을 헷갈리지 않으려면 “첫 번째 실수는 주인을 못 알아본 것, 두 번째 실수는 낯선 사람을 주인으로 착각한 것”으로 기억하면 됩니다. CER은 두 오류가 같아지도록 맞췄을 때의 값이라 제품끼리 비교하는 잣대일 뿐, 실제 운영에서 그 지점에 맞추라는 뜻은 아닙니다. 출입문과 고위험 관리자 접근은 감수할 수 있는 거부 비용이 다르므로 같은 장비라도 다른 민감도로 운영할 수 있습니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D5.2-Q19</div>
+<p>생체 인증 시스템에서 거짓 수락(false acceptance)이 뜻하는 것은?</p><ol type="A"><li>센서가 판독에 실패한다.</li><li>정당한 사용자가 잘못 거부된다.</li><li>인가되지 않은 사람이 등록된 사용자로 잘못 수락된다. 두 오류 유형 중 보안상 더 치명적인 쪽이다.</li><li>등록된 템플릿이 만료되었다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 거짓 수락은 침입을 허용하는 오류이고 거짓 거부는 정당한 사용자를 막는 오류다. 보안 관점에서는 거짓 수락이 더 위험하므로 민감한 환경에서는 민감도를 높여 거짓 수락을 줄이는 쪽으로 조정한다. 그 대가로 거짓 거부가 늘어 사용성이 떨어진다. 두 오류율이 같아지는 지점을 교차 오류율(CER)이라 한다.</p><ul><li>A · 판독 실패는 별개 상태다.</li><li>B · 거짓 거부의 정의다.</li><li>D · 템플릿 만료와 무관하다.</li></ul><div class="src">원문 위치 · D5.2-Q19</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.2.md §3 생체 인증의 오류율, §7 사례 3 · 기존 문제 Q19 주제</div>
+<h2 id="s4"><span class="n">4</span>신원 증명과 등록</h2>
+<p>원본의 문장은 <b>인증 체계는 등록 시점의 신원 확인만큼만 신뢰할 수 있다</b>입니다.</p>
+<div class="flow">
+<div class="nd"><b>신원 증명</b> Identity Proofing</div><div class="ar">→</div>
+<div class="nd"><b>등록</b> Registration</div><div class="ar">→</div>
+<div class="nd"><b>자격증명 발급</b></div><div class="ar">→</div>
+<div class="nd"><b>사용</b></div><div class="ar">→</div>
+<div class="nd"><b>폐기</b></div>
+</div>
+<p>신원 증명은 “이 사람이 정말 주장하는 그 사람인가”를 확인하는 과정이며, 신분증 확인, 대면 확인, 기존 관계 활용 등이 쓰입니다.</p>
+<h3 id="s4-nist">NIST SP 800-63의 세 보증 수준</h3>
+<div class="tw"><table>
+<tr><th>수준</th><th>대상</th><th>의미</th></tr>
+<tr><td><b>IAL</b> Identity Assurance Level</td><td>신원 증명</td><td>등록 시 신원 확인의 엄격함</td></tr>
+<tr><td><b>AAL</b> Authentication Assurance Level</td><td>인증</td><td>로그인할 때 계정에 연결된 인증 수단을 실제로 통제하고 있다는 확신</td></tr>
+<tr><td><b>FAL</b> Federation Assurance Level</td><td>연합</td><td>신원 제공자에서 서비스로 전달되는 인증 결과의 보호 수준</td></tr>
+</table></div>
+<p>세 수준은 <b>각각의 위험을 평가해 따로 정합니다.</b> 예를 들어 기본 신원 증명은 IAL1로 충분해도, 로그인 뒤 개인정보를 조회할 수 있다면 AAL2가 필요할 수 있습니다.</p>
+<div class="box warn"><p><span class="tag">확인 필요</span>원본은 “익명으로 등록(IAL1)하되 강한 인증(AAL3)” 조합을 예로 들지만, 이것은 개정 전(SP 800-63-3) 기준입니다. 현행 <b>SP 800-63A-4</b>(2025년 7월 최종)에서 <b>IAL1도 신원 증명 수준</b>입니다. IAL1의 신원 증명은 주장한 신원이 실제로 존재함을 뒷받침하고, 핵심 속성을 권위 있는 출처와 대조합니다. 실세계 신원과 연결할 필요가 없는 서비스는 신원 증명 없이 운영할 수 있습니다. 또 AAL의 영문 명칭도 개정판 표기(Authentication Assurance Level)로 적었습니다. 두 내용은 NIST 웹 공개본(pages.nist.gov/800-63-4)에서 확인했습니다.</p></div>
+<h3 id="s4-reset">등록·재설정 절차가 가장 약한 고리다</h3>
+<p>원본은 <b>헬프데스크를 통한 비밀번호 재설정이 가장 흔한 우회 경로</b>라고 경고합니다. 사회공학으로 재설정을 유도하면 아무리 강한 인증도 무력화됩니다.</p>
+<p><b>원문 사례 — 헬프데스크를 통한 우회.</b> 강한 MFA를 적용했지만 공격자가 헬프데스크에 전화해 MFA 재등록을 요청했고, 상담원은 생년월일 확인만으로 처리했습니다. 본인 확인 절차를 강화하고 관리자 승인과 콜백 검증을 추가했습니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>계정 탈취 원인을 볼 때 ① 등록 때 신원 증빙을 잘못 받아들였나(IAL) ② 로그인에서 인증 수단이 약했나(AAL) ③ 다른 조직의 인증 결과를 받아들이는 과정에서 위조·재사용이 있었나(FAL) ④ 재설정·재등록 절차가 우회로였나를 나눠 봅니다. ④는 ①~③이 아무리 강해도 전체를 무너뜨립니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>사회공학과 별도 채널 콜백 확인은 <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>, 헬프데스크 우회 사례는 <a class="xr" href="D7.15.html">D7.15 인원 안전</a>, 계정 생애주기는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>, 연합 흐름은 <a class="xr" href="D5.3.html">D5.3 연합 식별</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D5.2-Q07</div>
+<p>NIST SP 800-63-4에서 등록 시점에 그 사람이 누구인지 확인하는 엄격함을 나타내는 보증 수준은?</p><ol type="A"><li>EAL — 평가 보증 수준</li><li>AAL — 인증 보증 수준</li><li>IAL — 신원 보증 수준</li><li>FAL — 연합 보증 수준</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 질문은 계정을 만들 때 신청자가 주장하는 사람인지 확인하는 절차를 묻습니다. 개인정보를 조회할 수 있는 서비스에서는 등록과 이후 로그인의 위험이 다르므로 IAL1과 AAL2를 함께 검토할 수 있습니다.</p><ul><li>A · EAL은 Common Criteria에서 제품 보안 평가에 적용하는 수준입니다.</li><li>B · AAL은 로그인 시 계정에 연결된 인증 수단을 통제하는지 확인하는 수준입니다.</li><li>D · FAL은 인증 결과를 다른 서비스에 전달하는 연합 과정의 보호 수준입니다.</li></ul><div class="src">원문 위치 · D5.2-Q07 · 지침 판과 설명은 SP 800-63-4에 맞춰 수정</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.2.md §3 신원 증명과 등록, §7 사례 5 · 공식 개요 5.2 “Registration, proofing, and establishment of identity” · 외부 확인: NIST SP 800-63-4·63A-4·63B-4(2025-07) · 기존 문제 Q07 주제</div>
+<h2 id="s5"><span class="n">5</span>그룹과 역할</h2>
+<p>원본의 원칙은 <b>개별 사용자에게 직접 권한을 주지 않는다</b>입니다. 사용자 → 그룹/역할 → 권한 구조로 관리하면 관리가 단순해지고, 일관성이 생기며, 권한 검토가 쉬워지고, 입퇴사·전보를 빨리 반영할 수 있습니다.</p>
+<p><b>역할(Role)은 직무에 대응</b>하고 <b>그룹(Group)은 사용자 묶음</b>입니다. 실무에서는 섞어 쓰지만 RBAC에서 역할은 권한의 집합이라는 의미가 강합니다. 원본은 <b>역할 폭증(role explosion)</b>을 주의시킵니다. 예외를 역할로 계속 만들면 관리가 불가능해집니다.</p>
+<div class="box link"><p><span class="tag">연결</span>RBAC와 다른 인가 모델은 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>, 입퇴사·전보 처리는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>·<a class="xr" href="D1.8.html">D1.8 인적 보안</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.2.md §3 그룹과 역할 · 공식 개요 5.2 “Groups and Roles”</div>
+<h2 id="s6"><span class="n">6</span>SSO — 한 번의 인증</h2>
+<div class="tw"><table>
+<tr><th>장점</th><th>단점</th></tr>
+<tr><td>사용자 편의, 비밀번호 수 감소</td><td><b>단일 실패점</b></td></tr>
+<tr><td>중앙 집중 정책</td><td>침해 시 <b>모든 시스템 노출</b></td></tr>
+<tr><td>감사 일원화</td><td>가용성 의존, 초기 구축 복잡</td></tr>
+</table></div>
+<p>원본은 SSO를 <b>“왕국의 열쇠(keys to the kingdom)”</b>라고 부릅니다. 그래서 SSO 계정에는 강한 MFA가 필수이고, 세션 관리와 이상 탐지가 중요해집니다. 전통적 SSO의 대표가 Kerberos입니다.</p>
+<div class="box link"><p><span class="tag">연결</span>Kerberos의 동작은 <a class="xr" href="D5.6.html">D5.6 인증 시스템</a>, Kerberos를 노리는 공격은 <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.2.md §3 SSO · 공식 개요 5.2 “Single sign-on (SSO)”</div>
+<h2 id="s7"><span class="n">7</span>연합 신원 관리</h2>
+<p>SSO가 한 조직 안이라면 <b>연합(Federated Identity)</b>은 <b>서로 다른 신뢰 도메인 사이</b>에서 신원을 공유합니다. 신원을 검증하고 주장을 발급하는 쪽이 <b>IdP(Identity Provider)</b>, 그 주장을 믿고 접근을 허용하는 쪽이 <b>SP/RP(Service Provider / Relying Party)</b>입니다.</p>
+<div class="tw"><table>
+<tr><th>프로토콜</th><th>목적</th><th>형식</th></tr>
+<tr><td><b>SAML 2.0</b></td><td><b>인증 + 속성 전달</b>(기업 웹 SSO 표준)</td><td>XML</td></tr>
+<tr><td><b>OAuth 2.0</b></td><td><b>인가(위임)</b> — 인증이 아니다</td><td>JSON/REST</td></tr>
+<tr><td><b>OIDC</b></td><td>OAuth 위의 <b>인증 계층</b>(ID 토큰, JWT)</td><td>JSON/JWT</td></tr>
+</table></div>
+<p>원본이 가장 강조하는 구분은 <b>OAuth 2.0은 인가 프레임워크이지 인증 프로토콜이 아니다</b>입니다. OAuth는 “이 앱이 내 사진에 접근해도 좋다”는 권한 위임을 다루고, “이 사람이 누구인가”는 알려 주지 않습니다.</p>
+<p><b>원문 사례 — OAuth를 인증으로 오용.</b> 개발팀이 OAuth 액세스 토큰을 받으면 “로그인된 사용자”로 처리했는데, 토큰이 어느 사용자의 것인지 보장되지 않아 다른 앱에서 발급된 토큰을 제출하는 공격이 가능했습니다. OIDC의 ID 토큰으로 바꾸고 발급 대상(aud)과 발급자(iss)를 검증했습니다.</p>
+<p>연합의 신뢰 문제: SP는 IdP를 믿어야 하므로 <b>IdP가 침해되면 연결된 모든 SP가 영향</b>을 받습니다. 메타데이터 검증, 서명 확인, 주장 유효 기간 제한이 필요합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>제3자 신원 서비스와 연합의 상세(신뢰 관계, JIT 프로비저닝, 장애 처리)는 <a class="xr" href="D5.3.html">D5.3 연합 식별</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.2.md §3 연합 신원 관리, §7 사례 4 · 공식 개요 5.2 “Federated Identity Management (FIM)”</div>
+<h2 id="s8"><span class="n">8</span>자격증명 관리 시스템과 패스워드리스</h2>
+<h3 id="s8-vault">비밀번호 금고와 PAM</h3>
+<p><b>비밀번호 금고(Password Vault)</b>는 자격증명을 암호화해 중앙에 보관하고, 꺼내 쓸 때 <b>사용 이력을 기록</b>해 공유 계정의 책임추적성을 보완합니다. <b>PAM(Privileged Access Management)</b>은 특권 계정에 특화된 금고로, 자격증명 자동 교체, <b>적시 권한 상승</b>과 세션 중개, 세션 녹화와 명령 필터링, 사용 승인 워크플로를 제공합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>금고를 도입해도 “누가 언제 무엇을 꺼냈는가”를 기록하지 못하거나 꺼낸 비밀을 교체하지 않으면 책임추적성은 그대로입니다. 대상별 소유자와 열람 권한을 정하고, 높은 권한의 비밀에는 승인·사용 기록·교체 시점을 붙이며, 서비스가 자동으로 받아 가는 자격증명도 같은 수명주기로 관리해야 합니다. 금고 자체가 가장 가치 있는 표적이 된다는 점도 함께 고려합니다.</p></div>
+<h3 id="s8-pwless">패스워드리스 인증</h3>
+<div class="tw"><table>
+<tr><th>방식</th><th>설명</th></tr>
+<tr><td><b>FIDO2 / WebAuthn</b></td><td>하드웨어 키나 플랫폼 인증기, 공개키 기반</td></tr>
+<tr><td><b>패스키</b> Passkey</td><td>기기 사이에 동기화되는 FIDO 자격증명</td></tr>
+<tr><td>인증서 기반</td><td>스마트카드, 기기 인증서</td></tr>
+<tr><td>매직 링크</td><td>메일 링크(메일 계정 보안에 의존)</td></tr>
+</table></div>
+<p>비밀번호가 사라지면 재사용, 크리덴셜 스터핑, 피싱, 무차별 대입, 유출 목록 공격이 함께 사라집니다. 원본은 FIDO2의 동작을 이렇게 설명합니다. 등록 때 기기가 <b>키 쌍을 만들고 공개키만 서버에 저장</b>하며, 인증 때 <b>개인키로 챌린지에 서명</b>합니다. 개인키는 기기를 떠나지 않으므로 <b>서버가 유출되어도 자격증명이 노출되지 않습니다.</b></p>
+<div class="box link"><p><span class="tag">연결</span>점프 서버는 <a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a>, PAM 운영은 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>, 공개키 서명의 원리는 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.2.md §3 자격증명 관리 시스템, 패스워드리스 인증 · 공식 개요 5.2 “Credential management systems (e.g., password vault)”, “password-less authentication”</div>
+<h2 id="s9"><span class="n">9</span>세션 관리</h2>
+<p>인증 이후 상태를 유지하는 일도 인증 체계의 일부입니다.</p>
+<div class="tw"><table>
+<tr><th>통제</th><th>내용</th></tr>
+<tr><td><b>유휴 타임아웃</b></td><td>일정 시간 사용하지 않으면 종료</td></tr>
+<tr><td><b>절대 타임아웃</b></td><td>활동과 무관하게 최대 수명 제한</td></tr>
+<tr><td><b>재인증</b></td><td>민감 작업 전 다시 확인</td></tr>
+<tr><td><b>토큰 보호</b></td><td>안전한 저장, 전송 시 암호화</td></tr>
+<tr><td><b>세션 고정 방지</b></td><td>인증 후 세션 ID <b>재발급</b></td></tr>
+<tr><td>동시 세션 제한</td><td>비정상 다중 접속 탐지</td></tr>
+</table></div>
+<p><b>세션 고정(session fixation)</b>은 공격자가 미리 만든 세션 ID를 피해자가 쓰게 한 뒤, 피해자가 로그인하면 그 세션을 가로채는 공격입니다. <b>로그인 시점에 세션 ID를 새로 발급</b>하면 막을 수 있습니다. 원본은 <b>제로 트러스트에서는 세션 내내 지속 평가</b>한다고 덧붙입니다.</p>
+<p><b>원문 사례 — 세션 고정.</b> 로그인 후에도 세션 ID가 그대로 유지되는 구현이라, 공격자가 특정 세션 ID가 담긴 링크를 보내고 피해자가 그 링크로 로그인하자 같은 세션으로 접근할 수 있었습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>관리자가 피싱에 강한 인증으로 로그인한 뒤, 병원 현장의 공용 지원 단말에 브라우저를 열어 두고 자리를 떴습니다. 두 시간 뒤에도 그 브라우저로 고위험 설정 변경을 할 수 있다면, 처음의 강한 인증은 의미가 줄어듭니다. 관리자 세션에는 유휴·절대 만료를 짧게 두고, 설정 변경 같은 고위험 작업 앞에는 재인증을 요구합니다. 인증의 강도와 세션의 수명은 함께 설계해야 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>지속 평가와 제로 트러스트는 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 세션 관련 코드 취약점은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.2.md §3 세션 관리, §7 사례 6 · 공식 개요 5.2 “Session management”</div>
+<h2 id="s10"><span class="n">10</span>적시 접근 (Just-In-Time)</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>설명</th></tr>
+<tr><td><b>JIT 권한 상승</b></td><td>작업 시간에만 특권 부여</td></tr>
+<tr><td><b>JIT 프로비저닝</b></td><td>첫 접속 시 계정 자동 생성(연합에서 흔함)</td></tr>
+<tr><td>JIT 접근 요청</td><td>승인 워크플로 기반 임시 접근</td></tr>
+</table></div>
+<p>원본은 목표를 <b>상시 특권 계정을 없애는 것</b>으로 정리합니다. 권한이 없는 시간이 길수록 탈취될 기회도 줄어듭니다.</p>
+<div class="box link"><p><span class="tag">연결</span>최소권한의 “필요한 기간만”은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, JIT 프로비저닝과 연합의 책임 경계는 <a class="xr" href="D5.3.html">D5.3 연합 식별</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.2.md §3 적시 접근 · 공식 개요 5.2 “Just-In-Time”</div>
+<h2 id="s11"><span class="n">11</span>종합 이해 확인</h2>
+<div class="quiz" id="question-4">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>점검 결과다. ㉠ 원격 접속에 비밀번호 + 보안 질문을 쓰며 이를 MFA라고 부른다. ㉡ 푸시 승인 MFA에 피로 공격이 성공했다. ㉢ 헬프데스크가 생년월일만으로 MFA를 재등록해 준다. ㉣ 로그인 후에도 세션 ID가 바뀌지 않는다. 가장 적절한 대책 묶음은?</p>
+<ol type="A">
+<li>㉠ 다른 유형의 요소(소유·생체) 추가 / ㉡ 번호 매칭·시도 제한, 장기적으로 FIDO2 / ㉢ 콜백·관리자 승인 등 강화된 본인 확인 / ㉣ 로그인 시 세션 ID 재발급</li>
+<li>㉠ 보안 질문을 하나 더 / ㉡ 사용자 교육만 / ㉢ 생년월일 + 주소 / ㉣ 세션 시간 연장</li>
+<li>㉠ 비밀번호 길이 확대 / ㉡ SMS OTP로 교체 / ㉢ 재등록 금지 / ㉣ 쿠키 삭제 안내</li>
+<li>㉠ 지문 + 얼굴 / ㉡ 푸시 알림 끔 / ㉢ 이메일로 처리 / ㉣ 동시 세션 허용</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 2절(같은 유형 두 개는 MFA가 아님 — D의 지문+얼굴도 같은 이유로 틀림), ㉡ 2절(원문 사례 2), ㉢ 4절(재설정이 가장 약한 고리), ㉣ 9절(세션 고정).</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-5"><div class="qh">원본 연습문제 · D5.2-Q13</div>
+<p>관리되는 노트북을 사내 네트워크에 인증시키는 적절한 방식은?</p><ol type="A"><li>모든 사내 노트북에 설정된 공유 사전 공유 키.</li><li>사용자가 이미 인증되었으므로 사용자 자신의 비밀번호.</li><li>사내 PKI 가 발급한 기기 인증서를 가능한 경우 하드웨어에 저장하고 802.1X 로 검증하며 인증서 생애주기와 폐기를 관리한다.</li><li>기기마다 고유한 하드웨어 주소가 있으므로 MAC 주소 허용 목록.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> MAC 주소는 쉽게 위조되므로 인증 수단이 아니다. 공유 키는 한 기기에서 유출되면 전체가 뚫린다. 사용자 비밀번호는 사용자를 증명하지 기기를 증명하지 않으므로 비관리 기기에서의 접근을 구분하지 못한다. 기기별 인증서를 하드웨어에 보관하고 폐기 체계를 갖추는 것이 표준적 방식이다.</p><ul><li>A · 공유 키는 단일 유출로 전체가 무력화된다.</li><li>B · 사용자 인증은 기기 인증을 대체하지 않는다.</li><li>D · MAC 주소는 위조가 쉽다.</li></ul><div class="src">원문 위치 · D5.2-Q13</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">12</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>신원 증명, 인증, 세션 만료는 각각 어느 순간을 보호하나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>신원 증명은 계정을 실제 주체에게 연결하는 등록 과정입니다. 인증은 현재 요청자가 등록한 인증 수단을 보유하는지 확인합니다. 세션 만료는 인증 뒤 그 권한이 계속 쓰이는 시간을 제한합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">13</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>식별 = 주장, 인증 = 검증.</b> AAA = 인증·인가·계정 관리(감사). IAAA = 식별 + AAA.</li>
+<li>인증 요소: <b>Type 1 지식 / Type 2 소유 / Type 3 생체</b>. <b>MFA = 서로 다른 유형 둘 이상.</b> 같은 유형 두 번은 2단계일 뿐.</li>
+<li>MFA 강도: SMS(SIM 스와핑) &lt; TOTP(중계) &lt; 푸시(피로 공격) &lt; <b>FIDO2(출처에 묶여 피싱 저항)</b>.</li>
+<li><b>FRR = Type I(정당 사용자 거부), FAR = Type II(부정 사용자 수락) — 보안상 FAR이 더 위험.</b> 민감도↑ → FAR↓ FRR↑. <b>CER 낮을수록 우수.</b> 생체는 취소 불가.</li>
+<li>신원 증명 → 등록 → 발급 → 사용 → 폐기. <b>IAL(증명) / AAL(인증) / FAL(연합)</b>은 따로 정한다. 현행 800-63-4는 IAL1에도 신원 확인 포함.</li>
+<li><b>헬프데스크 재설정이 가장 흔한 우회 경로.</b></li>
+<li>권한은 그룹·역할로. 역할 폭증 주의.</li>
+<li>SSO = 편의 + <b>단일 실패점(왕국의 열쇠)</b> → 강한 MFA.</li>
+<li>연합: IdP(주장 발급) / SP·RP(신뢰). <b>SAML = 인증+속성(XML), OAuth 2.0 = 인가(위임, 인증 아님), OIDC = OAuth 위 인증(ID 토큰).</b></li>
+<li>금고(사용 이력), <b>PAM(자동 교체, JIT, 세션 녹화)</b>. 패스워드리스(FIDO2·패스키): 개인키는 기기를 떠나지 않는다.</li>
+<li>세션: 유휴·절대 타임아웃, 재인증, <b>로그인 시 세션 ID 재발급(세션 고정 방지)</b>. JIT로 상시 특권 제거.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D5.2.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 “시험 포인트” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">14</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">AAA — Authentication, Authorization, Accounting / IAAA — Identification, Authentication, Authorization, Accountability</span> <span class="term-ko">· 인증·인가·활동 기록 / 식별을 포함한 접근 확인과 책임추적</span></h3>
+<p>인증·인가·계정관리, 그리고 앞에 식별을 더한 네 단계.</p>
+<h3 id="glossary-2"><span lang="en">Type 1 / 2 / 3 Factor</span> <span class="term-ko">· 지식 / 소유 / 생체 특성 요소</span></h3>
+<p>지식(아는 것), 소유(가진 것), 생체(고유 특성).</p>
+<h3 id="glossary-3"><span lang="en">MFA — Multi-Factor Authentication</span> <span class="term-ko">· 다중 요소 인증</span></h3>
+<p>서로 다른 유형의 인증 요소를 둘 이상 사용하는 것. 같은 유형 둘은 다중요소가 아니다.</p>
+<h3 id="glossary-4"><span lang="en">FRR / FAR / CER — False Rejection Rate / False Acceptance Rate / Crossover Error Rate</span> <span class="term-ko">· 오거부율 / 오수락률 / 교차 오류율</span></h3>
+<p>정당한 사용자 거부율(Type I), 부정한 사용자 수락률(Type II), 두 값이 같아지는 교차 오류율.</p>
+<h3 id="glossary-5"><span lang="en">Identity Proofing</span> <span class="term-ko">· 신원 증명</span></h3>
+<p>등록 시점에 주장한 신원이 실제인지 확인하는 과정.</p>
+<h3 id="glossary-6"><span lang="en">IAL / AAL / FAL — Identity Assurance Level / Authentication Assurance Level / Federation Assurance Level</span> <span class="term-ko">· 신원 확인 / 인증 / 연합 보증 수준</span></h3>
+<p>NIST SP 800-63 의 신원 증명·인증·연합 보증 수준. 독립적으로 선택한다.</p>
+<h3 id="glossary-7"><span lang="en">SSO — Single Sign-On</span> <span class="term-ko">· 단일 로그인</span></h3>
+<p>한 번 인증으로 여러 시스템에 접근하는 방식. 단일 실패점이 되기도 한다.</p>
+<h3 id="glossary-8"><span lang="en">Federation</span> <span class="term-ko">· 연합</span></h3>
+<p>서로 다른 신뢰 도메인 간에 신원을 공유하는 체계.</p>
+<h3 id="glossary-9"><span lang="en">Identity Provider (IdP) / Service Provider (SP) / Relying Party (RP)</span> <span class="term-ko">· 신원 제공자 / 서비스 제공자 또는 신뢰 당사자</span></h3>
+<p>신원을 검증해 주장을 발급하는 주체와, 그 주장을 신뢰해 접근을 허용하는 주체.</p>
+<h3 id="glossary-10"><span lang="en">SAML 2.0 — Security Assertion Markup Language</span> <span class="term-ko">· 보안 주장 마크업 언어 2.0</span></h3>
+<p>XML 기반 인증·속성 전달 표준. 기업 웹 SSO 에 널리 쓰인다.</p>
+<h3 id="glossary-11"><span lang="en">OAuth 2.0</span> <span class="term-ko">· 위임 인가 프레임워크</span></h3>
+<p>권한 위임을 위한 <strong>인가</strong> 프레임워크. 인증 프로토콜이 아니다.</p>
+<h3 id="glossary-12"><span lang="en">OIDC — OpenID Connect</span> <span class="term-ko">· 오픈아이디 연결 인증 계층</span></h3>
+<p>OAuth 2.0 위에 인증 계층을 더한 규격. ID 토큰으로 신원을 전달한다.</p>
+<h3 id="glossary-13"><span lang="en">FIDO2 / WebAuthn</span> <span class="term-ko">· 피싱 저항 인증 표준 계열 / 웹 인증 API</span></h3>
+<p>공개키 기반 패스워드리스 인증 표준. 출처에 묶여 피싱 저항성을 제공한다.</p>
+<h3 id="glossary-14"><span lang="en">Passkey</span> <span class="term-ko">· 패스키</span></h3>
+<p>기기 간 동기화되는 FIDO 자격증명.</p>
+<h3 id="glossary-15"><span lang="en">Session Fixation</span> <span class="term-ko">· 세션 고정</span></h3>
+<p>공격자가 지정한 세션 ID 를 피해자가 사용하게 해 세션을 탈취하는 공격.</p>
+<h3 id="glossary-16"><span lang="en">JIT — Just-In-Time</span> <span class="term-ko">· 적시 접근 권한 부여</span></h3>
+<p>필요한 순간에만 권한이나 계정을 제공하고 회수하는 방식.</p>
+<h3 id="glossary-17"><span lang="en">MFA Fatigue</span> <span class="term-ko">· MFA 피로 공격</span></h3>
+<p>반복적인 푸시 승인 요청으로 사용자의 실수 승인을 유도하는 공격.</p>
+<div class="src">원문 위치 · D5.2.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">15</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong><a href="https://pages.nist.gov/800-63-4/sp800-63.html">NIST SP 800-63-4</a></strong> — 디지털 신원 지침. IAL/AAL/FAL</li>
+<li><strong>OASIS SAML 2.0</strong> — XML 기반 연합 인증</li>
+<li><strong>IETF RFC 6749</strong> — OAuth 2.0 인가 프레임워크</li>
+<li><strong>OpenID Connect Core</strong> — OAuth 위의 인증 계층</li>
+<li><strong>FIDO2 / W3C WebAuthn</strong> — 패스워드리스 공개키 인증</li>
+<li><strong>ISO/IEC 24760</strong> — 신원 관리 프레임워크</li>
+<li><strong>NIST SP 800-53 IA 통제군</strong> — 식별과 인증</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D5.2.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">어떤 조직이 비밀번호와 보안 질문으로 다중요소 인증을 구현했다고 주장한다. 이것이 다중요소에 해당하지 않는 이유는?</a></li>
+<li><a href="#question-2">생체 인증 시스템에서 거짓 수락(false acceptance)이 뜻하는 것은?</a></li>
+<li><a href="#question-3">NIST SP 800-63-4에서 등록 시점에 그 사람이 누구인지 확인하는 엄격함을 나타내는 보증 수준은?</a></li>
+<li><a href="#question-4">점검 결과다. ㉠ 원격 접속에 비밀번호 + 보안 질문을 쓰며 이를 MFA라고 부른다. ㉡ 푸시 승인 MFA에 피로 공격이 성공했다. ㉢ 헬프데스크가 생년월일만으로 MFA를 재등록해 준다. ㉣ 로그인 후에도 세션 ID가 바뀌지 않는다. 가장 적절한 대책 묶음은?</a></li>
+<li><a href="#question-5">관리되는 노트북을 사내 네트워크에 인증시키는 적절한 방식은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D5.1.html"><small>← 이전 단원</small>5.1 물리적·논리적 접근 통제</a><a href="D5.3.html" style="text-align:right"><small>다음 단원 →</small>5.3 연합 식별</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

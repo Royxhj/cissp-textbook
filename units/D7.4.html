@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D7.4 기본 보안 운영 개념의 적용 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D7.4">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 7 보안 운영 › 7.4</div>
+<h1>기본 보안 운영 개념의 적용</h1>
+<div class="en">Apply foundational security operations concepts · ISC2 CISSP Exam Outline(2024-04-15 발효) 7.4</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">보안 운영의 기초 개념들은 모두 한 가지 질문에 답합니다. <b>권한을 어떻게 줄이고, 나누고, 감시하고, 약속하는가.</b> 원본은 이렇게 정리합니다. 최소권한은 권한의 <b>양</b>을, 알 필요성은 <b>범위</b>를, 직무 분리는 <b>과정</b>을, 직무 순환은 <b>시간</b>을 제한하며, 넷 다 “권한의 집중”을 막습니다. 여기에 특권 계정 관리와 서비스 수준 협약(SLA)이 더해져 공식 개요 7.4를 이룹니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a></td><td>최소권한, 직무 분리를 설계 원칙으로 본 관점 (2절, 3절)</td></tr>
+<tr><td><a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a></td><td>MAC의 구획(알 필요성), 상호 배타적 역할과 동적 분리 (2절, 3절)</td></tr>
+<tr><td><a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a> · <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a></td><td>JIT, PAM, sudo, 서비스 계정, 전보 처리 (2절, 4절, 5절)</td></tr>
+<tr><td><a class="xr" href="D1.8.html">D1.8 인적 보안</a></td><td>인사 보안의 강제 휴가와 전보 (5절)</td></tr>
+<tr><td><a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a> · <a class="xr" href="D6.5.html">D6.5 보안 감사</a></td><td>공급자 관리, 감사권 (6절)</td></tr>
+<tr><td><a class="xr" href="D3.6.html">D3.6 암호 솔루션</a></td><td>키 관리의 이중 통제·지식 분할 (3절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>다섯 개념이 답하는 질문</h2>
+<div class="tw"><table>
+<tr><th>개념</th><th>핵심 질문</th><th>제한하는 것</th></tr>
+<tr><td><b>알 필요성</b></td><td>이 정보를 알아야 하는가</td><td>범위</td></tr>
+<tr><td><b>최소권한</b></td><td>이 권한이 직무에 필요한가</td><td>양</td></tr>
+<tr><td><b>직무 분리</b></td><td>한 사람이 전 과정을 할 수 있는가</td><td>과정</td></tr>
+<tr><td><b>직무 순환</b></td><td>한 사람이 영구히 독점하는가</td><td>시간</td></tr>
+<tr><td><b>특권 계정 관리</b></td><td>강한 권한을 누가 언제 어떻게 쓰는가</td><td>강한 권한의 사용</td></tr>
+<tr><td><b>SLA</b></td><td>무엇을 얼마나 보장받는가</td><td>외부 의존의 기대치</td></tr>
+</table></div>
+<div class="src">원문 위치: D7.4.md §2 · 공식 개요 7.4 “Apply foundational security operations concepts”</div>
+<h2 id="s2"><span class="n">2</span>알 필요성과 최소권한</h2>
+<div class="tw"><table>
+<tr><th>구분</th><th>대상</th><th>묻는 것</th></tr>
+<tr><td><b>알 필요성</b> Need-to-know</td><td>정보·데이터</td><td>업무상 그 정보를 알아야 하는가. 등급이 충분해도 필요가 없으면 접근하지 않음(MAC의 구획)</td></tr>
+<tr><td><b>최소권한</b> Least Privilege</td><td>권한·기능</td><td>직무 수행에 필요한 최소 권한인가. 범위·기간·수준을 모두 제한</td></tr>
+</table></div>
+<p>둘은 함께 작동합니다. “DB 읽기 권한이 필요하다”가 최소권한 판단이고, “그중 어떤 테이블·행을 볼 필요가 있는가”가 알 필요성 판단입니다.</p>
+<h3 id="s2-lp">최소권한의 실무 적용</h3>
+<ul>
+<li><b>기본 거부에서 시작</b>: 필요한 것만 추가합니다. 넓게 주고 빼는 방식은 반드시 과다 권한을 남깁니다.</li>
+<li><b>기간 제한</b>: 상시 권한 대신 적시 권한(JIT).</li>
+<li><b>수준 제한</b>: 읽기로 충분하면 쓰기를 주지 않습니다.</li>
+<li><b>프로세스에도 적용</b>: 서비스가 필요 이상의 권한으로 돌면 침해 시 그 권한이 공격자의 것이 됩니다.</li>
+<li><b>관리자도 평소에는 일반 권한</b>: 관리 작업 때만 상승(sudo).</li>
+</ul>
+<p>원본은 <b>최소권한의 적이 “편의”</b>라고 말합니다. 권한 요청 절차가 느리면 넓게 받아 두고, 장애 대응 압박에서는 “일단 관리자 권한을 주자”가 됩니다. 그래서 <b>절차 속도와 JIT 자동화가 최소권한의 실효성을 결정</b>합니다.</p>
+<p><b>원문 사례 — 알 필요성 없이 전체 조회가 가능했던 시스템.</b> 상담원이 고객 번호만 입력하면 모든 고객의 전체 이력을 볼 수 있었습니다. 최소권한 관점에서 “고객 데이터 읽기 권한이 필요하다”는 맞았지만 알 필요성이 적용되지 않았고, 일부 상담원이 유명인 고객 정보를 조회한 기록이 나왔습니다. <b>배정된 상담 건에 연결된 고객만 조회 가능</b>하게 하고, 범위 밖 조회는 사유 입력과 경보를 붙였습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>MAC의 구획은 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>의 3절, JIT와 PAM은 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 8·10절, sudo는 <a class="xr" href="D5.5.html#s5">D5.5 5절</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D7.4-Q01</div>
+<p>상담원은 고객 기록에 대한 읽기 접근이 정당하게 필요하지만 어떤 상담원이든 고객 번호만 입력하면 모든 고객을 조회할 수 있다. 일부 상담원이 유명인의 기록을 열람한 것이 발견되었다. 적용되지 않은 원칙은?</p><ol type="A"><li>한 상담원이 조회와 수정을 모두 수행했으므로 직무 분리.</li><li>상담원이 같은 대기열에 너무 오래 머물렀으므로 직무 순환.</li><li>접근이 상담원에게 배정된 상담 건에 필요한 기록으로 제한되어야 하므로 알 필요성.</li><li>읽기 접근을 완전히 제거해야 했으므로 최소권한.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 상담원에게 고객 기록 읽기 권한이 필요하다는 판단은 최소권한 관점에서 맞다. 그러나 어떤 고객의 기록을 볼 필요가 있는지는 알 필요성의 문제다. 배정된 상담 건에 연결된 고객만 조회 가능하도록 범위를 제한하고 범위 외 조회에는 사유 입력과 경보를 적용해야 한다.</p><ul><li>A · 조회 범위 문제이며 과정 분리의 문제가 아니다.</li><li>B · 재직 기간이 아니라 접근 범위가 문제다.</li><li>D · 읽기 접근 자체는 업무에 필요하므로 전면 제거는 부적절하다.</li></ul><div class="src">원문 위치 · D7.4-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.4.md §3 알 필요성과 최소권한, §7 사례 1 · 공식 개요 7.4 “Need-to-know / least privilege” · 기존 문제 Q01 주제</div>
+<h2 id="s3"><span class="n">3</span>직무 분리 (Separation of Duties)</h2>
+<p><b>중요한 작업을 한 사람이 처음부터 끝까지 수행할 수 없게 나누는 것</b>입니다. 목적은 사기·부정 방지, 오류 탐지(두 번째 사람의 검토), 그리고 <b>공모 요구</b>(부정에 둘 이상이 필요해져 난도와 탐지 가능성이 올라감)입니다.</p>
+<div class="tw"><table>
+<tr><th>분리할 두 역할</th><th>이유</th></tr>
+<tr><td>요청자 / 승인자</td><td>자기 승인 방지</td></tr>
+<tr><td>개발 / 운영 배포</td><td>미검증 코드의 운영 반영 방지</td></tr>
+<tr><td>보안 정책 설정 / 로그 감사</td><td>자기 행위 은폐 방지</td></tr>
+<tr><td>사용자 생성 / 권한 부여</td><td>유령 계정 생성 방지</td></tr>
+<tr><td>지급 승인 / 공급업체 등록</td><td>가짜 업체 지급 방지</td></tr>
+<tr><td>키 관리 / 데이터 접근</td><td>암호화 우회 방지</td></tr>
+</table></div>
+<h3 id="s3-dual">이중 통제와 지식 분할</h3>
+<div class="tw"><table>
+<tr><th>개념</th><th>의미</th><th>예</th></tr>
+<tr><td><b>이중 통제</b> dual control</td><td>한 작업을 두 사람이 <b>동시에</b> 수행해야 함</td><td>두 개의 키가 동시에 필요</td></tr>
+<tr><td><b>지식 분할</b> split knowledge</td><td>비밀을 나누어 <b>한 사람이 전체를 알지 못함</b></td><td>마스터 키 분할 보관</td></tr>
+<tr><td><b>M-of-N</b></td><td>N명 중 M명의 참여 필요</td><td>가용성과 통제의 균형</td></tr>
+</table></div>
+<h3 id="s3-small">소규모 조직의 현실</h3>
+<p>인원이 적어 분리가 불가능하면 <b>보완 통제</b>로 갑니다: 상위자 사후 검토, 동적 직무 분리(같은 거래에서 두 권한 동시 행사 불가), 강화된 로깅과 경보, 외부 검토, 이중 승인의 시스템 강제. 원본은 <b>“작아서 못 한다”로 끝내지 않고 보완 통제를 문서화하고 위험 수락 기록을 남기는 것</b>이 올바른 처리라고 말합니다.</p>
+<p><b>원문 사례 — 요청자가 승인자였던 변경 관리.</b> 변경 승인 기록은 완비되어 있었지만 40%에서 승인자가 요청자 본인이었습니다. 시스템에서 자기 승인을 차단하고, 인원이 부족한 팀에는 상위자 사후 검토와 자동 알림을 보완 통제로 두었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>직무 분리와 직무 순환은 따로 유지해야 합니다. 순환은 다른 사람이 같은 업무를 맡으며 이전 운영을 확인할 기회를 주고, 분리는 승인 권한과 실행 권한을 동시에 한 사람에게 주지 않습니다. 담당자를 교대하더라도 새 담당자가 요청과 승인을 함께 갖게 되면 분리가 깨집니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>상호 배타적 역할과 동적 분리는 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>의 4절, 감사에서 본 자기 승인 사례는 <a class="xr" href="D6.5.html">D6.5 보안 감사</a>의 2절, 키의 이중 통제·지식 분할은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 예외와 위험 수락은 <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>의 4절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.4.md §3 직무 분리, §7 사례 2 · 공식 개요 7.4 “Separation of Duties (SoD) and responsibilities” · 원본의 “보상 통제”는 제작기준에 따라 “보완 통제”로 적음</div>
+<h2 id="s4"><span class="n">4</span>특권 계정 관리 (Privileged Account Management)</h2>
+<p>특권 계정의 범위: OS 관리자, <b>도메인·디렉터리 관리자(가장 위험)</b>, DB 관리자, 애플리케이션 관리자, 클라우드 관리자(계정 전체 삭제 가능), 네트워크·보안 장비 관리자, <b>서비스 계정</b>(가장 방치됨), <b>비상 계정</b>(평소 미사용, 최고 권한).</p>
+<div class="tw"><table>
+<tr><th>핵심 통제</th><th>내용</th></tr>
+<tr><td>식별과 인벤토리</td><td>어떤 특권 계정이 어디에 있는지 전부 안다</td></tr>
+<tr><td><b>개인 귀속</b></td><td>공유 관리자 계정 대신 개인 식별 가능 계정</td></tr>
+<tr><td><b>금고 보관</b></td><td>꺼내 쓰고 사용 이력 기록</td></tr>
+<tr><td>자동 교체</td><td>사용 후 또는 주기적</td></tr>
+<tr><td><b>적시 상승</b></td><td>상시 특권 대신 승인 기반 한시 상승</td></tr>
+<tr><td><b>세션 중개·녹화</b></td><td>중개 지점을 통해서만 세션 수립</td></tr>
+<tr><td>강한 인증</td><td>피싱 저항성 MFA</td></tr>
+<tr><td><b>전용 관리 단말</b></td><td>일상 업무 단말에서 관리하지 않음</td></tr>
+<tr><td>감시</td><td>특권 사용 자체를 경보·검토 대상으로</td></tr>
+</table></div>
+<h3 id="s4-tier">티어 모델</h3>
+<div class="tw"><table>
+<tr><th>티어</th><th>대상</th></tr>
+<tr><td><b>티어 0</b></td><td>신원 인프라(도메인 컨트롤러, PAM, 구성 관리 파이프라인)</td></tr>
+<tr><td>티어 1</td><td>서버와 애플리케이션</td></tr>
+<tr><td>티어 2</td><td>사용자 단말</td></tr>
+</table></div>
+<p>규칙: <b>상위 티어 계정으로 하위 티어 시스템에 로그인하지 않는다.</b> 티어 2 단말이 침해되었을 때 거기 캐시된 자격증명이 티어 0 계정이면 전체가 무너집니다.</p>
+<p>전형적 실패: 상시 관리자 권한(피싱 한 번이 치명적), 공유 계정, 미변경 자격증명, 설치 편의로 준 도메인 관리자 권한, 관리 평면 노출, 비상 계정 방치, 그리고 <b>PAM 우회 경로</b>. 원본은 <b>PAM은 유일한 경로여야 한다</b>고 말합니다.</p>
+<p><b>원문 사례 — 티어 모델 위반이 만든 전면 침해.</b> 피싱으로 침해된 사용자 단말에 도메인 관리자가 원격 지원 때 로그인한 적이 있어 자격증명이 캐시에 남아 있었고, 공격자는 이를 탈취해 도메인 전체를 장악했습니다. 티어 모델, 전용 관리 단말, 특권 계정 로그온 위치 제한, PAM 세션 중개를 도입했습니다.</p>
+<p><b>원문 사례 — PAM 우회 경로.</b> PAM을 도입했지만 일부 서버에 직접 SSH 접속이 여전히 열려 있었고 운영팀 다수가 편의상 그 경로를 썼습니다. 우회 경로가 있으면 금고, 녹화, 자동 교체가 모두 무력화됩니다. 네트워크 수준에서 PAM 경유만 허용했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>PAM과 금고는 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 8절, 서비스 계정은 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>의 7절, 비상 계정은 <a class="xr" href="D5.3.html">D5.3 연합 식별</a>의 9절, 구성 관리 파이프라인의 티어 0 취급은 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>의 6절, 점프 서버는 <a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.4.md §3 특권 계정 관리, §7 사례 3, 사례 4 · 공식 개요 7.4 “Privileged account management”</div>
+<h2 id="s5"><span class="n">5</span>직무 순환과 강제 휴가</h2>
+<p><b>같은 직무를 영구히 한 사람이 담당하지 않게 하는 것</b>입니다.</p>
+<ul>
+<li><b>장기 부정 탐지</b>: 부정은 같은 사람이 계속 그 자리에 있을 때 지속됩니다. 다른 사람이 맡으면 이상이 드러납니다.</li>
+<li><b>지식 독점 해소</b>: 한 사람만 아는 시스템은 그 사람이 떠나면 운영 불가. 가용성 위험이기도 합니다.</li>
+<li>담합 억제, 교차 훈련.</li>
+</ul>
+<h3 id="s5-vac">강제 휴가 (Mandatory Vacation)</h3>
+<p>일정 기간 업무에서 완전히 분리합니다. 그 기간에 다른 사람이 업무를 하면서 진행 중인 부정이 드러납니다. 반복 전표 조작으로 횡령을 가리는 것처럼 <b>지속적 조작이 필요한 부정</b>은 담당자가 자리를 비우면 유지되지 않습니다. 핵심은 <b>휴가 중 계정 접근 차단</b>입니다. 원격으로 계속 일하면 효과가 없습니다.</p>
+<p><b>원문 사례 — 강제 휴가가 드러낸 횡령.</b> 5년간 같은 직무를 맡으며 연속 휴가를 한 번도 쓰지 않은 직원이 강제 휴가로 2주간 자리를 비운 동안, 대체 담당자가 매월 반복되던 조정 전표의 이상을 발견했습니다.</p>
+<p>한계: 전문성 손실, <b>인수인계 기간의 권한 중복</b>(기한부 임시 연장과 자동 회수로 처리), 소규모 조직에서 비현실적, 그리고 가장 흔한 실패인 <b>순환 후 권한 회수 누락</b>. 순환은 전보와 같이 처리해야 합니다.</p>
+<p><b>원문 사례 — 순환 후 권한 회수 누락.</b> 운영팀 담당 영역을 매년 교대했는데, 3년 뒤 점검에서 순환한 담당자들이 이전 영역 권한을 모두 갖고 있었고 일부는 세 영역 전부에 권한이 있었습니다. 순환을 직무 분리를 무너뜨리는 경로로 만든 셈입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>다른 사람이 업무를 맡으면 예전에는 정상으로 여겼던 예외나 승인 누락이 보입니다. 그런데 담당자만 바꾸면 편법이 “원래 이렇게 한다”며 그대로 전해질 수 있습니다. 인수인계에서 현행 권한, 열린 예외, 실제 수행 기록을 함께 확인하고, 새 담당자가 발견한 사항을 기록으로 남기게 해야 순환이 탐지 통제로 작동합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>인사 보안의 전보·강제 휴가는 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>, 전보 시 권한 처리는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>의 3절에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D7.4-Q05</div>
+<p>강제 휴가는 어떻게 보안 통제로 기능하는가?</p><ol type="A"><li>직원 스트레스를 줄여 우발적 오류 가능성을 낮춘다.</li><li>부재 기간에 다른 사람이 업무를 수행하게 되어 지속적 조작이 필요한 진행 중 부정이 드러난다. 단 계정 접근이 정지되어야 한다.</li><li>조직이 필요한 특권 계정 수를 줄일 수 있게 한다.</li><li>최소 유급 휴가를 요구하는 노동 규정을 충족한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 반복 전표 조정으로 횡령을 가리는 것처럼 지속적 조작이 필요한 부정은 담당자가 자리를 비우면 유지되지 않는다. 대체 담당자가 업무를 수행하면서 이상이 드러난다. 통제의 핵심은 휴가 기간 중 계정 접근을 차단하는 것이며 원격으로 계속 일하면 효과가 없다.</p><ul><li>A · 복지 효과는 있으나 통제 작동 원리가 아니다.</li><li>C · 휴가와 특권 계정 수는 무관하다.</li><li>D · 법규 준수는 부수 효과이며 보안 통제 기능이 아니다.</li></ul><div class="src">원문 위치 · D7.4-Q05</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D7.4-Q12</div>
+<p>직무 순환의 보안 목적은?</p><ol type="A"><li>직원이 선호하는 역할을 고를 수 있게 하기 위해.</li><li>특권 접근을 가진 사람 수를 늘리기 위해.</li><li>조직 전반의 교육 비용을 줄이기 위해.</li><li>장기간 은폐된 오용을 지속하기 어렵게 만들고 각 핵심 업무를 한 사람 이상이 이해하도록 보장하기 위해.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 한 사람이 같은 업무를 오래 혼자 맡으면 그 영역의 부정을 숨길 수 있고 아무도 검증할 수 없다. 업무가 교체되면 후임이 기록을 보게 되므로 은폐가 어려워진다. 부수적으로 특정 인물에 대한 의존(단일 실패점)도 줄어든다. 다만 교체 시 이전 권한 회수가 함께 이루어져야 한다.</p><ul><li>A · 선호 배치는 목적이 아니다.</li><li>B · 특권 보유자 증가는 위험을 늘린다.</li><li>C · 교육 비용은 오히려 늘어난다.</li></ul><div class="src">원문 위치 · D7.4-Q12</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.4.md §3 직무 순환, §7 사례 5, 사례 6 · 공식 개요 7.4 “Job rotation” · 기존 문제 Q05, Q12 주제</div>
+<h2 id="s6"><span class="n">6</span>서비스 수준 협약 (SLA)</h2>
+<div class="tw"><table>
+<tr><th>문서</th><th>내용</th></tr>
+<tr><td><b>SLA</b></td><td>외부 공급자와의 서비스 수준 약정</td></tr>
+<tr><td><b>OLA</b></td><td>조직 내부 부서 간 운영 수준 합의</td></tr>
+<tr><td>SLR</td><td>고객이 요구하는 서비스 수준 요구사항</td></tr>
+<tr><td>MOU / MOA</td><td>구속력이 약한 양해·합의</td></tr>
+<tr><td>계약</td><td>법적 구속력</td></tr>
+</table></div>
+<p>보안 관점의 SLA 항목: 가용성(가동률, 계획 중단 창구), 성능, <b>사고 대응(응답 시간과 해결 시간을 구분)</b>, 취약점 조치 기한, <b>보안 사고 통지 기한</b>, 데이터 처리·보관 위치, <b>감사권과 보고서 제공</b>, 백업·복구(RTO/RPO), 종료 시 데이터 반환·삭제, 하위 수탁자 고지·동의, 측정과 보고 주체.</p>
+<h3 id="s6-limit">SLA의 한계</h3>
+<ul>
+<li><b>SLA는 위험을 제거하지 않습니다.</b> 위반 배상은 통상 서비스 요금 범위로 제한되고, 실제 업무 손실은 그보다 훨씬 큽니다.</li>
+<li><b>공급자 자체 측정</b>은 검증이 어렵습니다. 독립적 측정 수단이 필요합니다.</li>
+<li><b>가동률의 함정</b>: 99.9%는 연간 약 8.8시간 중단을 허용합니다. 그 중단이 결산일이면 숫자는 지켰지만 업무는 망가집니다. 중단 시점과 지속 시간 제약도 정의해야 합니다.</li>
+<li><b>공급자 연속성</b>: 공급자 자체가 사라지면 SLA는 무의미하므로 대체 수단(exit plan)이 필요합니다.</li>
+</ul>
+<p><b>원문 사례 — 99.9%를 지킨 치명적 중단.</b> 공급자가 연간 가동률 99.9%를 달성했지만 그중 4시간이 분기 결산일 업무 시간에 발생했습니다. SLA에 중단 시점 제약(결산 기간 제외), 단일 중단 최대 지속 시간, 중요 업무 시간대의 별도 기준을 넣었습니다.</p>
+<p><b>원문 사례 — 통지 기한이 규제 기한보다 늦었던 SLA.</b> 조직은 개인정보 침해를 72시간 안에 신고해야 했는데, 공급자 SLA의 보안 사고 통지 기한은 5영업일이었습니다. <b>공급자 통지가 규제 신고 기한보다 빨라야 합니다.</b> 계약 갱신 때 24시간으로 줄였습니다.</p>
+<p>원본의 결론: <b>SLA는 기대치를 문서화하고 분쟁 시 기준을 제공하지만, 실제 가용성과 보안을 만들어 내지는 않는다.</b> 측정, 검증, 대안 확보가 함께 필요합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>공급자 관리와 계약은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, 감사권과 제3자 보고서는 <a class="xr" href="D6.5.html">D6.5 보안 감사</a>의 4절, 개인정보 침해 신고는 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>, RTO·RPO는 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D7.4-Q08</div>
+<p>어떤 조직은 개인정보 침해를 규제 기관에 72시간 내에 신고해야 하지만 클라우드 공급자의 SLA 는 보안 사고를 5영업일 내에 통지하기로 약정하고 있다. 문제는?</p><ol type="A"><li>공급자의 SLA 가 규제 요구사항을 자동으로 대체한다.</li><li>규제 기한은 공급자가 통지한 시점부터 시작되므로 문제가 없다.</li><li>공급자 사고가 암호화된 데이터를 포함할 때만 문제가 된다.</li><li>조직이 모르는 상태로 규제 기한을 넘길 수 있으므로 공급자 통지가 신고 의무 기한보다 빨라야 한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 규제 신고 의무는 조직에 있고 공급자 통지 지연이 면책 사유가 되지 않는다. 공급자 통지가 신고 기한보다 늦으면 조직은 사고를 모르는 상태로 기한을 넘기게 된다. 계약에서 통지 기한을 단축하고 자체 탐지 역량으로 보강해 공급자 통지에만 의존하지 않아야 한다.</p><ul><li>A · 사적 계약이 규제 요구를 대체하지 않는다.</li><li>B · 규제 기한의 기산점이 공급자 통지 시점으로 미뤄지지 않는다.</li><li>C · 암호화 여부와 무관하게 통지 지연 문제는 성립한다.</li></ul><div class="src">원문 위치 · D7.4-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.4.md §3 서비스 수준 협약, §7 사례 7, 사례 8 · 공식 개요 7.4 “Service-level agreements (SLA)” · 기존 문제 Q08 주제</div>
+<h2 id="s7"><span class="n">7</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>운영 점검 결과다. ㉠ 도메인 관리자가 사용자 단말에 원격 지원으로 로그인한다. ㉡ PAM을 도입했지만 일부 서버는 직접 SSH가 열려 있다. ㉢ 직무 순환 뒤 담당자들이 이전 영역 권한을 그대로 갖고 있다. ㉣ 공급자 SLA의 보안 사고 통지 기한이 5영업일인데 규제 신고 기한은 72시간이다. 가장 적절한 대책 묶음은?</p>
+<ol type="A">
+<li>㉠ 관리자 비밀번호를 더 길게 / ㉡ SSH 키 교체 / ㉢ 순환 중단 / ㉣ 규제 기관에 기한 연장 요청</li>
+<li>㉠ 티어 모델, 전용 관리 단말, 특권 계정 로그온 위치 제한 / ㉡ 직접 경로 차단, PAM만 유일한 경로로 / ㉢ 순환을 전보처럼 처리(회수 + 기한부 연장 + 자동 회수) / ㉣ 통지 기한을 규제 기한보다 짧게 계약 갱신</li>
+<li>㉠ 원격 지원 금지 / ㉡ PAM 철거 / ㉢ 권한을 모두에게 동일하게 / ㉣ SLA가 규제를 대체</li>
+<li>㉠ 로그만 남김 / ㉡ 그대로 / ㉢ 다음 순환 때 정리 / ㉣ 배상 금액 상향</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> ㉠ 4절(상위 티어 계정으로 하위 티어에 로그인하지 않음), ㉡ 4절(PAM은 유일한 경로), ㉢ 5절(순환 후 회수 누락이 가장 흔한 실패), ㉣ 6절(공급자 통지가 규제 기한보다 빨라야 함). D의 “배상 상향”은 6절의 한계(SLA는 위험을 제거하지 않음)를 놓칩니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">8</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>직무 순환을 시행하면 직무 분리 효과가 생기나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>사람을 바꾸는 순환은 다른 사람이 활동을 관찰할 기회를 늘립니다. 동일 거래의 요청·승인 권한을 갈라야 하는 직무 분리의 통제와는 별도로 운영합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">9</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>네 원칙은 <b>권한의 집중</b>을 막는다: 최소권한(양), 알 필요성(범위), 직무 분리(과정), 직무 순환(시간).</li>
+<li><b>알 필요성 = 정보 범위, 최소권한 = 권한 수준.</b> 함께 작동. 기본 거부에서 시작, JIT, 프로세스에도 적용. 최소권한의 적은 <b>편의</b>.</li>
+<li>직무 분리: 부정 방지, 오류 탐지, <b>공모 요구</b>. 요청/승인, 개발/배포, 정책 설정/로그 감사, 사용자 생성/권한 부여, 지급/업체 등록, 키/데이터.</li>
+<li><b>이중 통제 = 둘이 동시에, 지식 분할 = 한 사람이 전체를 모름</b>, M-of-N. 소규모 조직은 보완 통제 + 위험 수락 기록.</li>
+<li>특권 계정: 인벤토리, 개인 귀속, 금고, 자동 교체, <b>적시 상승</b>, 세션 중개·녹화, 피싱 저항 MFA, 전용 관리 단말, 감시.</li>
+<li><b>티어 모델: 상위 티어 계정으로 하위 티어에 로그인 금지.</b> <b>PAM은 유일한 경로.</b></li>
+<li>직무 순환: 장기 부정 탐지, 지식 독점 해소. <b>강제 휴가 = 지속적 조작 부정 탐지, 휴가 중 접근 차단.</b> 순환 = 전보처럼 회수.</li>
+<li>SLA·OLA·SLR·MOU·계약. 보안 항목: 응답 vs 해결 시간, <b>사고 통지 기한(규제보다 빨라야)</b>, 감사권, 데이터 위치, 종료 시 처리.</li>
+<li>SLA 한계: 위험 제거 아님(배상 제한), 자체 측정, <b>가동률의 함정(중단 시점)</b>, exit plan.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D7.4.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">10</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Need-to-know</span> <span class="term-ko">· 알 필요성</span></h3>
+<p>업무상 필요한 정보에만 접근하는 원칙. 등급 충족과 별개다.</p>
+<h3 id="glossary-2"><span lang="en">Least Privilege</span> <span class="term-ko">· 최소권한</span></h3>
+<p>직무 수행에 필요한 최소한의 권한만 부여하는 원칙.</p>
+<h3 id="glossary-3"><span lang="en">Separation of Duties</span> <span class="term-ko">· 직무 분리</span></h3>
+<p>중요한 작업을 한 사람이 전 과정 수행할 수 없게 나누는 통제.</p>
+<h3 id="glossary-4"><span lang="en">Dual Control</span> <span class="term-ko">· 이중 통제</span></h3>
+<p>한 작업에 두 사람의 동시 수행을 요구하는 통제.</p>
+<h3 id="glossary-5"><span lang="en">Split Knowledge</span> <span class="term-ko">· 지식 분할</span></h3>
+<p>비밀을 나누어 한 사람이 전체를 알지 못하게 하는 방식.</p>
+<h3 id="glossary-6"><span lang="en">M-of-N Control</span> <span class="term-ko">· N명 중 M명의 참여를 요구하는 통제</span></h3>
+<p>N 명 중 M 명의 참여를 요구하는 통제.</p>
+<h3 id="glossary-7"><span lang="en">Dynamic Separation of Duties</span> <span class="term-ko">· 동적 직무 분리</span></h3>
+<p>두 권한 보유는 허용하되 같은 거래에서 동시 행사를 막는 방식.</p>
+<h3 id="glossary-8"><span lang="en">Privileged Access Management (PAM)</span> <span class="term-ko">· 특권 접근 관리</span></h3>
+<p>특권 계정의 자격증명 보관, 자동 교체, 적시 상승, 세션 중개·녹화 체계.</p>
+<h3 id="glossary-9"><span lang="en">Tier Model</span> <span class="term-ko">· 티어 모델</span></h3>
+<p>관리 권한을 계층으로 나누어 상위 자격증명이 하위 시스템에 노출되지 않게 하는 구조.</p>
+<h3 id="glossary-10"><span lang="en">Job Rotation</span> <span class="term-ko">· 직무 순환</span></h3>
+<p>같은 직무를 한 사람이 영구히 담당하지 않게 하는 통제.</p>
+<h3 id="glossary-11"><span lang="en">Mandatory Vacation</span> <span class="term-ko">· 강제 휴가</span></h3>
+<p>일정 기간 업무와 계정 접근에서 분리시켜 진행 중 부정을 드러내는 통제.</p>
+<h3 id="glossary-12"><span lang="en">SLA (Service-Level Agreement)</span> <span class="term-ko">· 서비스 수준 협약</span></h3>
+<p>서비스 수준을 정량적으로 약속한 합의.</p>
+<h3 id="glossary-13"><span lang="en">OLA (Operational-Level Agreement)</span> <span class="term-ko">· 운영 수준 협약</span></h3>
+<p>조직 내부 부서 간 운영 수준 합의.</p>
+<h3 id="glossary-14"><span lang="en">SLR (Service-Level Requirement)</span> <span class="term-ko">· 서비스 수준 요구사항</span></h3>
+<p>고객이 요구하는 서비스 수준 요구사항.</p>
+<h3 id="glossary-15"><span lang="en">Exit Plan</span> <span class="term-ko">· 종료 계획</span></h3>
+<p>공급자 중단이나 계약 종료 시의 전환 계획.</p>
+<div class="src">원문 위치 · D7.4.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">11</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-53 AC-5</strong> — 직무 분리</li>
+<li><strong>NIST SP 800-53 AC-6</strong> — 최소권한과 특권 기능 감사</li>
+<li><strong>NIST SP 800-53 AC-2</strong> — 계정 관리(특권 계정 포함)</li>
+<li><strong>ISO/IEC 27002:2022 5.3</strong> — 직무 분리</li>
+<li><strong>ISO/IEC 27002:2022 8.2</strong> — 특권 접근 권한</li>
+<li><strong>ISO/IEC 27002:2022 5.15 / 5.18</strong> — 접근 통제와 접근 권한</li>
+<li><strong>NIST SP 800-192</strong> — 접근 통제 정책 검증</li>
+<li><strong>COBIT / ITIL</strong> — SLA·OLA 관리</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D7.4.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">상담원은 고객 기록에 대한 읽기 접근이 정당하게 필요하지만 어떤 상담원이든 고객 번호만 입력하면 모든 고객을 조회할 수 있다. 일부 상담원이 유명인의 기록을 열람한 것이 발견되었다. 적용되지 않은 원칙은?</a></li>
+<li><a href="#question-2">강제 휴가는 어떻게 보안 통제로 기능하는가?</a></li>
+<li><a href="#question-3">직무 순환의 보안 목적은?</a></li>
+<li><a href="#question-4">어떤 조직은 개인정보 침해를 규제 기관에 72시간 내에 신고해야 하지만 클라우드 공급자의 SLA 는 보안 사고를 5영업일 내에 통지하기로 약정하고 있다. 문제는?</a></li>
+<li><a href="#question-5">운영 점검 결과다. ㉠ 도메인 관리자가 사용자 단말에 원격 지원으로 로그인한다. ㉡ PAM을 도입했지만 일부 서버는 직접 SSH가 열려 있다. ㉢ 직무 순환 뒤 담당자들이 이전 영역 권한을 그대로 갖고 있다. ㉣ 공급자 SLA의 보안 사고 통지 기한이 5영업일인데 규제 신고 기한은 72시간이다. 가장 적절한 대책 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D7.3.html"><small>← 이전 단원</small>7.3 구성 관리</a><a href="D7.5.html" style="text-align:right"><small>다음 단원 →</small>7.5 자원 보호</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

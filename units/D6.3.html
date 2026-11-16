@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D6.3 보안 프로세스 데이터 수집 (기술적, 관리적) — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D6.3">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 6 보안 평가 및 테스트 › 6.3</div>
+<h1>보안 프로세스 데이터 수집 (기술적, 관리적)</h1>
+<div class="en">Collect security process data (e.g., technical and administrative) · ISC2 CISSP Exam Outline(2024-04-15 발효) 6.3</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">“보안 활동을 하고 있다”는 말을 증거로 바꾸는 단원입니다. 원본의 핵심 문장은 두 개입니다. <b>측정하지 않으면 관리할 수 없고, 잘못 측정하면 잘못 관리한다.</b> 그리고 <b>지표는 행동을 유도하므로 지표 설계 자체가 통제 설계다.</b> 공식 개요 6.3은 기술적·관리적 데이터를 모두 요구하며, 계정 관리, 경영 검토, KPI·KRI, 백업 검증, 교육, DR·BC 여섯 영역을 듭니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D6.1.html">D6.1 평가·테스트·감사 전략</a> · <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a></td><td>평가 전략과 결과 분석. 이 단원은 그 사이의 데이터 수집과 지표 (1절, 7절)</td></tr>
+<tr><td><a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a> · <a class="xr" href="D8.3.html">D8.3 소프트웨어 보안 효과성</a></td><td>패치 관리, 소프트웨어 보안 효과 평가. 3절의 KPI·KRI를 참조 (3절)</td></tr>
+<tr><td><a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a></td><td>계정 생애주기와 접근 검토. 계정 관리 데이터의 출처 (2절)</td></tr>
+<tr><td><a class="xr" href="D7.10.html">D7.10 복구 전략</a> · <a class="xr" href="D7.12.html">D7.12 DRP 테스트</a></td><td>백업과 복구 전략, DR 계획 시험 (4절, 6절)</td></tr>
+<tr><td><a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a></td><td>BIA, RTO·RPO (4절, 6절)</td></tr>
+<tr><td><a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a></td><td>교육과 인식, 피싱 모의훈련 (5절)</td></tr>
+<tr><td><a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a></td><td>지속적 모니터링(ISCM) (7절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>왜 프로세스 데이터를 모으는가</h2>
+<div class="flow">
+<div class="nd">데이터 수집</div><div class="ar">→</div>
+<div class="nd">지표 산출</div><div class="ar">→</div>
+<div class="nd">분석</div><div class="ar">→</div>
+<div class="nd">경영 보고</div><div class="ar">→</div>
+<div class="nd">의사결정</div><div class="ar">→</div>
+<div class="nd">개선 → 측정 대상 조정</div>
+</div>
+<div class="tw"><table>
+<tr><th>용도</th><th>내용</th></tr>
+<tr><td><b>운영 관리</b></td><td>활동이 수행되는지 확인하고 지연·누락 발견</td></tr>
+<tr><td><b>의사결정 근거</b></td><td>자원 배분과 투자 우선순위</td></tr>
+<tr><td><b>준수 증거</b></td><td>감사·규제 대응에서 “했다”를 입증</td></tr>
+</table></div>
+<p>원본은 <b>기술적 데이터와 관리적 데이터가 둘 다 필요하다</b>고 강조합니다. 기술적 데이터(패치율, 스캔 결과, 로그)는 자동 수집이 가능하고, 관리적 데이터(승인 기록, 교육 이수, 검토 결과)는 프로세스가 수행되었음을 보여 줍니다. <b>기술적 데이터만 보면 거버넌스 실패를 놓치고, 관리적 데이터만 보면 실제 상태를 놓칩니다.</b></p>
+<div class="src">원문 위치: D6.3.md §2 · 공식 개요 6.3 “Collect security process data (e.g., technical and administrative)”</div>
+<h2 id="s2"><span class="n">2</span>계정 관리와 경영 검토</h2>
+<h3 id="s2-acct">계정 관리 데이터</h3>
+<p>가장 기본적이고 가장 자주 요구되는 데이터입니다.</p>
+<div class="tw"><table>
+<tr><th>수집 항목</th><th>보는 이유</th></tr>
+<tr><td>계정 수와 유형별 분포</td><td>사용자, 특권, 서비스, 외부 협력사, 비상 계정</td></tr>
+<tr><td>생성·변경·삭제 건수와 처리 시간</td><td>입사일에 준비되었나, 퇴사 후 며칠에 차단되었나</td></tr>
+<tr><td><b>퇴사 후 차단 소요 시간</b></td><td><b>평균이 아니라 최대값과 분포</b>. 평균 1일이어도 최대 60일이면 문제</td></tr>
+<tr><td>고아 계정 수 / 미사용 계정 수</td><td>HR 명단 대조, 일정 기간 미로그인</td></tr>
+<tr><td>특권 계정 수와 변동</td><td>증가 추세는 권한 누적의 신호</td></tr>
+<tr><td><b>접근 검토 완료율과 조치율</b></td><td>검토했는가, 지적이 실제로 조치되었는가</td></tr>
+<tr><td>직무 분리 위반 건수</td><td>정책 엔진 차단 건수, 승인된 예외 건수</td></tr>
+</table></div>
+<p>원본의 주의: <b>“계정 검토 완료율 100%”는 고무도장 승인으로도 달성됩니다.</b> 조치율과 변경 건수를 함께 봐야 의미가 있습니다. 과도한 권한을 탐지하려면 총계정 수 같은 집계가 아니라 <b>사용자별 권한, 마지막 사용 정보, 직무 분리 충돌 표시</b>가 필요합니다.</p>
+<p><b>원문 사례 — 평균값이 숨긴 최악의 사례.</b> 퇴사자 계정 차단 평균이 1.2일로 보고되어 양호해 보였지만, 분포를 보니 90%는 당일이었고 12건이 30일을 넘었으며 2건은 60일이었습니다. 60일 건 하나는 경쟁사로 이직한 직원이었습니다. 지표를 <b>최대값과 초과 건수</b>로 바꾸고 7일 초과 건을 KRI 임계값으로 설정했습니다.</p>
+<h3 id="s2-mgmt">경영 검토와 승인</h3>
+<p><b>거버넌스가 작동한다는 증거</b>입니다. ISO/IEC 27001 9.3의 경영 검토가 대표적입니다. 수집 항목은 회의 개최 기록(일정, 참석자, 안건, 결정), 의사결정 추적(미이행 결정 건수), 위험 수락 승인 기록(누가, 무엇을, 어떤 근거로, 언제까지), 예외 승인 기록(승인자, 보완 통제, 만료일), 정책 승인·개정 이력입니다.</p>
+<p>원본은 <b>검토 기록이 없으면 결정도 없었던 것으로 취급된다</b>고 말합니다. “구두로 승인했다”는 증거가 아닙니다. 가장 흔한 거버넌스 결함은 <b>결정과 이행 사이의 단절</b>입니다.</p>
+<p><b>원문 사례 — 결정은 있었으나 이행이 없었다.</b> 경영 검토가 분기마다 열리고 회의록도 있었지만, 2년간 결정된 조치 34건 중 19건은 이행 여부가 추적되지 않았고 11건은 미이행이었습니다. 모든 결정에 책임자와 기한을 붙이고 <b>미이행 결정 건수를 KRI로 경영 검토 안건에</b> 넣었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>ISO 27001 심사에서 9.3 경영 검토를 볼 때 회의록 존재만 확인하면 절반만 본 것입니다. 회의록의 결정 사항을 다음 회의의 입력(이전 검토 조치의 상태)과 대조하고, 결정된 통제 변경이 실제 시스템이나 권한 변경으로 나타났는지 표본으로 확인합니다. 결정 기록은 “정책을 바꾸는 일”과 “예외로 승인하는 일”을 구분할 수 있을 만큼 구체적이어야 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>계정 생애주기와 고무도장 승인은 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>의 6절, 위험 수락과 거버넌스는 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>·<a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D6.3-Q22</div>
+<p>과도한 접근 권한 탐지를 가장 직접적으로 뒷받침하는 계정 관리 데이터는?</p><ol type="A"><li>디렉터리의 총 계정 수.</li><li>전체 계정의 평균 비밀번호 길이.</li><li>사용자별 권한과 마지막 사용 정보, 직무 분리 충돌 표시. 그래야 미사용 권한과 충돌하는 권한이 눈에 보인다.</li><li>일별 성공 로그인 수.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 총 계정 수는 과도한 권한을 말해 주지 않는다. 필요한 것은 "누가 무엇을 가졌고 실제로 쓰는가" 다. 마지막 사용 정보가 있으면 쓰지 않는 권한을 회수할 수 있고, 직무 분리 충돌 표시가 있으면 위험한 조합을 찾을 수 있다. 이 데이터가 접근 검토를 형식적 승인에서 실질적 판단으로 바꾼다.</p><ul><li>A · 총량은 권한 적정성과 무관하다.</li><li>B · 비밀번호 길이는 다른 지표다.</li><li>D · 로그인 수는 사용량 지표다.</li></ul><div class="src">원문 위치 · D6.3-Q22</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D6.3.md §3 계정 관리, 경영 검토와 승인, §7 사례 1, 사례 4 · 공식 개요 6.3 “Account management”, “Management review and approval” · 기존 문제 Q22 주제</div>
+<h2 id="s3"><span class="n">3</span>핵심 성과 지표와 핵심 위험 지표 (KPI / KRI)</h2>
+<div class="tw"><table>
+<tr><th>구분</th><th>답하는 질문</th><th>성격</th><th>예</th></tr>
+<tr><td><b>KPI</b> Key Performance Indicator</td><td>우리가 <b>잘하고 있는가</b></td><td>사후적(lagging)</td><td>중대 취약점 평균 조치 시간, 패치 적용률, 사고 평균 탐지 시간, 교육 이수율</td></tr>
+<tr><td><b>KRI</b> Key Risk Indicator</td><td>위험이 <b>커지고 있는가</b></td><td>선행적(leading)</td><td>특권 계정 증가율, 만료된 예외 건수, <b>미지원 OS 자산 비율</b>, 승인되지 않은 변경 건수, 외부 노출 자산 증가</td></tr>
+</table></div>
+<p>KRI에는 <b>임계값(threshold)과 경고 수준</b>이 있어야 하고, 임계값을 넘으면 <b>정의된 조치</b>가 따라야 합니다.</p>
+<h3 id="s3-good">좋은 지표의 요건</h3>
+<ul>
+<li><b>측정 가능하고 반복 가능</b>: 수집 방법이 정의되어 매번 같은 방식으로 산출됩니다.</li>
+<li><b>의사결정과 연결</b>: 수치가 바뀌면 누가 무엇을 하는지 정해져 있습니다.</li>
+<li><b>조작 저항성</b>: 담당자가 쉽게 좋아 보이게 만들 수 없습니다.</li>
+<li><b>맥락 포함</b>: 절대값만이 아니라 추세, 분포, 기준선을 함께 봅니다.</li>
+</ul>
+<h3 id="s3-distort">지표가 목표가 될 때</h3>
+<div class="tw"><table>
+<tr><th>지표를 성과로 쓰면</th><th>일어나는 일</th><th>짝 지표</th></tr>
+<tr><td>발견된 취약점 수</td><td>스캔을 덜 하거나 범위를 줄임</td><td>커버리지 + 미조치 잔량</td></tr>
+<tr><td>사고 건수</td><td>사고를 보고하지 않음</td><td>탐지·보고 시간</td></tr>
+<tr><td>평균 조치 시간</td><td>쉬운 건부터, 어려운 건 방치</td><td><b>미조치 잔량과 최장 경과 일수</b></td></tr>
+<tr><td>교육 이수율</td><td>클릭만 하고 익히지 않음</td><td><b>피싱 모의훈련 실패율·신고율</b></td></tr>
+</table></div>
+<p><b>원문 사례 — 지표가 목표가 된 경우.</b> 보안팀 성과 지표를 “발견된 취약점 수 감소”로 두었더니 2년간 수치가 꾸준히 좋아졌는데, 외부 테스트에서 스캔 범위가 계속 축소되어 왔음이 드러났습니다. 커버리지 + 미조치 잔량 + 최장 경과 일수의 짝 지표로 재설계하고 범위 변경 자체를 승인 대상으로 만들었습니다.</p>
+<p><b>원문 사례 — 분모가 틀린 비율 지표.</b> 패치 적용률 97%였지만 에이전트가 설치된 자산만 분모에 있었고, 미설치 자산 310대는 계산에서 빠져 있었습니다. 원본의 말대로 <b>분모가 틀리면 결과가 틀립니다.</b> 분모를 권위 있는 자산 인벤토리로 고정하고 에이전트 미설치 자산 수를 별도 KRI로 관리했습니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>지표가 갑자기 좋아졌거나 나빠졌을 때 ① 분모(모집단)가 바뀌었나(제외 장비, 예외 증가) ② 산출 방법이 바뀌었나(새 수집원, 경보 묶는 방식) ③ 실제 상태가 바뀌었나 순서로 의심합니다. 패치 준수율 목표를 준 뒤 비율이 오르면서 예외와 스캔 제외 장비도 늘었다면 ①입니다. “경보 20% 증가”도 수집원 추가 때문인지, 확인된 사고 비율이 늘었는지 함께 봐야 위험 증가로 읽을 수 있습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>패치 관리 지표는 <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>, 소프트웨어 보안의 효과 측정은 <a class="xr" href="D8.3.html">D8.3 소프트웨어 보안 효과성</a>, 위험 관리와 지표는 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D6.3-Q01</div>
+<p>핵심 성과 지표가 아니라 핵심 위험 지표로 기능하는 측정값은?</p><ol type="A"><li>지난 분기 중대 취약점의 평균 조치 소요 시간.</li><li>지난달 성공적으로 배포된 패치 수.</li><li>연간 보안 교육을 이수한 직원 비율.</li><li>공급자 지원이 종료된 운영체제를 사용하는 자산 비율의 증가.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> KRI 는 위험 노출이 증가하고 있음을 미리 알리는 선행 지표이며 임계값과 초과 시 조치가 정의되어야 한다. 미지원 OS 자산 비율 증가는 아직 사고가 나지 않았지만 위험이 커지고 있음을 알리므로 KRI 다. 나머지는 프로세스가 얼마나 잘 수행되었는지를 보여주는 사후적 KPI 다.</p><ul><li>A · 조치 소요 시간은 프로세스 성과를 보여주는 KPI 다.</li><li>B · 배포 건수는 수행량 측정이며 위험 증가 신호가 아니다.</li><li>C · 교육 이수율은 활동 수행 정도를 나타내는 KPI 다.</li></ul><div class="src">원문 위치 · D6.3-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D6.3-Q15</div>
+<p>보안팀에 패치 준수율 98% 목표가 부여된 후 보고된 준수율이 빠르게 올랐고 동시에 예외와 스캔 제외 장비 수도 늘었다. 어떤 결론을 내려야 하는가?</p><ol type="A"><li>목표가 효과적이었으므로 더 높여야 한다.</li><li>지표의 분모가 좁아지고 있어 보고된 비율이 실제 노출을 반영하지 않는다. 지표 정의와 예외 승인, 스캔 범위를 비율과 함께 검토해야 한다.</li><li>예외의 증가는 패치 도구에 결함이 있음을 증명한다.</li><li>조작될 수 있으므로 패치 준수율을 지표에서 제거해야 한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 목표 수치에 보상이 걸리면 분모를 줄이는 방향으로 행동이 유도된다. 스캔 제외와 예외 승인이 늘면 비율은 오르지만 실제 미적용 장비는 남는다. 비율만 보지 않고 분모의 크기, 예외 건수와 사유, 승인자, 제외 장비의 위험을 함께 보고하게 해야 지표가 의미를 유지한다.</p><ul><li>A · 수치 상승이 위험 감소를 뜻하지 않는다.</li><li>C · 예외 증가의 원인은 도구 결함이 아니라 측정 설계다.</li><li>D · 제거보다 정의와 보고 방식 보완이 적절하다.</li></ul><div class="src">원문 위치 · D6.3-Q15</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D6.3.md §3 핵심 성과 지표와 핵심 위험 지표, §7 사례 3, 사례 6 · 공식 개요 6.3 “Key performance and risk indicators” · 기존 문제 Q01, Q15 주제</div>
+<h2 id="s4"><span class="n">4</span>백업 검증 데이터</h2>
+<p>원본의 핵심 문장: <b>백업이 성공했다는 로그와 복구가 가능하다는 증거는 다르다.</b> 백업 성공 로그는 “쓰기가 끝났다”는 뜻이지 읽어서 복구할 수 있다는 보장이 아닙니다.</p>
+<div class="tw"><table>
+<tr><th>수집 항목</th><th>보는 이유</th></tr>
+<tr><td>백업 작업 성공·실패 건수와 추세</td><td>기본 상태</td></tr>
+<tr><td><b>백업 대상 커버리지</b></td><td>보호 대상 중 실제 백업되는 비율. 인벤토리와 대조</td></tr>
+<tr><td><b>복구 테스트 수행 기록</b></td><td>언제, 무엇을, 어떤 방식으로 복구했는가</td></tr>
+<tr><td><b>복구 성공률과 소요 시간</b></td><td>실제 RTO 달성 여부</td></tr>
+<tr><td>데이터 정합성 검증</td><td>복구된 데이터가 사용 가능한 상태인가</td></tr>
+<tr><td><b>오프라인·불변 사본</b></td><td>랜섬웨어 대응의 전제</td></tr>
+<tr><td>백업 암호화와 접근 통제</td><td>백업 자체의 보호</td></tr>
+</table></div>
+<p>랜섬웨어 관점에서, 백업 서버가 같은 도메인에 있고 관리자 권한으로 접근 가능하면 <b>백업도 함께 암호화됩니다.</b> 그래서 분리된 자격증명, 네트워크 분리, 불변 저장, 오프라인 사본이 검증 항목이 됩니다. 핵심은 <b>RTO·RPO 목표 대비 실측값</b>입니다. 계획된 RTO 4시간에 복구 테스트 실측 14시간이면 계획이 허구입니다.</p>
+<p><b>원문 사례 — 백업 성공 로그와 복구 불가.</b> 백업 성공률 99.8%가 3년간 보고되었지만, 랜섬웨어 사고 뒤 복구를 시도하자 백업 저장소가 같은 도메인 자격증명으로 접근 가능해 함께 암호화되어 있었고, 오프라인 사본은 2년간 만들어지지 않았습니다. 분리된 자격증명과 불변 저장을 도입하고, 분기별 복구 테스트를 의무화하고, 지표를 <b>복구 테스트 성공률과 RTO 실측값</b>으로 바꿨습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>백업 방식과 복구 전략은 <a class="xr" href="D7.10.html">D7.10 복구 전략</a>, RTO·RPO와 BIA는 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>, 랜섬웨어 대응은 <a class="xr" href="D7.6.html">D7.6 사고 관리</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D6.3.md §3 백업 검증 데이터, §7 사례 2 · 공식 개요 6.3 “Backup verification data”</div>
+<h2 id="s5"><span class="n">5</span>교육 및 인식</h2>
+<div class="tw"><table>
+<tr><th>수집 항목</th><th>내용</th></tr>
+<tr><td>이수율</td><td>대상자 중 완료 비율. 신규 입사자 기한 내 이수율은 따로</td></tr>
+<tr><td>역할별 전문 교육</td><td>개발자 보안 코딩, 관리자 특권 운영, 경영진 거버넌스</td></tr>
+<tr><td><b>피싱 모의훈련 결과</b></td><td>클릭률, 자격증명 입력률, <b>신고율</b></td></tr>
+<tr><td>지식 평가</td><td>사후 테스트 점수, 재이수 필요 인원</td></tr>
+<tr><td>행동 변화</td><td>보안 문의·신고 건수, 정책 위반 추세</td></tr>
+</table></div>
+<p>원본은 <b>신고율이 클릭률보다 중요한 지표</b>라고 봅니다. 클릭은 완전히 없앨 수 없지만 빠른 신고는 대응 시간을 결정적으로 줄입니다. 클릭률만 재면 “클릭했지만 신고한” 좋은 행동이 보이지 않습니다. 또 <b>클릭한 사람을 징계하면 사고를 숨기게 됩니다.</b></p>
+<p><b>원문 사례 — 이수율 100%, 피싱 실패율 31%.</b> 전사 교육 이수율이 100%였던 분기에 피싱 모의훈련에서 클릭률 31%, 자격증명 입력률 12%, 신고율 4%가 나왔습니다. 원본의 결론은 <b>이수율은 참여 지표이지 행동 지표가 아니다</b>입니다. 역할별 실무 중심으로 교육을 바꾸고, 신고율을 주 지표로 올리고, 신고 버튼을 메일 클라이언트에 두고, 신고를 긍정적으로 인정했습니다. 클릭한 사람 징계는 신고 위축 우려로 채택하지 않았습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>교육·훈련·인식의 구분과 피싱 모의훈련 운영은 <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D6.3.md §3 교육 및 인식, §7 사례 5 · 공식 개요 6.3 “Training and awareness”</div>
+<h2 id="s6"><span class="n">6</span>재해 복구와 업무 연속성 (DR / BC)</h2>
+<div class="tw"><table>
+<tr><th>수집 항목</th><th>내용</th></tr>
+<tr><td><b>훈련 수행 기록과 유형</b></td><td>체크리스트 검토, 테이블탑, 병행 처리, 전면 중단 전환 중 어느 수준인가</td></tr>
+<tr><td><b>훈련 결과와 도출된 결함</b></td><td>발견된 문제와 조치 완료 여부</td></tr>
+<tr><td><b>RTO·RPO 실측 대비 목표</b></td><td>계획의 현실성</td></tr>
+<tr><td>BIA 최신성</td><td>조직 변화를 반영하는가</td></tr>
+<tr><td>연락 체계 유효성</td><td>비상 연락망 최신성, 연락 성공률</td></tr>
+<tr><td>대체 사이트 준비 상태</td><td>설비, 데이터 동기화 지연, 용량</td></tr>
+<tr><td>공급자 연속성</td><td>핵심 공급자의 BC 계획, 대체 수단</td></tr>
+</table></div>
+<p>원본은 <b>훈련 수준이 올라갈수록 비용과 위험이 커진다</b>고 정리합니다. 체크리스트 검토는 쉽지만 발견이 적고, 전면 전환은 실제 결함을 드러내지만 운영 위험이 있습니다. 그래서 데이터로서 중요한 것은 <b>“훈련을 했다”가 아니라 “어떤 수준으로 했고 무엇을 발견했는가”</b>입니다.</p>
+<p><b>원문 사례 — DR 훈련의 수준 문제.</b> DR 훈련을 매년 했다고 보고했지만 전부 체크리스트 검토였고, 실제 장애 때 대체 사이트의 데이터 동기화 지연이 11시간이라 RPO 1시간 목표를 전혀 달성할 수 없었습니다. 훈련 유형을 단계적으로 올리고 지표를 <b>훈련 유형 + 도출 결함 수 + 결함 조치율 + RTO·RPO 실측값</b>으로 넓혔습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>DR 시험 유형(체크리스트·테이블탑·병행·전면 전환)은 <a class="xr" href="D7.12.html">D7.12 DRP 테스트</a>, 대체 사이트는 <a class="xr" href="D7.11.html">D7.11 재해 복구 프로세스</a>, BCP는 <a class="xr" href="D7.13.html">D7.13 업무연속성 계획·훈련</a>·<a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D6.3-Q08</div>
+<p>어떤 조직이 재해 복구 훈련을 매년 수행했다고 보고한다. 검토에서 모든 훈련이 체크리스트 검토 수준이었고 대체 사이트로의 실제 데이터 복제 지연이 복구 목표 시점 1시간에 대해 11시간임이 드러났다. 수집된 데이터에 대해 이것이 보여주는 것은?</p><ol type="A"><li>훈련이 수행되었다는 기록 자체는 의미 있는 데이터가 아니다. 훈련 유형, 도출된 결함, 실제 복구 시간과 실제 데이터 손실 범위를 기록해야 한다.</li><li>체크리스트 검토는 부적절하므로 절대 사용해서는 안 된다.</li><li>훈련 빈도가 부족했으므로 연 2회로 늘려야 한다.</li><li>복구 목표 시점을 실측 복제 지연에 맞게 완화해야 한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 훈련 수행 여부만 기록하면 어떤 수준으로 했고 무엇을 발견했는지가 사라진다. 체크리스트 검토는 비용이 낮지만 발견하는 결함이 적고 실제 복제 지연 같은 문제는 드러나지 않는다. 훈련 유형과 도출 결함, 조치율, 목표 대비 실측값을 데이터로 수집해야 한다.</p><ul><li>B · 체크리스트 검토도 용도가 있으며 단계적으로 상향하는 것이 적절하다.</li><li>C · 같은 수준의 훈련을 더 자주 해도 같은 사각지대가 유지된다.</li><li>D · 목표를 실측에 맞추는 것은 요구를 포기하는 것이며 업무 영향 분석에 근거해야 한다.</li></ul><div class="src">원문 위치 · D6.3-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D6.3.md §3 재해 복구와 업무 연속성, §7 사례 7 · 공식 개요 6.3 “Disaster Recovery (DR) and Business Continuity (BC)” · 기존 문제 Q08 주제</div>
+<h2 id="s7"><span class="n">7</span>수집과 보고의 운영</h2>
+<h3 id="s7-auto">자동화와 데이터 품질</h3>
+<p>가능한 것은 자동으로 수집합니다. 수작업 수집은 지연되고, 틀리고, 주기가 길어집니다. 자동화하면 상시 측정이 가능해져 <b>지속적 모니터링(ISCM, NIST SP 800-137)</b>으로 옮겨 갈 수 있습니다.</p>
+<div class="tw"><table>
+<tr><th>품질 요건</th><th>내용</th></tr>
+<tr><td><b>출처 신뢰성</b></td><td>자산 인벤토리가 틀리면 모든 비율 지표가 틀림(<b>분모</b>)</td></tr>
+<tr><td><b>일관성</b></td><td>산출 방법이 바뀌면 추세 비교가 무의미</td></tr>
+<tr><td><b>적시성</b></td><td>오래된 데이터로 내린 결정은 현재와 무관</td></tr>
+</table></div>
+<h3 id="s7-report">대상별 보고</h3>
+<div class="tw"><table>
+<tr><th>대상</th><th>필요한 내용</th></tr>
+<tr><td>운영팀</td><td>상세 항목, 담당자, 기한</td></tr>
+<tr><td>중간 관리</td><td>추세, 병목, 자원 필요</td></tr>
+<tr><td>경영진·이사회</td><td>위험 수준, <b>의사결정 요청</b></td></tr>
+</table></div>
+<p>원본은 경영진에게 기술 수치를 그대로 올리면 의사결정이 되지 않는다고 말합니다. “미패치 서버 1,240대”가 아니라 “인터넷 노출 결제 시스템 3대에 악용 중인 취약점이 있고 처리에 긴급 승인이 필요하다”가 결정 가능한 보고입니다.</p>
+<p>프로세스 데이터는 <b>감사 증거</b>이므로 보존 기간을 정하고 변조를 막습니다. 동시에 취약점 데이터와 테스트 결과는 <b>민감 정보</b>이므로 접근을 제한합니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>“접근 회수 완료율 100%”가 보고되었는데, 수치는 헬프데스크에서 상태가 ‘닫힘’인 요청만 세어 만든 것이었습니다. 판단은 “완료”의 정의부터 시작합니다. 모집단에 모든 퇴사·전보 이벤트가 들어 있는지(인사 시스템과 대조), 닫힌 티켓 일부를 표본으로 골라 실제 디렉터리와 SaaS에서 계정이 비활성화되었는지 확인합니다. 증거를 만들 수 없는 지표는 아무리 높아도 근거가 되지 못합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>지속적 모니터링과 로그는 <a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>, 결과의 분석과 보고서는 <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D6.3.md §3 수집과 보고의 운영</div>
+<h2 id="s8"><span class="n">8</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>분기 보안 보고서의 지표다. ㉠ 퇴사자 차단 평균 1.2일. ㉡ 백업 성공률 99.8%. ㉢ 보안 교육 이수율 100%. ㉣ 패치 적용률 97%(에이전트 설치 자산 기준). 각 지표를 보완하는 짝 지표로 가장 적절한 묶음은?</p>
+<ol type="A">
+<li>㉠ 계정 총수 / ㉡ 백업 용량 / ㉢ 교육 시간 / ㉣ 배포된 패치 수</li>
+<li>㉠ 평균 대신 중앙값 / ㉡ 백업 작업 수 / ㉢ 재이수율 / ㉣ 에이전트 버전</li>
+<li>㉠ 최대값과 7일 초과 건수 / ㉡ 복구 테스트 성공률과 RTO 실측값, 오프라인·불변 사본 여부 / ㉢ 피싱 모의훈련 신고율과 자격증명 입력률 / ㉣ 권위 있는 인벤토리 기준 분모, 에이전트 미설치 자산 수</li>
+<li>짝 지표는 필요 없다. 네 지표 모두 목표치를 넘었다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 C.</b> ㉠ 2절(평균은 꼬리를 숨긴다 — 중앙값도 꼬리를 숨김), ㉡ 4절(성공 로그 ≠ 복구 가능), ㉢ 5절(이수율은 참여 지표, 신고율이 행동 지표), ㉣ 3절(분모가 틀리면 결과가 틀린다).</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">9</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>완료 건수를 보여 주는 표가 모두 녹색인데도 사업 위험이 커질 수 있나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>노출된 중요 서비스의 미조치 기간이 늘었다면 완료율과 위험은 다른 방향으로 움직입니다. 두 지표의 분모·기간·범위를 확인하고 중요한 위험의 변화를 따로 보고합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">10</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>프로세스 데이터의 용도: 운영 관리, 의사결정 근거, 준수 증거. <b>지표 설계가 곧 통제 설계</b>.</li>
+<li><b>기술적 + 관리적 데이터</b> 둘 다. 기술만 → 거버넌스 실패 놓침, 관리만 → 실제 상태 놓침.</li>
+<li>계정 관리: 퇴사 차단은 <b>평균 아닌 최대값·분포</b>. 검토 완료율은 <b>조치율</b>과 함께.</li>
+<li>경영 검토: <b>기록 없으면 결정도 없음</b>. 결정과 이행의 단절이 가장 흔한 결함 → 미이행 건수를 KRI로.</li>
+<li><b>KPI = 잘하고 있는가(사후적), KRI = 위험이 커지는가(선행적)</b>. KRI에는 임계값과 정의된 조치.</li>
+<li>좋은 지표: 측정·반복 가능, 의사결정 연결, 조작 저항, 맥락. 지표가 목표가 되면 왜곡 → <b>짝 지표</b>.</li>
+<li><b>분모가 틀리면 결과가 틀린다.</b> 분모는 권위 있는 인벤토리.</li>
+<li>백업: <b>성공 로그 ≠ 복구 가능</b>. 커버리지, 복구 테스트, <b>RTO·RPO 실측</b>, 오프라인·불변 사본, 분리된 자격증명.</li>
+<li>교육: <b>신고율 &gt; 클릭률</b>. 이수율은 참여 지표. 징계는 은폐를 부른다.</li>
+<li>DR/BC: “했다”가 아니라 <b>어떤 수준으로 했고 무엇을 발견했는가</b>.</li>
+<li>운영: 자동화(ISCM), 품질(출처·일관성·적시성), 대상별 보고(경영진에게는 결정 요청), 데이터 보존과 보호.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D6.3.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 “시험에서 구분을 자주 요구한다” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">11</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Security Process Data</span> <span class="term-ko">· 보안 프로세스 데이터</span></h3>
+<p>보안 활동의 수행과 효과를 보여주는 기술적·관리적 데이터.</p>
+<h3 id="glossary-2"><span lang="en">KPI (Key Performance Indicator)</span> <span class="term-ko">· 핵심 성과 지표</span></h3>
+<p>보안 프로세스가 얼마나 잘 수행되는지 측정하는 사후적 지표.</p>
+<h3 id="glossary-3"><span lang="en">KRI (Key Risk Indicator)</span> <span class="term-ko">· 핵심 위험 지표</span></h3>
+<p>위험 노출이 증가하고 있음을 미리 알리는 선행적 지표. 임계값이 설정된다.</p>
+<h3 id="glossary-4"><span lang="en">Threshold</span> <span class="term-ko">· 임계값</span></h3>
+<p>KRI 가 초과하면 정의된 조치를 촉발하는 기준값.</p>
+<h3 id="glossary-5"><span lang="en">Paired Metrics</span> <span class="term-ko">· 짝 지표</span></h3>
+<p>한쪽 지표의 왜곡을 상쇄하기 위해 함께 보는 지표. 조치 시간과 미조치 잔량.</p>
+<h3 id="glossary-6"><span lang="en">Management Review</span> <span class="term-ko">· 경영 검토</span></h3>
+<p>경영진이 보안 성과와 위험을 정기적으로 검토하고 결정하는 활동. ISO/IEC 27001 9.3.</p>
+<h3 id="glossary-7"><span lang="en">Risk Acceptance Record</span> <span class="term-ko">· 위험 수용 기록</span></h3>
+<p>누가, 무엇을, 어떤 근거로, 언제까지 위험을 수락했는지 기록한 증거.</p>
+<h3 id="glossary-8"><span lang="en">Backup Verification</span> <span class="term-ko">· 백업 검증</span></h3>
+<p>백업 데이터로 실제 복구가 가능한지 확인하는 활동. 백업 성공 로그와 다르다.</p>
+<h3 id="glossary-9"><span lang="en">Immutable Backup</span> <span class="term-ko">· 불변 백업</span></h3>
+<p>일정 기간 수정·삭제가 불가능한 백업. 랜섬웨어 대응의 핵심이다.</p>
+<h3 id="glossary-10"><span lang="en">RTO / RPO — Recovery Time Objective / Recovery Point Objective</span> <span class="term-ko">· 목표 복구 시간 / 목표 복구 시점</span></h3>
+<p>복구 목표 시간과 복구 목표 시점. 실측값과 목표값을 비교해 측정한다.</p>
+<h3 id="glossary-11"><span lang="en">BIA (Business Impact Analysis)</span> <span class="term-ko">· 업무영향분석</span></h3>
+<p>업무 중단의 영향을 분석해 복구 우선순위와 목표를 도출하는 활동.</p>
+<h3 id="glossary-12"><span lang="en">Phishing Simulation</span> <span class="term-ko">· 피싱 모의훈련</span></h3>
+<p>모의 피싱 메일을 발송해 클릭률, 자격증명 입력률, 신고율을 측정하는 훈련.</p>
+<h3 id="glossary-13"><span lang="en">ISCM (Information Security Continuous Monitoring)</span> <span class="term-ko">· 정보보안 지속 모니터링</span></h3>
+<p>보안 상태를 상시 측정해 지속적으로 평가하는 체계. NIST SP 800-137.</p>
+<div class="src">원문 위치 · D6.3.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">12</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-55 Rev.2</strong> — 정보보안 측정 지침, 지표 개발 절차</li>
+<li><strong>NIST SP 800-137</strong> — 지속적 모니터링(ISCM) 전략과 구현</li>
+<li><strong>ISO/IEC 27004:2016</strong> — 모니터링, 측정, 분석, 평가</li>
+<li><strong>ISO/IEC 27001:2022 9.1 / 9.3</strong> — 측정 요구사항과 경영 검토</li>
+<li><strong>NIST SP 800-34</strong> — 비상 대응 계획과 훈련 유형</li>
+<li><strong>COBIT 2019</strong> — 거버넌스 지표와 성과 관리</li>
+<li><strong>CIS Controls</strong> — 통제별 측정 항목</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D6.3.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">과도한 접근 권한 탐지를 가장 직접적으로 뒷받침하는 계정 관리 데이터는?</a></li>
+<li><a href="#question-2">핵심 성과 지표가 아니라 핵심 위험 지표로 기능하는 측정값은?</a></li>
+<li><a href="#question-3">보안팀에 패치 준수율 98% 목표가 부여된 후 보고된 준수율이 빠르게 올랐고 동시에 예외와 스캔 제외 장비 수도 늘었다. 어떤 결론을 내려야 하는가?</a></li>
+<li><a href="#question-4">어떤 조직이 재해 복구 훈련을 매년 수행했다고 보고한다. 검토에서 모든 훈련이 체크리스트 검토 수준이었고 대체 사이트로의 실제 데이터 복제 지연이 복구 목표 시점 1시간에 대해 11시간임이 드러났다. 수집된 데이터에 대해 이것이 보여주는 것은?</a></li>
+<li><a href="#question-5">분기 보안 보고서의 지표다. ㉠ 퇴사자 차단 평균 1.2일. ㉡ 백업 성공률 99.8%. ㉢ 보안 교육 이수율 100%. ㉣ 패치 적용률 97%(에이전트 설치 자산 기준). 각 지표를 보완하는 짝 지표로 가장 적절한 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D6.2.html"><small>← 이전 단원</small>6.2 보안 통제 테스트</a><a href="D6.4.html" style="text-align:right"><small>다음 단원 →</small>6.4 결과 분석과 보고</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

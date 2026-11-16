@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D1.11 공급망 위험 관리(SCRM) 개념의 적용 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D1.11">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 1 보안 및 위험 관리 › 1.11</div>
+<h1>공급망 위험 관리(SCRM) 개념의 적용</h1>
+<div class="en">Apply Supply Chain Risk Management (SCRM) concepts · ISC2 CISSP Exam Outline(2024-04-15 발효) 1.11</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">우리 시스템을 아무리 단단히 지켜도, 우리가 믿고 들여오는 부품·소프트웨어·서비스가 오염되어 있으면 소용이 없습니다. 공격자는 견고한 목표를 직접 치는 대신 그 목표가 신뢰하는 공급자를 칩니다. 이 단원은 “믿고 받는 것”을 어떻게 확인하고 통제할지를 다룹니다.</p>
+<details class="more"><summary>공식 개요 세부 항목</summary><div><ul>
+<li lang="en">Risks associated with the acquisition of products and services from suppliers and providers (e.g., product tampering, counterfeits, implants)</li>
+<li lang="en">Risk mitigations (e.g., third-party assessment and monitoring, minimum security requirements, service level requirements, silicon root of trust, physically unclonable function, software bill of materials)</li>
+</ul></div></details>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.9.html">D1.9 위험 관리</a></td><td>위험을 전가해도 책임은 남는다는 원칙의 확장. 공급자도 위험 평가의 범위에 들어간다 (1절)</td></tr>
+<tr><td><a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a></td><td>공급자의 복구 능력과 집중 위험을 연속성 관점에서 먼저 다뤘다 (7절)</td></tr>
+<tr><td><a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a> · <a class="xr" href="D1.8.html">D1.8 인적 보안</a></td><td>제3자 계약의 감사 권한, 외부 인력 통제 (6절)</td></tr>
+<tr><td><a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a></td><td>재하도급으로 생기는 국경 간 이전 문제, SBOM과 라이선스 (4·7절)</td></tr>
+<tr><td><a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a></td><td>TPM, 보안 부팅, 신뢰 루트의 동작 (5절)</td></tr>
+<tr><td><a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a></td><td>SBOM을 취약점 정보와 결합해 실제로 쓰는 취약점 관리 (4절)</td></tr>
+<tr><td><a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a> · <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a></td><td>의존성과 빌드 파이프라인의 통제, 도입 소프트웨어의 평가 (3·6절)</td></tr>
+<tr><td><a class="xr" href="D6.1.html">D6.1 평가·테스트·감사 전략</a></td><td>공급자를 직접 평가하기 어려울 때 쓰는 제3자 감사 보고서 (6절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>공급망 위험 관리의 전제</h2>
+<h3 id="s1-why">왜 필요한가</h3>
+<p><b>공급망 위험 관리(SCRM, Supply Chain Risk Management)</b>는 공급자와 그 산출물에서 오는 위험을 식별·평가·완화하는 관리 체계입니다. 원본의 전제는 이렇습니다. <b>조직의 보안 수준은 가장 약한 공급자의 수준을 넘지 못한다.</b></p>
+<p>공급망 공격이 공격자에게 매력적인 이유는 <b>한 번의 침해로 다수의 최종 조직에 도달</b>할 수 있기 때문입니다.</p>
+<h3 id="s1-easy">가장 먼저 잡을 구분</h3>
+<div class="box sum"><p><b>업무는 위탁할 수 있지만 책임은 위탁할 수 없다.</b> 공급자에게 처리를 맡겨도 최종 책임은 조직에 남는다.</p></div>
+<p>원본 암기노트의 설명: 규제기관은 위탁자에게 책임을 묻는 경우가 많고 평판 손실도 조직의 몫입니다.</p>
+<div class="box link"><p><span class="tag">연결</span>이 문장은 도메인 1 전체를 지나온 원칙이 공급자에게 적용된 것입니다. <a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a>에서는 “실무(responsibility)는 위임되지만 책임(accountability)은 위임되지 않는다”, <a class="xr" href="D1.9.html">D1.9 위험 관리</a>에서는 “위험을 전가해도 법적 책임과 평판은 남는다”, <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>에서는 “클라우드로 옮겨도 데이터 백업은 대체로 고객 몫”으로 나왔습니다. 네 문장은 같은 말입니다. 그래서 공급자는 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>의 위험 평가 범위에 들어가야 하고, 공급자가 운영하는 통제도 평가 대상이 됩니다.</p></div>
+<div class="box add"><p><span class="tag">보충</span>업무와의 연결입니다. 완제품 제조사는 공급망에서 두 자리에 동시에 섭니다. 부품과 오픈소스를 들여오는 <b>구매자</b>이면서, 병원 같은 고객에게는 <b>공급자</b>입니다. 이 단원의 통제를 읽을 때 “내가 공급자에게 요구할 것”과 “고객이 나에게 요구할 것”을 함께 떠올리면 양쪽이 같은 목록이라는 것이 보입니다. 고객이 SBOM과 취약점 통지를 요구하는 이유가 이 단원의 내용입니다.</p></div>
+<div class="src">원문 위치: D1.11.md §2, §4 SCRM · 암기노트 K01 · 기존 문제 Q02, Q11 주제</div>
+<h2 id="s2"><span class="n">2</span>공급망 위험의 세 유형: 변조 · 위조품 · 임플란트</h2>
+<p>공식 개요가 예로 든 세 가지입니다.</p>
+<div class="tw"><table>
+<tr><th>유형</th><th>의미</th><th>물건의 정체 (보충)</th></tr>
+<tr><td><b>제품 변조</b> Tampering</td><td>정품에 악성 기능이 삽입된 상태로 전달</td><td>진짜인데 손을 탔다</td></tr>
+<tr><td><b>위조품</b> Counterfeits</td><td>정품을 사칭한 가짜 부품·장비</td><td>처음부터 가짜다</td></tr>
+<tr><td><b>임플란트</b> Implants</td><td>하드웨어에 은닉된 악성 회로·칩</td><td>무언가가 몰래 심겼다</td></tr>
+</table></div>
+<p><b>위조품의 위험은 성능 문제에 그치지 않습니다.</b> 품질 검증을 거치지 않아 조기 고장으로 가용성을 해치고, 펌웨어에 악성 코드가 들어 있을 수 있으며, 보증과 지원을 받지 못합니다.</p>
+<p><b>임플란트는 탐지가 가장 어렵습니다.</b> 소프트웨어 계층 아래에 있어 운영체제의 보안 통제가 닿지 않습니다. 그래서 <b>신뢰할 수 있는 조달 경로</b> 자체가 통제가 됩니다(8절).</p>
+<div class="box link"><p><span class="tag">연결</span>세 유형을 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>의 속성으로 읽으면 구분이 쉬워집니다. 변조와 임플란트는 받은 물건의 <b>무결성</b>이 깨진 것이고, 위조품은 “이것이 그 제조사의 물건이 맞는가”라는 <b>진정성</b>이 깨진 것입니다. <a class="xr" href="D1.10.html">D1.10 위협 모델링</a>의 STRIDE로는 Tampering과 Spoofing에 해당합니다. 대응도 같은 짝입니다. 무결성에는 해시와 서명 검증, 진정성에는 출처 확인과 복제가 어려운 장치 식별자(5절의 PUF).</p></div>
+<div class="src">원문 위치: D1.11.md §3 공급망 위험의 유형, §4 Tampering·Counterfeit·Implant, §5 첫 표 · 암기노트 K02 · 공식 개요 1.11 첫 항목</div>
+<h2 id="s3"><span class="n">3</span>소프트웨어 공급망 공격 경로</h2>
+<div class="tw"><table>
+<tr><th>경로</th><th>설명</th></tr>
+<tr><td>업데이트 채널 변조</td><td>정상 업데이트에 악성코드 삽입</td></tr>
+<tr><td>빌드 시스템 침해</td><td>CI/CD 파이프라인을 장악해 산출물을 오염</td></tr>
+<tr><td>코드 서명 키 탈취</td><td>악성 산출물에 정당한 서명을 붙임</td></tr>
+<tr><td><b>의존성 혼동</b> Dependency Confusion</td><td>내부 패키지와 같은 이름의 공개 패키지를 올려 빌드 시 우선 설치되게 유도 (암기노트: 더 높은 버전으로 올림)</td></tr>
+<tr><td><b>타이포스쿼팅</b> Typosquatting</td><td>유명 패키지와 비슷한 이름으로 잘못 설치하게 유도</td></tr>
+<tr><td>오픈소스 유지보수자 탈취</td><td>계정 탈취 또는 권한 양도를 통한 악성 커밋</td></tr>
+</table></div>
+<p><b>공통점은 “신뢰된 경로”를 악용한다는 것</b>입니다. 사용자는 검증된 공급자에게서 받았다고 믿기 때문에 의심하지 않습니다.</p>
+<p><b>원문 사례 — 빌드 파이프라인이 침해된 경우.</b> 소스 코드는 깨끗했지만 CI 서버가 침해되어 <b>빌드 과정에서 악성코드가 주입</b>되었습니다. 산출물은 조직의 정당한 코드 서명 키로 서명되어 배포되었고, 고객은 정상 업데이트로 인식해 설치했습니다. <b>소스 코드 검토만으로는 부족합니다.</b> 빌드 환경의 무결성, 서명 키 보호, 재현 가능한 빌드(reproducible build), 산출물 검증이 함께 필요합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>이 사례가 알려 주는 것은 <b>서명의 한계</b>입니다. <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 코드 서명은 “이 파일이 그 제조사가 낸 것이고 바뀌지 않았다”를 보증한다고 했습니다. 그 보증은 지금도 참입니다. 다만 서명은 서명하는 <b>순간 이후</b>의 변조만 막습니다. 서명하기 전에 이미 오염된 산출물에는 정당한 서명이 그대로 붙습니다. 그래서 서명 앞 단계(소스 저장소, 의존성, 빌드 서버)의 무결성과 서명 키 자체의 보호가 따로 필요합니다. ‘재현 가능한 빌드’는 같은 소스로 누가 빌드해도 같은 결과물이 나오게 해서, 빌드 과정에 무언가 끼어들었는지를 결과물 비교로 확인할 수 있게 하는 방법입니다.</p></div>
+<div class="box ex"><p><span class="tag">가상 예시</span>장비 펌웨어를 만드는 회사의 빌드 서버에 5절까지의 내용을 적용해 봅니다. 사내 공용 라이브러리 이름이 <code>devcomm-utils</code>인데 빌드 설정이 공개 저장소를 먼저 찾도록 되어 있다면, 누군가 같은 이름의 더 높은 버전을 공개 저장소에 올리는 것만으로 그 코드가 펌웨어에 들어갑니다(의존성 혼동). 막는 방법은 내부 패키지를 내부 저장소에서만 받도록 고정하고, 의존성의 버전과 해시를 잠가 두고, 빌드 서버 접근을 최소화하고, 서명 키를 빌드 서버 밖의 별도 장치에 두는 것입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>이 절의 방어 수단은 <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>에서 자세히 다룹니다(전이 의존성, 버전 고정과 잠금 파일, 내부 프록시 저장소, 브랜치 보호와 서명 커밋, 출처 증명, SLSA). <a class="xr" href="D1.10.html">D1.10 위협 모델링</a>의 용어로 보면 공급망은 조직의 가장 바깥쪽 신뢰 경계이고, 공급망 공격은 그 경계를 넘어온 것을 확인 없이 믿는 지점을 노립니다. 서명 키를 두 사람이 함께 인증해야 쓸 수 있게 하는 것은 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>의 이중 통제입니다.</p></div>
+<div class="quiz" id="question-1">
+<div class="qh">이해 확인 1 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>한 소프트웨어 회사가 배포한 업데이트에 악성코드가 들어 있었다. 조사해 보니 소스 저장소의 코드에는 문제가 없었고, 업데이트 파일에는 회사의 정상적인 코드 서명이 붙어 있었다. 가장 가능성이 높은 침해 지점과 그에 맞는 재발 방지책은?</p>
+<ol type="A">
+<li>소스 코드 — 코드 검토를 더 엄격하게 한다.</li>
+<li>빌드 환경 또는 서명 과정 — 빌드 환경의 무결성 보호, 서명 키 보호, 산출물 검증을 도입한다.</li>
+<li>고객의 PC — 고객에게 백신 설치를 안내한다.</li>
+<li>코드 서명 알고리즘 — 더 강한 알고리즘으로 바꾼다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 소스는 깨끗한데 서명된 산출물이 오염되었다면, 오염은 소스와 서명 사이(빌드)에서 일어났거나 서명 키가 악용된 것입니다.</p>
+<ul><li>A: 지문이 소스에는 문제가 없다고 했습니다. 소스 검토로는 빌드 단계의 주입을 잡지 못합니다.</li>
+<li>C: 고객은 정상 서명이 붙은 업데이트를 받았을 뿐입니다.</li>
+<li>D: 서명은 수학적으로 깨진 것이 아니라 정당한 키로 정상적으로 만들어졌습니다. 문제는 무엇에 서명했는가입니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D1.11.md §3 소프트웨어 공급망 공격 경로, §4 Dependency Confusion·Typosquatting, §7 사례 2 · 암기노트 K03, K05 · 기존 문제 Q03, Q07 주제</div>
+<h2 id="s4"><span class="n">4</span>SBOM — Software Bill of Materials</h2>
+<h3 id="s4-why">왜 필요한가</h3>
+<p>널리 쓰이는 라이브러리에 치명적인 취약점이 공개되면 조직은 곧바로 답해야 합니다. <b>“우리가 그걸 쓰고 있는가? 어디에?”</b> 직접 가져다 쓴 것만이 아니라, 가져다 쓴 것이 다시 가져다 쓴 것까지 알아야 합니다. 그 목록이 없으면 답하는 데 몇 주가 걸리고, 그 사이가 곧 노출 기간입니다.</p>
+<h3 id="s4-easy">쉬운 설명</h3>
+<p><b>SBOM</b>은 소프트웨어를 구성하는 <b>모든 구성요소와 의존성의 목록</b>입니다. 제조업의 자재 명세서(BOM)에서 온 개념입니다.</p>
+<ul>
+<li><b>포함 요소</b> — 구성요소 이름, 버전, 공급자, 고유 식별자, 의존 관계, 작성자, 타임스탬프</li>
+<li><b>표준 형식</b> — SPDX, CycloneDX</li>
+</ul>
+<p><b>원문 사례 — SBOM이 있었다면 달랐을 상황.</b> 널리 쓰이는 로깅 라이브러리에 원격 코드 실행 취약점이 공개되었고, 경영진이 “우리는 영향이 있는가”를 물었습니다. SBOM이 없던 조직은 수백 개 서비스의 의존성을 수작업으로 조사하느라 3주가 걸렸고 그동안 노출 상태가 이어졌습니다. SBOM을 운영하던 조직은 수 시간 만에 영향 범위를 특정하고 우선순위를 정해 조치했습니다.</p>
+<h3 id="s4-limit">SBOM의 한계</h3>
+<p>SBOM은 구성 목록일 뿐 <b>그 구성요소가 안전하다는 보증이 아닙니다.</b> 취약점 정보와 결합해야 의미가 생깁니다.</p>
+<div class="box add"><p><span class="tag">보충</span>SBOM이 답하는 질문과 답하지 못하는 질문을 나누면 한계가 분명해집니다.</p>
+<div class="tw"><table>
+<tr><th>질문</th><th>SBOM만으로</th><th>더 필요한 것</th></tr>
+<tr><td>이 제품에 그 라이브러리가 들어 있는가</td><td>답할 수 있다</td><td></td></tr>
+<tr><td>그 라이브러리에 알려진 취약점이 있는가</td><td>답할 수 없다</td><td>취약점 데이터베이스와의 대조</td></tr>
+<tr><td>그 취약점이 이 제품에서 실제로 악용될 수 있는가</td><td>답할 수 없다</td><td>제품의 사용 방식에 대한 분석</td></tr>
+<tr><td>목록에 없는 것이 몰래 들어가지는 않았는가</td><td>답할 수 없다</td><td>빌드 과정의 무결성(3절)</td></tr>
+</table></div>
+<p>셋째 줄이 실무에서 자주 문제가 됩니다. 구성요소에 취약점이 있어도 제품이 그 기능을 쓰지 않으면 영향이 없을 수 있습니다. 그 판단을 정해진 형식으로 알리는 방법으로 VEX(Vulnerability Exploitability eXchange)가 있습니다. SBOM에서 라이브러리 이름과 버전을 확인했다면, VEX에서는 해당 라이브러리의 특정 취약점이 제품의 해당 버전에 영향을 주는지와 판단 근거를 확인합니다. <b>조사 중</b>과 <b>영향 없음</b>은 서로 다른 상태입니다. <a href="https://www.cisa.gov/sites/default/files/2023-04/minimum-requirements-for-vex-508c.pdf">CISA VEX 최소 요건 §2.7</a></p></div>
+<div class="box link"><p><span class="tag">연결</span>SBOM은 네 단원에 걸쳐 나옵니다. 이 단원은 공급망 위험의 완화 수단으로, <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>은 취약점 관리에서 영향 범위를 찾는 도구로(소프트웨어 구성 분석 SCA와 함께), <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>는 개발 파이프라인에서 만들어 내는 산출물로, <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>는 소프트웨어를 들여올 때 공급자에게 요구하는 자료로 다룹니다. <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>에서 본 것처럼 같은 목록이 라이선스 추적에도 쓰입니다. <a class="xr" href="D1.9.html">D1.9 위험 관리</a>의 용어로는, SBOM이 알려 주는 것은 <b>취약점의 존재 가능성</b>이지 <b>위험</b>이 아닙니다. 위험이 되려면 위협이 닿을 수 있는지와 자산의 가치가 더해져야 합니다.</p></div>
+<div class="box add"><p><span class="tag">보충</span>업무와의 연결입니다. 의료기기의 시판 전 제출 문서에 기계가 읽을 수 있는 SBOM이 요구된다는 점은 이전에 확인한 해설 자료에 있었습니다. 규제가 요구하는 이유도 이 절과 같습니다. 취약점이 공개되었을 때 제조사와 사용 기관이 영향 범위를 빨리 알 수 있어야 하기 때문입니다. 원본의 포함 요소 목록은 NTIA가 정리한 SBOM 최소 요소에 근거한 것입니다.</p></div>
+<div class="quiz" id="question-2">
+<div class="qh">이해 확인 2 · 자작 상황 문제</div>
+<p>고객사가 납품 계약에서 SBOM 제출을 요구했다. 영업 담당자가 “SBOM을 내면 우리 제품이 안전하다는 것이 증명되니 좋다”고 말했다. 가장 정확한 설명은?</p>
+<ol type="A">
+<li>맞다. SBOM은 제품에 취약점이 없음을 보증하는 문서다.</li>
+<li>SBOM은 무엇으로 만들어졌는지의 목록일 뿐 안전성 보증이 아니다. 취약점이 공개되었을 때 영향 여부를 빨리 확인하게 해 주는 것이 가치다.</li>
+<li>SBOM은 소스 코드 전체를 공개하는 것이므로 제출하면 안 된다.</li>
+<li>SBOM은 하드웨어 부품 목록이므로 소프트웨어와는 관계없다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b></p>
+<ul><li>A: 목록과 보증을 혼동했습니다. 취약점 정보와 결합해야 의미가 생깁니다.</li>
+<li>C: SBOM은 구성요소의 이름·버전·공급자 등의 목록이지 소스 코드가 아닙니다.</li>
+<li>D: 이름 그대로 소프트웨어의 자재 명세서입니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D1.11.md §3 SBOM, §4 SBOM, §6 NTIA SBOM 최소 요소·SPDX / CycloneDX, §7 사례 1 · 암기노트 K04 · 기존 문제 Q01, Q10 주제 · 공식 개요 1.11 “software bill of materials”</div>
+<h2 id="s5"><span class="n">5</span>하드웨어 신뢰 루트: Silicon Root of Trust와 PUF</h2>
+<h3 id="s5-why">왜 필요한가</h3>
+<p>소프트웨어는 다른 소프트웨어로 검증할 수 있습니다. 그런데 검증하는 그 소프트웨어는 누가 검증할까요. 이 물음을 따라 내려가면 더는 내려갈 수 없는 바닥이 필요합니다. 그 바닥을 하드웨어에 두는 것이 신뢰 루트입니다. 공식 개요 1.11은 완화 수단의 예로 이 둘을 직접 듭니다.</p>
+<h3 id="s5-rot">Silicon Root of Trust (실리콘 신뢰 루트)</h3>
+<p>칩 수준에 <b>변경할 수 없는 신뢰 기점</b>을 두고, 부팅할 때 각 단계가 다음 단계의 무결성을 검증하며 올라가는 구조입니다. <b>신뢰 사슬(chain of trust)</b>의 출발점이며 소프트웨어로 우회할 수 없습니다.</p>
+<div class="flow">
+<div class="nd"><b>칩 안의 신뢰 기점</b>바꿀 수 없음</div><div class="ar">검증 →</div>
+<div class="nd"><b>부트로더</b></div><div class="ar">검증 →</div>
+<div class="nd"><b>운영체제</b></div><div class="ar">검증 →</div>
+<div class="nd"><b>애플리케이션</b></div>
+</div>
+<h3 id="s5-puf">PUF — Physically Unclonable Function (물리적 복제 방지 함수)</h3>
+<p>제조 과정의 미세한 물리적 편차를 이용해 <b>칩마다 고유한 값</b>을 만들어 냅니다. 키를 저장하지 않고 <b>필요할 때 물리 특성에서 생성</b>하므로 저장 장치를 읽는 것만으로는 저장된 키를 가져갈 수 없습니다. <b>복제가 어려운 장치 식별자</b>로 쓰여 위조품 판별에 활용됩니다.</p>
+<p><b>TPM(Trusted Platform Module)</b>도 같은 계열의 하드웨어 신뢰 루트입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>PUF를 비유하면 칩의 지문입니다. 같은 설계로 같은 공장에서 만든 칩이라도 미세한 차이가 생기고, 그 차이는 제조사 자신도 똑같이 다시 만들 수 없습니다. 보통의 키는 어딘가에 적혀 있어야 하고, 적혀 있는 것은 읽어 낼 수 있습니다. PUF에서 필요할 때 키를 생성하면 키 자체를 장기 저장할 필요가 줄어듭니다. 생성된 비밀 값은 사용하는 동안에도 보호해야 합니다. 2절과 이으면 PUF는 위조품(진정성)에 대한 대응이고, 신뢰 사슬은 변조(무결성)에 대한 대응입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>신뢰 사슬이 실제로 어떻게 동작하는지, 보안 부팅(Secure Boot)과 측정 부팅(Measured Boot)의 차이, TPM의 봉인과 증명은 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>에서 다룹니다(이 교재는 Root of Trust를 원본 D3.4의 표현대로 ‘신뢰 루트’로 통일합니다. 원본 D1.11의 ‘실리콘 신뢰 기반’과 같은 말이며, TCB를 뜻하는 ‘신뢰 컴퓨팅 기반’과는 다른 개념입니다). 신뢰 사슬의 각 고리는 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>의 서명 검증입니다. 앞 단계가 다음 단계의 서명을 확인합니다.</p></div>
+<div class="quiz" id="question-3">
+<div class="qh">이해 확인 3 · 자작 상황 문제</div>
+<p>한 제조사가 자사 장비의 정품 여부를 원격으로 확인하려고, 장비마다 고유한 비밀 값을 사용하려 한다. 공격자가 장비를 분해해 저장 장치의 내용을 읽어 낼 수 있다고 가정할 때, 이 목적에 PUF가 적합한 이유는?</p>
+<ol type="A">
+<li>PUF는 키를 암호화해서 저장하므로 읽어도 풀 수 없다.</li>
+<li>PUF는 키를 저장하지 않고 칩의 물리적 특성에서 필요할 때 생성하므로, 저장 장치를 읽어 키를 가져가는 방식에 강하다.</li>
+<li>PUF는 소프트웨어로 구현되어 원격으로 쉽게 갱신할 수 있다.</li>
+<li>PUF는 모든 장비가 같은 값을 공유하므로 관리가 쉽다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 이 문제의 공격 범위는 저장 장치에 한정됩니다. 키를 물리적 특성에서 필요할 때 생성하므로 저장 장치에서 가져갈 키가 없습니다.</p>
+<ul><li>A: 저장하는 것이 아닙니다.</li>
+<li>C: 물리적 특성에 기반하며 소프트웨어가 아닙니다.</li>
+<li>D: 칩마다 값이 다르다는 것이 핵심입니다. 모두 같은 값이면 하나만 알아내도 전부 흉내 낼 수 있습니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D1.11.md §3 하드웨어 신뢰 기반, §4 Silicon Root of Trust·PUF · 암기노트 K06 · 기존 문제 Q04 주제 · 공식 개요 1.11 “silicon root of trust, physically unclonable function”</div>
+<h2 id="s6"><span class="n">6</span>조달 수명주기별 보안 활동</h2>
+<h3 id="s6-how">네 단계</h3>
+<div class="tw"><table>
+<tr><th>단계</th><th>활동</th></tr>
+<tr><td><b>1. 공급자 선정 전</b></td><td>보안 요구사항을 <b>RFP(제안요청서) 단계부터</b> 포함. 공급자 보안 실사(due diligence): 인증 보유, 침해 이력, 재무 건전성. 중요도에 따른 <b>공급자 등급화(tiering)</b></td></tr>
+<tr><td><b>2. 계약</b></td><td><b>최소 보안 요구사항</b>, <b>서비스 수준 요구사항(SLA)</b>(가용성과 복구 시간), <b>감사 권한</b>, 사고 통지 의무와 시한, <b>재하도급 제한과 통지 의무</b>, 데이터 소재지와 국경 간 이전 조건, 종료 시 데이터 반환·파기와 접근 회수, 인원 변동 통지 의무</td></tr>
+<tr><td><b>3. 운영 중</b></td><td><b>지속적 모니터링</b>. 정기 재평가, 보안 설문, 외부 보안 등급 서비스 활용. 접근 권한 최소화와 주기적 검토</td></tr>
+<tr><td><b>4. 종료</b></td><td>데이터 반환 또는 <b>파기 증명서</b> 수령, 모든 접근 권한 회수, 공유 자격증명 변경, 전환(transition) 계획</td></tr>
+</table></div>
+<h3 id="s6-key">세 가지 핵심</h3>
+<p><b>① 보안 요구사항은 계약 전에 넣는다.</b> 원본 암기노트의 이유: 계약 전에는 협상력이 있어 조항을 넣을 수 있지만, 도입 후에 추가하려 하면 거부되거나 비용이 오릅니다.</p>
+<p><b>② 모든 공급자를 똑같이 다루지 않는다.</b> 모든 공급자에 같은 수준을 적용하면 비용이 감당되지 않으므로 중요도에 따라 등급을 나눕니다.</p>
+<p><b>③ 한 번의 평가로 끝나지 않는다.</b> 공급자의 보안 수준은 인력 변동, 인수합병, 시스템 변경, 재하도급으로 시간이 지나며 바뀝니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>공급자 관련 상황을 읽는 순서입니다.</p>
+<ol>
+<li><b>지금이 네 단계 중 어디인가.</b> 선정 전이면 실사와 요구사항 제시, 계약 중이면 조항, 운영 중이면 모니터링과 재평가, 종료면 회수와 파기.</li>
+<li><b>그 단계에서만 할 수 있는 일을 놓쳤는가.</b> 감사 권한과 통지 의무는 계약 때 넣지 않으면 나중에 얻기 어렵다.</li>
+<li><b>확인할 수 있는 근거가 무엇인가.</b> 공급자의 말(설문)인가, 독립된 제3자의 보고서인가, 직접 감사인가.</li>
+<li><b>책임이 누구에게 남는가.</b> 어느 단계든 답은 위탁한 조직이다.</li>
+</ol></div>
+<div class="box link"><p><span class="tag">연결</span>네 단계의 활동은 대부분 앞 단원에서 한 번씩 나온 것입니다.</p>
+<ul>
+<li>실사 ↔ <a class="xr" href="D1.1.html">D1.1 전문가 윤리</a>·<a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a>의 Due Diligence(하기 전에 알아본다). 인수 전 보안 실사와 같은 논리입니다.</li>
+<li>등급화 ↔ <a class="xr" href="D1.9.html">D1.9 위험 관리</a>의 비용 대비 효과, <a class="xr" href="D1.8.html">D1.8 인적 보안</a>의 “심사 수준은 직위 민감도에 비례”.</li>
+<li>SLA의 복구 시간 ↔ <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>: 공급자의 복구 목표가 내 MTD 안에 들어와야 합니다.</li>
+<li>감사 권한과 지속적 모니터링 ↔ <a class="xr" href="D1.9.html">D1.9 위험 관리</a>의 통제 평가와 지속적 모니터링. 직접 감사가 어려우면 <a class="xr" href="D6.1.html">D6.1 평가·테스트·감사 전략</a>의 제3자 감사 보고서(SOC 2 등)를 쓰며, 이때 보고서가 고객 몫으로 남겨 둔 통제를 놓치지 않아야 합니다.</li>
+<li>인원 변동 통지, 종료 시 접근 회수 ↔ <a class="xr" href="D1.8.html">D1.8 인적 보안</a>의 외부 인력 통제.</li>
+<li>데이터 소재지 ↔ <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>의 국경 간 이전과 현지화.</li>
+<li>파기 증명서 ↔ <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>의 데이터 파기.</li>
+<li>도입할 소프트웨어·서비스 유형별 평가와 종료 전략 ↔ <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>.</li>
+</ul></div>
+<h3 id="s6-worked">공급자 변경을 조달 통제에 반영하기</h3>
+<div class="box ex"><p><span class="tag">가상 예시</span>장비 공급자가 검증받은 구성과 다른 제3자 모듈을 다음 납품부터 쓰겠다고 합니다. 장비 외관과 모델명은 같습니다.</p></div>
+<div class="box think"><p><span class="tag">판단 순서</span></p><ol class="steps"><li>구매 당시 승인한 부품 출처, 지원 기간, 변경 통지·재평가 조건을 확인합니다.</li><li>변경이 시작되는 버전이나 일련번호를 식별해 영향 받는 기능과 위험을 평가합니다.</li><li>인수자는 공급 경로와 승인된 구성의 일치 증거를 확인하고 운용팀에는 새 취약점과 패치 경로를 전달합니다.</li></ol><p><b>조건을 바꿔 보기.</b> 기존 재고가 혼용되면 모델명만으로는 영향을 받은 장비를 찾기 어렵습니다. 납품·인벤토리·유지보수 기록을 버전과 연결해야 합니다.</p></div>
+<div class="quiz" id="question-4">
+<div class="qh">이해 확인 4 · 자작 상황 문제</div>
+<p>회사가 고객 지원 업무를 외부 업체에 맡긴 지 2년이 지났다. 계약 당시 보안 설문을 받아 양호하다고 평가했고 이후 다시 확인한 적은 없다. 최근 그 업체가 다른 회사에 인수되고 시스템을 교체했다는 소식을 들었다. 가장 적절한 조치는?</p>
+<ol type="A">
+<li>계약 당시 평가가 양호했으므로 추가 조치는 필요 없다.</li>
+<li>인수와 시스템 변경으로 보안 수준이 달라졌을 수 있으므로 재평가하고, 주기적 재평가와 모니터링을 운영 절차에 넣는다.</li>
+<li>인수되었으므로 즉시 계약을 해지한다.</li>
+<li>업체가 스스로 문제를 알려 올 때까지 기다린다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 한 번의 평가로는 부족하고, 인수합병과 시스템 변경은 원본이 꼽는 대표적인 변화 요인입니다.</p>
+<ul><li>A: 2년 전의 평가는 지금의 상태를 말해 주지 않습니다.</li>
+<li>C: 변화가 곧 악화는 아닙니다. 확인이 먼저입니다.</li>
+<li>D: 통지 의무가 계약에 있더라도 조직 스스로의 확인을 대신하지 못합니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D1.11.md §3 조달 수명주기별 보안 활동, §4 Right to Audit, §5 셋째 표 · 암기노트 K07, K08 · 기존 문제 Q05, Q09 주제 · 공식 개요 1.11 “third-party assessment and monitoring, minimum security requirements, service level requirements”</div>
+<h2 id="s7"><span class="n">7</span>제4자 위험과 집중 위험</h2>
+<h3 id="s7-4th">제4자 위험</h3>
+<p><b>제4자(4th party)</b>는 우리 공급자의 공급자입니다. 우리와 계약 관계가 없어 <b>직접 통제할 수 없습니다.</b></p>
+<div class="tw"><table>
+<tr><th>구분</th><th>통제 가능성</th></tr>
+<tr><td>제3자 (공급자)</td><td>계약으로 직접 통제</td></tr>
+<tr><td>제4자 (공급자의 공급자)</td><td><b>간접 통제만 가능</b></td></tr>
+</table></div>
+<p>유일한 수단은 <b>계약을 통한 간접 통제</b>입니다. 공급자에게 재하도급 시 사전 통지와 승인, 동등한 보안 수준 요구를 부과합니다.</p>
+<p><b>원문 사례 — 재하도급을 몰랐던 경우.</b> 콜센터 업무를 위탁했는데 위탁사가 일부 업무를 다시 해외 업체에 재하도급했습니다. 고객 개인정보가 계약서에 명시되지 않은 국가로 이전되어 <b>국경 간 이전 규제 위반</b>이 되었습니다. 계약에 재하도급 사전 통지와 승인 조항이 없었던 것이 원인입니다.</p>
+<div class="box link"><p><span class="tag">연결</span>이 사례는 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>의 국경 간 이전과 만납니다. 그 단원의 판단 순서(무슨 데이터인가, 어떤 활동과 관련된 처리인가, 어디로 옮기는가)에서 “어디로”가 공급자의 결정으로 조직 모르게 바뀐 것입니다. 위반의 책임은 위탁한 조직에 남습니다. <a class="xr" href="D1.8.html">D1.8 인적 보안</a>의 계약 조항 목록에 있던 ‘재하도급 제한’의 이유가 이것입니다.</p></div>
+<h3 id="s7-conc">집중 위험</h3>
+<p><b>집중 위험(Concentration Risk)</b>은 여러 공급자가 <b>같은 상위 인프라에 의존</b>해 이중화가 실질적으로 작동하지 않는 위험입니다. 클라우드 리전, CDN, 인증서 발급기관처럼 소수 사업자에 집중된 영역에서 특히 중요합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>원본이 직접 밝히듯 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>에서 다룬 것과 같은 개념입니다(두 통신사로 이중화했는데 한쪽이 다른 쪽의 회선을 임대해 쓰던 사례). 그 단원의 판단 순서대로 공급자의 공급자까지 의존 경로를 그려 겹치는 지점을 찾습니다. 제4자 위험과 집중 위험은 같은 그림에서 드러납니다. 제4자를 알아야 겹침이 보입니다. (원본 D8.4는 Fourth-party Risk를 ‘4차 위험’으로 적습니다. 같은 말이며 이 교재는 ‘제4자 위험’으로 통일합니다.)</p></div>
+<div class="src">원문 위치: D1.11.md §3 제4자 위험과 집중 위험, §4 Fourth-Party Risk, §5 둘째 표, §7 사례 4 · 암기노트 K09, K11 · 기존 문제 Q06 주제</div>
+<h2 id="s8"><span class="n">8</span>신뢰할 수 있는 조달 경로</h2>
+<p>원본이 하드웨어 위험에 대한 가장 실효성 있는 통제로 꼽는 것입니다.</p>
+<ul>
+<li>공인 대리점·제조사 직거래 — 회색시장(gray market) 회피</li>
+<li>배송 중 변조 방지 — <b>변조 흔적 봉인(Tamper-Evident Seal)</b>, 운송 추적</li>
+<li>수령 시 검증 — 일련번호 대조, 펌웨어 해시 확인</li>
+<li>제조사의 <b>출처 증명(Provenance)</b> 확보 — 제품이 어디서 만들어져 어떤 경로로 왔는지에 대한 검증 가능한 기록</li>
+</ul>
+<div class="tw"><table>
+<tr><th>수단</th><th>답하는 질문</th></tr>
+<tr><td>SBOM</td><td>무엇으로 만들어졌는가</td></tr>
+<tr><td>출처 증명</td><td>어디서 어떻게 왔는가</td></tr>
+<tr><td>감사 권한</td><td>실제로 지키고 있는가</td></tr>
+</table></div>
+<p><b>원문 사례 — 저가 네트워크 장비의 대가.</b> 예산을 줄이려고 비공인 유통 경로에서 네트워크 장비를 구매했습니다. 1년 뒤 그 장비에 승인되지 않은 펌웨어가 설치되어 있고 외부로 주기적 통신을 시도한다는 사실이 발견되었습니다. 제조사 지원도 받을 수 없었습니다. <b>조달 경로 자체가 보안 통제입니다.</b></p>
+<div class="box add"><p><span class="tag">보충</span>변조 흔적 봉인은 변조를 <b>막는</b> 장치가 아니라 변조가 있었음을 <b>알게 하는</b> 장치입니다. <a class="xr" href="D1.9.html">D1.9 위험 관리</a>의 분류로는 탐지 통제이고, 뜯으면 들킨다는 점에서 억제 효과도 있습니다. 그래서 수령할 때 봉인 상태를 실제로 확인하는 절차가 없으면 아무 효과가 없습니다. 탐지 통제는 누군가 들여다봐야 작동합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>출처에서 수령까지 물건이 누구 손을 거쳤는지 끊김 없이 기록한다는 생각은 <a class="xr" href="D1.5.html">D1.5 조사 유형</a>의 관리 연속성(Chain of Custody)과 같은 구조입니다. 그 단원에서는 증거의 신뢰성을, 여기서는 제품의 신뢰성을 보여 주려는 것입니다. 수령 시 펌웨어 해시 확인은 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>의 무결성 검증이고, 해시값 자체를 신뢰할 수 있는 경로(제조사)에서 따로 받아야 한다는 조건도 그 단원에서 본 것입니다. 소프트웨어 쪽의 출처 증명은 <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>에서 다룹니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>하드웨어 조달 상황에서는 ① 설치한 뒤에 탐지할 수 있는 위험인지(임플란트와 위조품은 어렵다) ② 그래서 들이기 전의 통제가 무엇인지(공인 경로, 봉인, 수령 검증, 출처 증명)를 봅니다. 원본은 실무에서 가격과 납기가 우선되기 쉽지만 신뢰할 수 있는 조달 경로와 사전 실사가 요구된다고 정리합니다. 판단 기준으로 바꾸면, 비용을 줄이는 선택지가 조달 경로의 신뢰를 포기하는 것인지 확인하라는 뜻입니다.</p></div>
+<div class="src">원문 위치: D1.11.md §3 신뢰할 수 있는 조달 경로, §4 Provenance·Tamper-Evident Seal, §5 셋째 표, §7 사례 3 · 암기노트 K10 · 기존 문제 Q08 주제</div>
+<h2 id="s9"><span class="n">9</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>한 장비 제조사가 새 제품의 통신 모듈을 외부 업체에서 공급받기로 했다. 구매팀이 정리한 계획은 다음과 같다. ㉠ 단가가 가장 낮은 온라인 중개상에서 구매한다. ㉡ 계약서에는 가격과 납기만 넣고 보안 요구사항은 납품 후 협의한다. ㉢ 모듈에 들어가는 소프트웨어의 SBOM을 받아 취약점 정보와 주기적으로 대조한다. ㉣ 공급 업체가 일부 공정을 다른 업체에 맡길 때는 사전에 통지하고 승인을 받도록 계약에 넣는다. 적절한 것만 고른 것은?</p>
+<ol type="A">
+<li>㉠, ㉡</li>
+<li>㉡, ㉢</li>
+<li>㉢, ㉣</li>
+<li>㉠, ㉣</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 C.</b></p>
+<ul>
+<li>㉠ 부적절. 조달 경로 자체가 통제입니다. 비공인 경로는 위조품과 변조의 위험이 있고 설치 후 탐지가 어렵습니다(8절).</li>
+<li>㉡ 부적절. 보안 요구사항은 RFP와 계약 단계부터 넣습니다. 도입 후에는 협상력이 없습니다(6절).</li>
+<li>㉢ 적절. SBOM은 취약점 정보와 결합해야 의미가 생기고, 한 번이 아니라 주기적으로 대조합니다(4절).</li>
+<li>㉣ 적절. 제4자는 계약을 통한 간접 통제만 가능합니다(7절).</li>
+</ul>
+<p><b>선택지 비교.</b> A는 ㉠과 ㉡을 포함합니다. B와 D는 적절한 항목을 하나씩 고르지만 각각 부적절한 ㉡과 ㉠도 포함합니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">10</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>공급자가 서명한 설치 파일과 SBOM을 줬다면 여전히 무엇을 확인해야 하나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>신뢰할 키로 서명을 검증하고, SBOM에 있는 요소가 실제 제품에서 어떤 위험을 만드는지 확인합니다. 공급자 평가와 조치 책임도 필요합니다. 서명은 받은 결과물의 무결성·서명 주체를 확인하는 데 쓰입니다.</p></div></details></div>
+<h2 id="s10"><span class="n">11</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>업무는 위탁할 수 있지만 책임은 위탁할 수 없다.</b> 조직의 보안 수준은 가장 약한 공급자의 수준을 넘지 못한다.</li>
+<li>공급망 위험 세 유형: <b>변조(Tampering) / 위조품(Counterfeits) / 임플란트(Implants)</b>. 임플란트는 소프트웨어 통제가 닿지 않아 탐지가 가장 어렵다.</li>
+<li>소프트웨어 공급망 공격: 업데이트 변조, <b>빌드 시스템 침해</b>, 서명 키 탈취, <b>의존성 혼동</b>, 타이포스쿼팅, 유지보수자 탈취. 공통점은 신뢰된 경로의 악용.</li>
+<li>빌드 시스템 침해는 소스 검토로 잡지 못한다. 빌드 환경 무결성, 서명 키 보호, 재현 가능한 빌드, 산출물 검증이 함께 필요하다.</li>
+<li><b>SBOM = 구성요소와 의존성의 목록.</b> 취약점 공개 시 영향 범위를 빨리 파악하게 한다. 안전성 보증은 아니다. 형식은 SPDX, CycloneDX.</li>
+<li><b>Silicon Root of Trust</b> = 칩 수준의 변경 불가능한 신뢰 기점, 신뢰 사슬의 출발점.</li>
+<li><b>PUF</b> = 물리적 편차에서 장치별 값을 얻는다. 키를 필요할 때 생성하면 저장 장치에서 키를 읽어 가는 위험을 줄일 수 있다. 위조품 판별에 쓴다.</li>
+<li>보안 요구사항은 <b>RFP·계약 단계부터</b>. 계약 조항: 최소 보안 요구사항, SLA, <b>감사 권한</b>, 사고 통지, <b>재하도급 제한</b>, 데이터 소재지, 종료 시 반환·파기, 인원 변동 통지.</li>
+<li>공급자는 중요도에 따라 <b>등급화</b>하고, 한 번이 아니라 <b>지속적으로 모니터링</b>한다.</li>
+<li><b>제4자</b> = 공급자의 공급자. 계약을 통한 간접 통제만 가능. 여러 공급자가 같은 상위 인프라에 기대면 <b>집중 위험</b>.</li>
+<li><b>조달 경로 자체가 통제.</b> 공인 유통, 변조 흔적 봉인, 일련번호·펌웨어 검증, 출처 증명.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D1.11.md §8 CISSP 시험 관점, §9 핵심 암기 요약(13항목). 원본 §6의 NIST SP 800-161 Rev.1(사이버 공급망 위험 관리 실무), ISO/IEC 27036(공급자 관계 정보보안), ISO 28000(공급망 보안 경영시스템), SLSA(소프트웨어 산출물의 공급망 무결성 수준 프레임워크), NIST SP 800-53 SR 통제군은 여기에 적어 둡니다.</div>
+<h2 id="glossary"><span class="n">12</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div>
+<h3 id="glossary-1"><span lang="en">SCRM — Supply Chain Risk Management</span> <span class="term-ko">· 공급망 위험 관리</span></h3>
+<p>공급자와 그 산출물로부터 오는 위험을 식별·평가·완화하는 관리 체계.</p>
+<h3 id="glossary-2"><span lang="en">Tampering</span> <span class="term-ko">· 제품 변조</span></h3>
+<p>정품에 악성 기능이 삽입된 상태로 전달되는 것.</p>
+<h3 id="glossary-3"><span lang="en">Counterfeit</span> <span class="term-ko">· 위조품</span></h3>
+<p>정품을 사칭한 가짜 부품·장비. 품질, 보안, 지원 모두에서 위험하다.</p>
+<h3 id="glossary-4"><span lang="en">Implant</span> <span class="term-ko">· 임플란트</span></h3>
+<p>하드웨어에 은닉된 악성 회로나 칩. 소프트웨어 계층 아래에 있어 탐지가 매우 어렵다.</p>
+<h3 id="glossary-5"><span lang="en">SBOM — Software Bill of Materials</span> <span class="term-ko">· 소프트웨어 구성 명세서</span></h3>
+<p>소프트웨어 구성요소와 의존성의 목록. 취약점 공개 시 영향 범위를 즉시 파악하게 한다. SPDX, CycloneDX 형식이 쓰인다.</p>
+<h3 id="glossary-6"><span lang="en">Dependency Confusion</span> <span class="term-ko">· 의존성 혼동</span></h3>
+<p>내부 패키지와 같은 이름의 공개 패키지를 업로드해 빌드 시 우선 설치되게 유도하는 공격.</p>
+<h3 id="glossary-7"><span lang="en">Typosquatting</span> <span class="term-ko">· 타이포스쿼팅</span></h3>
+<p>유명 패키지와 유사한 이름을 등록해 오설치를 유도하는 공격.</p>
+<h3 id="glossary-8"><span lang="en">Silicon Root of Trust</span> <span class="term-ko">· 실리콘 신뢰 루트</span></h3>
+<p>칩 수준의 변경 불가능한 신뢰 기점. 부팅 시 신뢰 사슬의 출발점이 된다.</p>
+<h3 id="glossary-9"><span lang="en">PUF — Physically Unclonable Function</span> <span class="term-ko">· 물리적 복제 방지 함수</span></h3>
+<p>칩의 제조 편차로부터 장치별 특성을 얻는 기능입니다. 필요할 때 물리적 특성에서 비밀을 도출하도록 설계하면 키를 영구 저장할 필요를 줄일 수 있으며, 구체적인 보안은 구현과 사용 조건에 따라 확인합니다.</p>
+<h3 id="glossary-10"><span lang="en">Right to Audit</span> <span class="term-ko">· 감사 권한</span></h3>
+<p>공급자의 보안 통제를 검증할 수 있도록 계약에 명시하는 권리.</p>
+<h3 id="glossary-11"><span lang="en">Fourth-Party Risk</span> <span class="term-ko">· 제4자 위험</span></h3>
+<p>공급자의 공급자로부터 오는 위험. 계약 관계가 없어 간접 통제만 가능하다.</p>
+<h3 id="glossary-12"><span lang="en">Provenance</span> <span class="term-ko">· 출처 증명</span></h3>
+<p>제품이 어디서 만들어져 어떤 경로로 왔는지에 대한 검증 가능한 기록.</p>
+<h3 id="glossary-13"><span lang="en">Tamper-Evident Seal</span> <span class="term-ko">· 변조 흔적 봉인</span></h3>
+<p>개봉 시 흔적이 남아 배송 중 변조를 식별하게 하는 봉인.</p>
+<div class="src">원문 위치 · D1.11.md §4 주요 용어 정리</div></div></details>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">한 소프트웨어 회사가 배포한 업데이트에 악성코드가 들어 있었다. 조사해 보니 소스 저장소의 코드에는 문제가 없었고, 업데이트 파일에는 회사의 정상적인 코드 서명이 붙어 있었다. 가장 가능성이 높은 침해 지점과 그에 맞는 재발 방지책은?</a></li>
+<li><a href="#question-2">고객사가 납품 계약에서 SBOM 제출을 요구했다. 영업 담당자가 “SBOM을 내면 우리 제품이 안전하다는 것이 증명되니 좋다”고 말했다. 가장 정확한 설명은?</a></li>
+<li><a href="#question-3">한 제조사가 자사 장비의 정품 여부를 원격으로 확인하려고, 장비마다 고유한 비밀 값을 사용하려 한다. 공격자가 장비를 분해해 저장 장치의 내용을 읽어 낼 수 있다고 가정할 때, 이 목적에 PUF가 적합한 이유는?</a></li>
+<li><a href="#question-4">회사가 고객 지원 업무를 외부 업체에 맡긴 지 2년이 지났다. 계약 당시 보안 설문을 받아 양호하다고 평가했고 이후 다시 확인한 적은 없다. 최근 그 업체가 다른 회사에 인수되고 시스템을 교체했다는 소식을 들었다. 가장 적절한 조치는?</a></li>
+<li><a href="#question-5">한 장비 제조사가 새 제품의 통신 모듈을 외부 업체에서 공급받기로 했다. 구매팀이 정리한 계획은 다음과 같다. ㉠ 단가가 가장 낮은 온라인 중개상에서 구매한다. ㉡ 계약서에는 가격과 납기만 넣고 보안 요구사항은 납품 후 협의한다. ㉢ 모듈에 들어가는 소프트웨어의 SBOM을 받아 취약점 정보와 주기적으로 대조한다. ㉣ 공급 업체가 일부 공정을 다른 업체에 맡길 때는 사전에 통지하고 승인을 받도록 계약에 넣는다. 적절한 것만 고른 것은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D1.10.html"><small>← 이전 단원</small>1.10 위협 모델링</a><a href="D1.12.html" style="text-align:right"><small>다음 단원 →</small>1.12 인식·교육·훈련</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D7.8 패치 및 취약점 관리의 구현과 지원 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D7.8">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 7 보안 운영 › 7.8</div>
+<h1>패치 및 취약점 관리의 구현과 지원</h1>
+<div class="en">Implement and support patch and vulnerability management · ISC2 CISSP Exam Outline(2024-04-15 발효) 7.8</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">취약점 관리와 패치 관리는 자주 같은 말처럼 쓰이지만 범위가 다릅니다. 원본의 첫 문장이 이 단원의 핵심입니다. <b>패치 관리는 취약점 관리의 한 수단이다.</b> 모든 취약점이 패치로 해결되지 않고(설정 오류, 설계 결함, 지원 종료 제품), 모든 패치가 보안 목적도 아닙니다. 둘을 같은 것으로 다루면 <b>패치할 수 없는 취약점이 관리에서 사라집니다.</b> 의료기기처럼 패치가 쉽지 않은 자산을 다루는 분에게 특히 중요한 단원입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a> · <a class="xr" href="D7.3.html">D7.3 구성 관리</a></td><td>자산 인벤토리, 기준 이미지 (2절, 6절)</td></tr>
+<tr><td><a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a> · <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a></td><td>취약점 평가, 거짓 양성 검증, CVSS와 맥락, 예외 (3~5절)</td></tr>
+<tr><td><a class="xr" href="D6.3.html">D6.3 보안 프로세스 데이터</a></td><td>KPI·KRI. 3절의 지표를 이 단원이 참조 (9절)</td></tr>
+<tr><td><a class="xr" href="D7.9.html">D7.9 변경 관리</a></td><td>변경 관리와 긴급 변경 (6절)</td></tr>
+<tr><td><a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a></td><td>OT/ICS·내장 시스템의 취약점 (7절, 8절)</td></tr>
+<tr><td><a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a> · <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a></td><td>공급망, SBOM, 외부 구성요소 (10절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>취약점 관리와 패치 관리</h2>
+<div class="tw"><table>
+<tr><th>구분</th><th>범위</th></tr>
+<tr><td><b>취약점 관리</b></td><td>약점의 식별, 평가, 우선순위, 조치, 검증 전 과정</td></tr>
+<tr><td><b>패치 관리</b></td><td>공급자 수정 사항의 획득·검증·배포·확인</td></tr>
+</table></div>
+<div class="tw"><table>
+<tr><th>식별 체계</th><th>의미</th></tr>
+<tr><td><b>CVE</b></td><td>개별 취약점의 공개 식별자</td></tr>
+<tr><td><b>CWE</b></td><td>결함 유형 분류(예: 입력 검증 미비). 근본 원인 분석에 유용</td></tr>
+<tr><td><b>CVSS</b></td><td>심각도 점수. 기본·위협·환경 지표</td></tr>
+<tr><td><b>알려진 악용 취약점 목록</b>(KEV 류)</td><td>실제 악용이 확인된 취약점. <b>우선순위에 가장 강력한 신호</b></td></tr>
+</table></div>
+<div class="box add"><p><span class="tag">보충</span>CVE는 “어떤 취약점인가”, CWE는 “어떤 종류의 실수인가”, CVSS는 “얼마나 심각할 수 있는가”, KEV 목록은 “실제로 쓰이고 있는가”에 답합니다. 같은 CWE가 여러 제품에서 반복되면 개발 과정의 문제를, 같은 CVE가 여러 서버에서 반복되면 배포 과정의 문제를 의심합니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D7.8-Q01</div>
+<p>패치 관리를 취약점 관리와 동일한 것으로 다루는 것이 잘못인 이유는?</p><ol type="A"><li>취약점 관리는 애플리케이션에만, 패치는 운영체제에만 적용된다.</li><li>패치 관리는 탐지 통제이고 취약점 관리는 예방 통제다.</li><li>모든 취약점이 패치로 해결되지 않으므로 설정 결함과 설계 약점, 지원 종료 제품이 관리에서 완전히 빠지게 된다.</li><li>패치 관리가 취약점 관리보다 더 잦은 스캔을 요구한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 패치 관리는 취약점 관리의 한 수단일 뿐이다. 설정 오류와 설계 결함, 지원 종료 제품의 취약점은 패치로 해결되지 않으므로 둘을 같게 다루면 패치할 수 없는 취약점이 관리 범위에서 사라진다. 또한 모든 패치가 보안 목적인 것도 아니다.</p><ul><li>A · 둘 다 자산 유형을 가리지 않는다.</li><li>B · 둘 다 예방 성격이며 통제 유형 구분이 핵심이 아니다.</li><li>D · 스캔 빈도는 두 개념의 차이가 아니다.</li></ul><div class="src">원문 위치 · D7.8-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.8.md §2 · 공식 개요 7.8 “Implement and support patch and vulnerability management” · 기존 문제 Q01 주제</div>
+<h2 id="s2"><span class="n">2</span>전 과정과 인벤토리</h2>
+<div class="flow">
+<div class="nd">자산 인벤토리</div><div class="ar">→</div>
+<div class="nd">취약점 식별</div><div class="ar">→</div>
+<div class="nd">검증</div><div class="ar">→</div>
+<div class="nd">평가·우선순위</div><div class="ar">→</div>
+<div class="nd">조치</div><div class="ar">→</div>
+<div class="nd">재스캔 검증</div><div class="ar">→</div>
+<div class="nd">보고·지표 (예외·기한 관리)</div>
+</div>
+<p>원본은 <b>취약점 관리 실패의 가장 흔한 뿌리가 도구가 아니라 인벤토리 공백</b>이라고 말합니다. <b>관리 대상에 없는 자산은 스캔되지 않고 패치되지 않습니다.</b> 전형적 공백은 섀도 IT와 부서 자체 도입 시스템, 스캔 주기 사이에 생겼다 사라지는 클라우드 인스턴스·컨테이너, 사내망 스캔에 잡히지 않는 원격 단말, 지원 종료 제품과 내장 장비입니다.</p>
+<p><b>원문 사례 — 인벤토리 공백이 만든 침해.</b> 취약점 지표가 양호했지만, 침입 경로는 마케팅팀이 자체 도입해 IT가 모르던 외부 노출 서버였습니다. 스캔 대상에 없었으므로 지표에도 나타나지 않았습니다. 외부 공격 표면 자동 발견, 인벤토리와 스캔 대상의 상시 대조, <b>미등록 자산 수를 위험 지표</b>로 관리했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>자산 인벤토리는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, 커버리지 검증은 <a class="xr" href="D6.1.html">D6.1 평가·테스트·감사 전략</a>의 5절에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D7.8-Q11</div>
+<p>취약점 관리의 기본 순환은?</p><ol type="A"><li>공급업체 권고가 나오기를 기다린 뒤 영향받는 시스템만 스캔한다.</li><li>전부 패치한 뒤 무엇이 누락되었는지 스캔한다.</li><li>자산을 식별하고 스캔으로 취약점을 식별한 뒤 위험에 따라 우선순위를 정하고 교정 또는 완화하고 검증한 다음 반복한다.</li><li>배포 시 한 번 스캔하고 이후에는 기준선에 의존한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 자산 식별이 먼저다. 모르는 자산은 스캔 범위에 들어오지 않는다. 식별된 취약점을 전부 동시에 고칠 수 없으므로 위험으로 우선순위를 정한다. 교정 후 검증하지 않으면 실제로 해결되었는지 알 수 없고, 새 취약점이 계속 공개되므로 일회성이 아니라 순환이다.</p><ul><li>A · 권고를 기다리면 탐지가 늦는다.</li><li>B · 우선순위 없는 전면 패치는 비현실적이다.</li><li>D · 새로 공개되는 취약점을 놓친다.</li></ul><div class="src">원문 위치 · D7.8-Q11</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D7.8-Q04</div>
+<p>취약점 지표는 양호해 보였으나 마케팅팀이 구축하고 IT 가 알지 못했던 외부 노출 서버를 통해 침해가 발생했다. 근본 문제는?</p><ol type="A"><li>마케팅팀이 직접 패치할 수 있도록 관리 권한을 부여해야 했다.</li><li>스캐너의 시그니처 데이터베이스가 최신이 아니었다.</li><li>인벤토리 밖의 자산은 스캔되지도 패치되지도 않으므로 지표에도 나타나지 않는다.</li><li>인터넷 노출 시스템에 대한 취약점 스캔 빈도가 너무 낮았다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 취약점 관리 실패의 가장 흔한 뿌리는 도구가 아니라 인벤토리 공백이다. 관리 대상에 없는 자산은 스캔 대상이 아니므로 지표가 양호하게 보인다. 외부 공격 표면 자동 발견과 인벤토리 대조를 상시화하고 미등록 자산 수를 위험 지표로 관리해야 한다.</p><ul><li>A · 권한 부여는 미등록 자산 문제를 해결하지 않는다.</li><li>B · 시그니처 문제라면 등록된 자산에서도 누락이 나타난다.</li><li>D · 애초에 스캔 대상이 아니었으므로 빈도 문제가 아니다.</li></ul><div class="src">원문 위치 · D7.8-Q04</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.8.md §3 전 과정 — 자산 인벤토리, §7 사례 1 · 기존 문제 Q11, Q04 주제</div>
+<h2 id="s3"><span class="n">3</span>식별과 검증</h2>
+<ul>
+<li><b>인증 스캔·에이전트 기반</b>: 운영 자산의 정확한 패치 수준, 오프라인·원격 단말 포괄.</li>
+<li><b>SCA</b>: 애플리케이션 의존성의 알려진 취약점.</li>
+<li><b>컨테이너 이미지 스캔</b>: 빌드 시점과 레지스트리에서.</li>
+<li><b>클라우드 설정 평가</b>: 취약점보다 오설정이 주된 위험.</li>
+<li><b>공급자 공지와 위협 인텔리전스</b>: 스캐너가 아직 모르는 신규 취약점.</li>
+<li><b>침투 테스트와 코드 검토</b>: 자동 스캔이 못 찾는 논리·인가 결함.</li>
+</ul>
+<p>스캔 주기는 위험 기반으로 차등하고, <b>중요 변경 후와 신규 공개 시 즉시 추가 스캔</b>합니다. 결과는 거짓 양성을 걸러 낸 뒤 전달합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>인증·비인증 스캔과 기법별 한계는 <a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a>의 2절, 거짓 양성 검증은 <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>의 1절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.8.md §3 전 과정 — 식별, 검증</div>
+<h2 id="s4"><span class="n">4</span>평가와 우선순위</h2>
+<p>원본의 원칙: <b>CVSS 점수만으로 정하면 안 된다.</b></p>
+<div class="tw"><table>
+<tr><th>요소</th><th>의미</th></tr>
+<tr><td><b>악용 상태</b></td><td>공개 악용 코드, <b>실제 악용 확인 여부</b></td></tr>
+<tr><td><b>노출 경로</b></td><td>인터넷 노출 / 내부 / 격리</td></tr>
+<tr><td>인증 요구</td><td>인증 없이 악용 가능한가</td></tr>
+<tr><td><b>자산 중요도</b></td><td>업무 영향, 데이터 분류</td></tr>
+<tr><td>보완 통제</td><td>WAF, 분할, 탐지가 이미 있는가</td></tr>
+<tr><td>연쇄 가능성</td><td>다른 결함과 조합되는가</td></tr>
+</table></div>
+<p>원본의 예: <b>점수 7.5지만 인터넷 노출 결제 시스템에서 실제 악용 중인 취약점이, 점수 9.8지만 격리망 내부의 인증 필요 취약점보다 먼저입니다.</b> 실무에서는 조치 기한을 <b>위험 등급별 SLA</b>로 정하며(“실제 악용 + 인터넷 노출”은 긴급 경로), 구체적 숫자는 조직의 위험 수용 수준과 규제가 정합니다.</p>
+<p><b>원문 사례 — 점수 기준이 놓친 악용 중 취약점.</b> 조치 기준이 CVSS 9.0 이상이어서, 7.5지만 공개 악용 코드가 있고 인터넷에 노출된 결제 시스템 취약점이 3개월간 방치되었습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>같은 취약점이 인터넷에 노출된 환자 포털과, 운영 중 멈추기 어려운 병동 장비에 함께 있고 점수는 같습니다. 포털은 노출 경로와 악용 상태를 보고 빠르게 패치하거나 취약 기능을 끕니다. 장비는 제조사 검증과 정비 창구가 필요하므로, 그때까지 네트워크 분할과 접근 제한으로 도달 가능성을 먼저 줄이고 예외로 등록합니다. 점수가 같아도 조치 경로와 기한은 다릅니다.</p></div>
+<div class="src">원문 위치: D7.8.md §3 전 과정 — 평가와 우선순위, §7 사례 3 · 원본의 “보상 통제”는 제작기준에 따라 “보완 통제”로 적음</div>
+<h2 id="s5"><span class="n">5</span>조치 선택</h2>
+<div class="tw"><table>
+<tr><th>조치</th><th>내용</th></tr>
+<tr><td>패치 적용</td><td>기본 수단</td></tr>
+<tr><td>설정 변경</td><td>취약 기능 비활성화, 접근 제한</td></tr>
+<tr><td>보완 통제</td><td>분할, WAF 가상 패치, 탐지 강화</td></tr>
+<tr><td><b>제거</b></td><td>쓰지 않는 소프트웨어·서비스 삭제. <b>가장 확실한 조치</b></td></tr>
+<tr><td>수락</td><td>권한 있는 승인, 기한, 재검토</td></tr>
+</table></div>
+<p>원본은 <b>“쓰지 않는 것을 지우는 것”이 가장 효율적인 취약점 관리</b>라고 말합니다. 설치되어 있지 않으면 패치할 필요도 없습니다. 조치 완료 주장만으로 종결하지 않고 <b>재스캔으로 확인</b>합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>패치 배포 도구가 “성공”을 반환한 것은 설치 작업의 기록일 뿐입니다. 대상 장비의 실제 버전과 설정을 확인하고 취약 상태가 해소되었는지 검증한 뒤에 조치를 종결합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>예외와 위험 수락은 <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>의 4절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.8.md §3 전 과정 — 조치 선택, 검증과 보고</div>
+<h2 id="s6"><span class="n">6</span>패치 관리</h2>
+<ol class="steps">
+<li><b>인지</b>: 공급자 공지, 취약점 피드, 자동 수집</li>
+<li><b>적용 대상 판단</b>: 영향받는 자산 식별</li>
+<li><b>사전 검증</b>: 테스트 환경에서 기능·성능 영향</li>
+<li><b>변경 승인</b>: 변경 관리 절차</li>
+<li><b>단계적 배포</b>: 카나리 → 일부 → 전체</li>
+<li><b>확인</b>: 적용 성공, 재부팅 완료</li>
+<li><b>롤백 준비</b>: 실패 시 복구 경로</li>
+</ol>
+<p>원본은 사전 검증의 현실을 이렇게 요약합니다. <b>검증 없이 배포하면 장애 위험, 검증만 하다 늦으면 침해 위험.</b> 그래서 위험 기반으로 차등하고(외부 노출 고위험은 간소 검증 후 신속, 내부 안정성 요구는 충분히), 대표성 있는 테스트 환경을 확보합니다.</p>
+<p><b>긴급 패치</b>(out-of-band): 실제 악용 중인 취약점은 정규 주기를 기다리지 않습니다. <b>긴급 변경 경로</b>가 미리 정의되어 있어야 하고(사후 승인과 기록이 전제), 판단 기준(악용 확인, 노출, 자산 중요도)이 없으면 매번 논쟁합니다.</p>
+<div class="tw"><table>
+<tr><th>흔한 실패</th><th>결과</th></tr>
+<tr><td><b>적용 후 재부팅 안 함</b></td><td>패치가 활성화되지 않음 → <b>적용률 ≠ 유효 적용률</b></td></tr>
+<tr><td>일부 자산 누락</td><td>오프라인, 전원 꺼진 단말, 에이전트 미설치</td></tr>
+<tr><td><b>기준 이미지 미반영</b></td><td>신규 시스템이 다시 취약</td></tr>
+<tr><td>의존성·호환성</td><td>선행 패치, 레거시 앱이 깨짐</td></tr>
+<tr><td>배포 실패를 모름</td><td>실패 보고가 없으면 영구 공백</td></tr>
+</table></div>
+<p><b>원문 사례 — 적용률 97%, 유효 적용률 68%.</b> 재부팅 완료 여부를 함께 집계하자 유효 적용률은 68%였고, 재부팅하지 않은 시스템에서 커널 패치가 활성화되지 않았습니다.</p>
+<p><b>원문 사례 — 검증 없이 배포한 패치.</b> 긴급하다는 판단으로 검증 없이 전사 배포했다가 핵심 업무 앱이 호환성 문제로 멈춰 반일 장애가 났습니다. 위험 기반 차등, 카나리 단계 적용, 롤백 경로 사전 확보로 대응했습니다.</p>
+<p><b>원문 사례 — 기준 이미지 미반영.</b> 매월 같은 취약점이 신규 서버에서 반복 탐지되었고, 조치 종결 조건에 기준 이미지 반영 여부를 넣었습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>변경 관리와 긴급 변경은 <a class="xr" href="D7.9.html">D7.9 변경 관리</a>, 기준 이미지는 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>의 3절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.8.md §3 패치 관리, §7 사례 2, 사례 4, 사례 5</div>
+<h2 id="s7"><span class="n">7</span>패치할 수 없는 자산</h2>
+<p>현실에 반드시 존재합니다. 원본의 원칙은 <b>방치가 아니라 관리</b>입니다.</p>
+<div class="tw"><table>
+<tr><th>유형</th><th>접근</th></tr>
+<tr><td>지원 종료(EOL) 제품</td><td rowspan="5"><b>네트워크 분할과 접근 제한</b>(도달 가능성 축소가 가장 효과적), <b>가상 패치</b>(WAF·IPS), <b>탐지 강화</b>, 기능 축소, 보완 통제 문서화와 예외 등록(만료일·재검토), <b>교체 계획</b></td></tr>
+<tr><td><b>의료·산업 장비</b>(인증 문제로 변경 제약, 가용성이 안전과 직결)</td></tr>
+<tr><td>공급자 의존(조직에 패치 권한 없음)</td></tr>
+<tr><td>운영 중단 불가 시스템</td></tr>
+<tr><td>호환성 제약</td></tr>
+</table></div>
+<p>원본의 경고: <b>보완 통제는 임시 수단이다. 교체 로드맵과 예산이 없으면 영구 예외가 된다.</b></p>
+<p><b>원문 사례 — 지원 종료 시스템의 영구 예외.</b> EOL 제품에 보완 통제를 적용하고 예외로 등록했는데, 4년 뒤에도 예외는 그대로였고 교체 예산은 한 번도 배정되지 않았으며, 그 사이 보완 통제 일부는 환경 변경으로 무효가 되어 있었습니다. 예외에 교체 계획과 예산 상태를 필수 항목으로 넣고, 재평가 때 보완 통제 유효성도 함께 검증했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>패치율만 보고하면 임시 예외로 빠진 장비가 얼마나 오래 남아 있는지 보이지 않습니다. 예외의 기간, 대상의 중요도, 보완 통제의 검증 여부를 별도로 보고해야, “누락”과 “합의된 예외”를 같은 숫자로 섞지 않을 수 있습니다. 의료기관이라면 제조사의 패치 승인 상태도 함께 추적합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>내장·OT 시스템의 취약점은 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>, 예외 관리는 <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>의 4절, 자산 보존과 EOL은 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.8.md §3 패치할 수 없는 자산, §7 사례 6</div>
+<h2 id="s8"><span class="n">8</span>환경별 차이</h2>
+<div class="tw"><table>
+<tr><th>환경</th><th>요점</th></tr>
+<tr><td><b>클라우드</b></td><td>공급자 책임 영역은 조직이 패치하지 않음. 고객 영역(IaaS 게스트 OS, 컨테이너 이미지, 앱 의존성). 주된 위험은 오설정. 단기 자원은 <b>패치가 아니라 새 이미지로 교체</b></td></tr>
+<tr><td><b>컨테이너</b></td><td><b>실행 중 컨테이너를 패치하지 않음</b> → 이미지 재빌드·재배포. <b>기본 이미지</b>가 핵심. 빌드 파이프라인·레지스트리 스캔, 실행 중 이미지 버전 추적</td></tr>
+<tr><td><b>OT / ICS</b></td><td><b>가용성과 안전 최우선.</b> <b>스캔 자체가 장애를 유발</b>할 수 있음 → 패시브 식별, 수동 인벤토리. 유지보수 창구가 드묾. 분할과 단방향 게이트웨이. 승인되지 않은 패치는 보증·인증을 무효화할 수 있음</td></tr>
+<tr><td><b>모바일·원격 단말</b></td><td>사용자 행동 의존, 사내망 미연결. <b>조건부 접근</b>(패치 수준 미달 시 접근 제한)이 가장 효과적인 강제 수단</td></tr>
+</table></div>
+<p><b>원문 사례 — OT 환경 스캔이 유발한 공정 중단.</b> IT 취약점 스캐너를 생산 네트워크에 적용하자 일부 제어 장비가 비정상 패킷에 반응해 재시작되어 공정이 멈췄습니다. 패시브 식별과 수동 인벤토리로 전환하고, 분할과 단방향 게이트웨이를 주된 통제로 삼고, 패치는 공급자 승인과 유지보수 창구에 맞추는 별도 절차를 세웠습니다.</p>
+<p><b>원문 사례 — 원격 단말 패치 공백.</b> 원격 근무 전환 뒤 사내망에 연결되지 않는 단말의 패치율이 급락했습니다. 클라우드 기반 배포로 전환하고 조건부 접근으로 패치 수준 미달 단말의 접근을 제한했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>불변 인프라는 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>의 6절, 책임 공유 모델은 <a class="xr" href="D6.1.html">D6.1 평가·테스트·감사 전략</a>의 4절, 기기 상태 기반 접근은 <a class="xr" href="D4.2.html">D4.2 네트워크 구성요소</a>의 5절(NAC)에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D7.8-Q08</div>
+<p>IT 취약점 스캐너를 생산 제어 네트워크에 적용했고 일부 제어기가 비정상 패킷에 반응해 재시작되어 공정이 중단되었다. 대신 무엇을 해야 하는가?</p><ol type="A"><li>생산 시간 중에 더 낮은 강도로 스캔을 반복한다.</li><li>공급자 개입 없이 사용 가능한 모든 패치를 즉시 적용한다.</li><li>패시브 식별과 수동 인벤토리를 사용하고 분할과 단방향 게이트웨이를 주된 통제로 삼으며 공급자가 승인한 유지보수 창구에 맞춰 패치한다.</li><li>제어 네트워크를 취약점 관리 범위에서 영구적으로 제외한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> OT 환경은 가용성과 안전이 최우선이고 스캔 자체가 장애를 유발할 수 있다. 패시브 식별과 수동 인벤토리로 자산을 파악하고 분할과 단방향 게이트웨이로 도달 가능성을 줄이며 패치는 공급자 승인과 드문 유지보수 창구에 맞춰 별도 절차로 수행한다.</p><ul><li>A · 강도를 낮춰도 능동 스캔은 위험이 남는다.</li><li>B · 공급자 승인 없는 패치는 보증과 인증을 무효화할 수 있다.</li><li>D · 범위 제외는 통제 공백을 영구화한다.</li></ul><div class="src">원문 위치 · D7.8-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.8.md §3 환경별 차이, §7 사례 8, 사례 9 · 기존 문제 Q08 주제</div>
+<h2 id="s9"><span class="n">9</span>지표</h2>
+<div class="tw"><table>
+<tr><th>지표</th><th>의미</th></tr>
+<tr><td><b>커버리지</b></td><td>인벤토리 대비 스캔·관리 대상 비율</td></tr>
+<tr><td><b>유효 적용률</b></td><td>재부팅까지 완료된 실제 적용률</td></tr>
+<tr><td>평균 조치 시간</td><td>심각도별 공개·탐지부터 조치까지</td></tr>
+<tr><td>기한 초과 건수</td><td>SLA를 넘긴 항목</td></tr>
+<tr><td><b>최장 미조치 경과 일수</b></td><td>꼬리 위험</td></tr>
+<tr><td>미조치 잔량</td><td>등급별 누적</td></tr>
+<tr><td><b>악용 확인 취약점 조치율</b></td><td>가장 중요한 위험 지표</td></tr>
+<tr><td>재발률</td><td>같은 결함의 반복 출현</td></tr>
+<tr><td>예외 건수와 만료 초과</td><td>예외 누적 상태</td></tr>
+</table></div>
+<p>원본은 두 가지를 경고합니다. <b>평균만 보면 꼬리가 숨는다</b>, 그리고 <b>“발견 건수 감소”를 성과로 쓰면 스캔 범위가 줄어든다.</b> 커버리지와 함께 봐야 합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>KPI·KRI와 짝 지표는 <a class="xr" href="D6.3.html#s3">D6.3 3절</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.8.md §3 지표</div>
+<h2 id="s10"><span class="n">10</span>다른 프로세스와 SBOM</h2>
+<div class="tw"><table>
+<tr><th>프로세스</th><th>관계</th></tr>
+<tr><td>자산 관리</td><td>범위를 정함</td></tr>
+<tr><td>구성 관리</td><td>기준 이미지와 설정 기준선에 반영</td></tr>
+<tr><td>변경 관리</td><td>패치 배포 승인 경로</td></tr>
+<tr><td>위협 인텔리전스</td><td>악용 여부 판단 근거</td></tr>
+<tr><td>사고 대응</td><td>미조치 취약점이 침입 경로</td></tr>
+<tr><td>공급망</td><td>공급자 구성요소의 취약점. <b>SBOM</b>이 영향 범위 산정을 가능하게 함</td></tr>
+</table></div>
+<p><b>SBOM</b>(Software Bill of Materials)이 중요한 이유: 널리 쓰이는 라이브러리의 치명적 취약점이 공개될 때 <b>“우리가 그것을 쓰는지”를 몇 시간 안에 답할 수 있는가</b>가 대응 속도를 결정합니다.</p>
+<p><b>원문 사례 — SBOM 없이 맞은 라이브러리 취약점.</b> 조직이 “우리가 그것을 쓰는지” 확인하는 데 3주가 걸렸고 그 사이 일부 시스템이 악용되었습니다. 모든 앱의 빌드 파이프라인에 SBOM 생성을 넣고 중앙 저장소에서 구성요소 단위로 조회할 수 있게 했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>의료기기 분야에서는 제조사가 제품의 SBOM을 제공하는 것이 규제 기관 제출 요구와 연결되어 논의되고 있습니다. 병원 쪽에서는 제조사 SBOM을 받아 자체 자산 인벤토리와 연결해 두면 신규 취약점 공개 때 영향 장비를 빠르게 찾을 수 있습니다. 구체적 제출 요건은 관할 규제를 직접 확인해야 하며 이 교재는 확인하지 않았습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>공급망 위험은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, 외부 소프트웨어 구성요소의 보안 영향은 <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.8.md §3 다른 프로세스와의 관계, §7 사례 7</div>
+<h2 id="s11"><span class="n">11</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>취약점 관리 점검 결과다. ㉠ 패치 적용률 97%인데 재부팅 미완료가 많다. ㉡ 조치 기준이 CVSS 9.0 이상뿐이다. ㉢ EOL 시스템 예외가 4년째 유지되고 교체 예산이 없다. ㉣ 생산 제어망에 IT 스캐너를 그대로 돌리려 한다. 가장 적절한 판단 묶음은?</p>
+<ol type="A">
+<li>㉠ 97%면 양호 / ㉡ 기준을 8.0으로 낮춤 / ㉢ 예외 연장 / ㉣ 야간에만 스캔</li>
+<li>㉠ 유효 적용률을 주 지표로, 재부팅 경과 추적 / ㉡ 악용 상태·노출·인증 요구·자산 중요도·보완 통제를 함께 / ㉢ 교체 계획·예산을 예외 필수 항목으로, 보완 통제 유효성 재검증 / ㉣ 패시브 식별·수동 인벤토리, 분할·단방향 게이트웨이, 공급자 승인에 맞춘 패치</li>
+<li>㉠ 재부팅 강제 후 지표 폐기 / ㉡ 모든 취약점 즉시 패치 / ㉢ EOL 시스템 즉시 폐기 / ㉣ OT는 관리 대상에서 제외</li>
+<li>㉠ 적용 성공 로그로 종결 / ㉡ 점수만 사용 / ㉢ 예외 영구화 / ㉣ IPS로 대체</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> ㉠ 6절(적용률 ≠ 유효 적용률), ㉡ 4절(점수만으로 정하지 않음, 악용 확인이 가장 강한 신호), ㉢ 7절(교체 로드맵 없는 보완 통제는 영구 예외), ㉣ 8절(OT는 스캔 자체가 장애 유발). C의 “OT 제외”는 관리 대상에서 빠지면 아예 보이지 않게 됩니다(2절).</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">12</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>패치가 설치됐다는 알림으로 모든 조치를 끝낼 수 있나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>설치 성공은 작업 결과입니다. 실제 자산에서 필요한 버전과 동작이 확인돼 취약 상태가 없어졌는지 판단해야 합니다. 미적용 자산에는 보완과 재검토 일정을 둡니다.</p></div></details></div>
+<h2 id="summary"><span class="n">13</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>패치 관리 ⊂ 취약점 관리.</b> 같게 다루면 패치할 수 없는 취약점이 사라진다.</li>
+<li>CVE(무엇), CWE(어떤 유형), CVSS(심각도), <b>KEV 류(실제 악용 — 가장 강한 신호)</b>.</li>
+<li>전 과정: 인벤토리 → 식별 → 검증 → 우선순위 → 조치 → 재스캔 → 보고. <b>실패의 뿌리는 인벤토리 공백.</b></li>
+<li>우선순위: <b>악용 상태, 노출, 인증 요구, 자산 중요도, 보완 통제, 연쇄</b>. 점수 단독 금지. 위험 등급별 조치 SLA.</li>
+<li>조치: 패치, 설정, 보완 통제, <b>제거(가장 확실)</b>, 수락. 성공 로그가 아니라 재스캔으로 종결.</li>
+<li>패치 절차: 인지 → 대상 → 사전 검증 → 변경 승인 → <b>단계적 배포</b> → 확인 → 롤백 준비. 검증 없으면 장애, 늦으면 침해. 긴급 경로 사전 정의.</li>
+<li>실패: <b>재부팅 안 함(유효 적용률)</b>, 누락, <b>기준 이미지 미반영</b>, 호환성, 실패 미인지.</li>
+<li>패치 불가 자산(EOL, <b>의료·산업 장비</b>, 공급자 의존): <b>분할·접근 제한</b>, 가상 패치, 탐지 강화, 예외 등록, <b>교체 계획</b>.</li>
+<li>환경: 클라우드(책임 공유, 이미지 교체), 컨테이너(재빌드), <b>OT(스캔이 장애, 패시브)</b>, 원격(조건부 접근).</li>
+<li>지표: 커버리지, 유효 적용률, 최장 경과, 악용 확인 조치율. 평균은 꼬리를 숨김. <b>SBOM</b>이 대응 속도를 결정.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D7.8.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">14</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Vulnerability Management</span> <span class="term-ko">· 취약점 관리</span></h3>
+<p>약점 식별부터 조치 검증까지의 전 과정.</p>
+<h3 id="glossary-2"><span lang="en">Patch Management</span> <span class="term-ko">· 패치 관리</span></h3>
+<p>공급자 수정 사항의 획득·검증·배포·확인. 취약점 관리의 한 수단이다.</p>
+<h3 id="glossary-3"><span lang="en">CVE / CWE / CVSS — Common Vulnerabilities and Exposures / Common Weakness Enumeration / Common Vulnerability Scoring System</span> <span class="term-ko">· 공개 취약점 식별 / 약점 유형 분류 / 취약점 심각도 점수 체계</span></h3>
+<p>개별 취약점 식별자 / 결함 유형 분류 / 심각도 점수 체계.</p>
+<h3 id="glossary-4"><span lang="en">KEV (Known Exploited Vulnerabilities)</span> <span class="term-ko">· 실제 악용이 알려진 취약점</span></h3>
+<p>실제 악용이 확인된 취약점 목록. 우선순위의 강력한 신호다.</p>
+<h3 id="glossary-5"><span lang="en">SCA (Software Composition Analysis)</span> <span class="term-ko">· 소프트웨어 구성 분석</span></h3>
+<p>애플리케이션 의존성의 알려진 취약점을 식별하는 분석.</p>
+<h3 id="glossary-6"><span lang="en">SBOM (Software Bill of Materials)</span> <span class="term-ko">· 소프트웨어 구성 명세서</span></h3>
+<p>소프트웨어 구성요소 목록. 영향 범위 산정 속도를 결정한다.</p>
+<h3 id="glossary-7"><span lang="en">Virtual Patching</span> <span class="term-ko">· 가상 패치</span></h3>
+<p>WAF 나 IPS 로 악용 트래픽을 차단해 패치 전까지 보호하는 방식.</p>
+<h3 id="glossary-8"><span lang="en">Out-of-band Patch</span> <span class="term-ko">· 긴급 패치</span></h3>
+<p>정규 주기 외에 긴급 배포하는 패치.</p>
+<h3 id="glossary-9"><span lang="en">Effective Patch Rate</span> <span class="term-ko">· 유효 적용률</span></h3>
+<p>재부팅까지 완료되어 실제로 활성화된 적용 비율.</p>
+<h3 id="glossary-10"><span lang="en">EOL (End of Life)</span> <span class="term-ko">· 수명 종료</span></h3>
+<p>지원 종료. 패치가 더 이상 제공되지 않는 상태.</p>
+<h3 id="glossary-11"><span lang="en">Staged Rollout</span> <span class="term-ko">· 단계적 배포</span></h3>
+<p>카나리 적용 후 범위를 점진적으로 확대하는 배포 방식.</p>
+<h3 id="glossary-12"><span lang="en">Compensating Control</span> <span class="term-ko">· 보완 통제</span></h3>
+<p>패치가 불가능할 때 위험을 줄이는 대체 수단.</p>
+<h3 id="glossary-13"><span lang="en">Conditional Access</span> <span class="term-ko">· 조건부 접근</span></h3>
+<p>패치 수준 같은 기기 상태를 접근 조건으로 삼는 통제.</p>
+<div class="src">원문 위치 · D7.8.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">15</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-40 Rev.4</strong> — 기업 패치 관리 계획</li>
+<li><strong>NIST SP 800-53 RA-5 / SI-2</strong> — 취약점 모니터링과 결함 교정</li>
+<li><strong>NIST SP 800-115</strong> — 기술적 테스트와 평가</li>
+<li><strong>CVSS v4.0</strong> — 기본·위협·환경 지표</li>
+<li><strong>CVE / CWE / CPE</strong> — 취약점·결함 유형·제품 식별 체계</li>
+<li><strong>ISO/IEC 27002:2022 8.8</strong> — 기술적 취약점 관리</li>
+<li><strong>CIS Controls 7</strong> — 지속적 취약점 관리</li>
+<li><strong>SBOM 관련 표준(SPDX, CycloneDX)</strong></li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D7.8.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">패치 관리를 취약점 관리와 동일한 것으로 다루는 것이 잘못인 이유는?</a></li>
+<li><a href="#question-2">취약점 관리의 기본 순환은?</a></li>
+<li><a href="#question-3">취약점 지표는 양호해 보였으나 마케팅팀이 구축하고 IT 가 알지 못했던 외부 노출 서버를 통해 침해가 발생했다. 근본 문제는?</a></li>
+<li><a href="#question-4">IT 취약점 스캐너를 생산 제어 네트워크에 적용했고 일부 제어기가 비정상 패킷에 반응해 재시작되어 공정이 중단되었다. 대신 무엇을 해야 하는가?</a></li>
+<li><a href="#question-5">취약점 관리 점검 결과다. ㉠ 패치 적용률 97%인데 재부팅 미완료가 많다. ㉡ 조치 기준이 CVSS 9.0 이상뿐이다. ㉢ EOL 시스템 예외가 4년째 유지되고 교체 예산이 없다. ㉣ 생산 제어망에 IT 스캐너를 그대로 돌리려 한다. 가장 적절한 판단 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D7.7.html"><small>← 이전 단원</small>7.7 탐지·예방 수단</a><a href="D7.9.html" style="text-align:right"><small>다음 단원 →</small>7.9 변경 관리</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

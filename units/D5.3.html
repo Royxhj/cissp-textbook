@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D5.3 제3자 서비스와의 연합 식별 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D5.3">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 5 식별 및 접근 관리 › 5.3</div>
+<h1>제3자 서비스와의 연합 식별</h1>
+<div class="en">Federated identity with a third-party service · ISC2 CISSP Exam Outline(2024-04-15 발효) 5.3</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">조직이 쓰는 SaaS가 스무 개라면 계정도 스무 개, 퇴사 처리도 스무 번입니다. 연합 신원(Federated Identity)은 인증을 조직의 신원 공급자 한 곳에 맡기고, 외부 서비스는 “인증이 일어났다”는 서명된 증거만 믿게 하는 방식입니다. 이 단원은 공식 개요 5.3이 드는 세 가지 배치 모델(온프레미스, 클라우드, 하이브리드)과 함께, 연합이 어디서 깨지는지를 다룹니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a></td><td>SSO, 연합 개요, SAML·OAuth·OIDC의 구분, JIT. 이 단원은 그 상세 (1절, 4절)</td></tr>
+<tr><td><a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a></td><td>계정 생애주기와 해지. 연합에서 해지가 전파되지 않는 문제 (7절)</td></tr>
+<tr><td><a class="xr" href="D5.6.html">D5.6 인증 시스템</a></td><td>인증 시스템 구현 (4절)</td></tr>
+<tr><td><a class="xr" href="D3.6.html">D3.6 암호 솔루션</a></td><td>서명과 인증서, HSM. 서명 키 보호와 인증서 만료 (3절, 8절)</td></tr>
+<tr><td><a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a></td><td>비상 계정과 특권 계정 관리 (9절)</td></tr>
+<tr><td><a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a></td><td>SaaS 등 외부 서비스의 보안 영향 (2절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>연합의 기본 구조</h2>
+<div class="flow">
+<div class="nd"><b>사용자</b></div><div class="ar">→</div>
+<div class="nd"><b>IdP</b><br/>신원 검증</div><div class="ar">→</div>
+<div class="nd"><b>주장</b> Assertion<br/>서명된 증거</div><div class="ar">→</div>
+<div class="nd"><b>SP / RP</b><br/>주장 신뢰</div><div class="ar">→</div>
+<div class="nd"><b>자원</b></div>
+</div>
+<div class="tw"><table>
+<tr><th>구성요소</th><th>역할</th></tr>
+<tr><td><b>IdP</b> Identity Provider 신원 공급자</td><td>사용자를 인증하고 서명된 주장을 발급</td></tr>
+<tr><td><b>SP</b> Service Provider / <b>RP</b> Relying Party</td><td>주장을 검증해 접근 허용. <b>자체 비밀번호를 보관하지 않음</b></td></tr>
+<tr><td><b>신뢰 관계</b> Trust</td><td>사전에 교환한 <b>메타데이터와 서명 키</b>로 성립</td></tr>
+</table></div>
+<p>원본은 연합의 본질을 이렇게 정리합니다. <b>자격증명을 넘기지 않는 것.</b> 사용자는 SP에 비밀번호를 주지 않고 SP는 비밀번호를 보관하지 않습니다. 오가는 것은 <b>인증이 일어났다는 서명된 증거</b>뿐입니다.</p>
+<h3 id="s1-sso">SSO와 연합의 차이</h3>
+<p><b>SSO</b>는 “한 번 인증으로 여러 시스템에 접근”하는 <b>사용자 경험</b>이고, <b>연합</b>은 “신뢰 경계를 넘어 신원을 전달”하는 <b>구조</b>입니다. 조직 내부 SSO는 연합 없이도 가능하고(예: Kerberos), 연합은 보통 조직 밖까지 SSO를 실현하는 수단이 됩니다.</p>
+<div class="box add"><p><span class="tag">보충</span>호텔 체크인에 비유하면, 호텔(SP)은 손님의 여권 원본을 보관하지 않고 여권청(IdP)이 발급한 여권이 진짜인지(서명), 이 손님 것인지, 유효기간 안인지만 봅니다. 호텔이 여권청을 믿는 근거는 미리 알고 있는 여권의 위조 방지 요소(메타데이터와 서명 키)입니다. 그래서 여권청이 뚫리면 모든 호텔이 속습니다. 연합의 장점과 위험이 같은 지점에서 나옵니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>SSO의 장단점과 SAML·OAuth·OIDC의 첫 구분은 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 6~7절에서 다뤘습니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D5.3-Q01</div>
+<p>어떤 조직이 SAML 2.0 을 사용해 제3자 SaaS 공급자와 신원을 연합한다. 사용자가 로그인할 때 SaaS 공급자가 받는 것은?</p><ol type="A"><li>자격증명을 로컬에서 검증할 수 있도록 사용자의 비밀번호 해시.</li><li>매시간 동기화되는 조직 디렉터리의 복사본.</li><li>암호화된 채널로 전달되는 사용자의 평문 자격증명.</li><li>신원 공급자가 사용자를 인증했다는 서명된 주장.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 연합의 본질은 자격증명을 넘기지 않는 것이다. IdP 가 사용자를 인증하고 그 사실을 서명된 주장으로 발급하면 SP 는 서명을 검증해 접근을 허용한다. SP 는 비밀번호나 그 해시를 보관하지 않으므로 SP 침해 시 자격증명이 유출되지 않는다.</p><ul><li>A · 해시를 넘기면 연합의 목적인 자격증명 비전달이 깨진다.</li><li>B · 디렉터리 동기화는 프로비저닝이며 인증 주장 전달과 다르다.</li><li>C · 평문 자격증명을 SP 에 주는 것은 연합이 아니라 자격증명 공유다.</li></ul><div class="src">원문 위치 · D5.3-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.3.md §2 · 공식 개요 5.3 “Federated identity with a third-party service” · 기존 문제 Q01 주제</div>
+<h2 id="s2"><span class="n">2</span>왜 연합이 필요한가</h2>
+<p>제3자 SaaS를 쓰기 시작하면 선택지는 둘입니다.</p>
+<div class="tw"><table>
+<tr><th>선택</th><th>결과</th></tr>
+<tr><td><b>SaaS마다 별도 계정</b></td><td>자격증명 분산, 퇴사자 계정 잔존, MFA 정책 제각각, 감사 추적 분산</td></tr>
+<tr><td><b>연합</b></td><td>인증은 조직의 IdP가 책임지고 SaaS는 결과만 신뢰</td></tr>
+</table></div>
+<p>원본은 연합의 가장 큰 운영 가치를 <b>퇴사 처리 한 번으로 모든 연합 서비스의 로그인이 끊긴다</b>는 점으로 봅니다. 다만 7절에서 보듯 “로그인이 끊긴다”와 “접근이 끊긴다”는 다릅니다.</p>
+<div class="box link"><p><span class="tag">연결</span>외부 서비스 도입 시의 보안 평가는 <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>, 공급망과 제3자 관리는 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.3.md §3 왜 연합이 필요한가</div>
+<h2 id="s3"><span class="n">3</span>공식 개요의 세 모델</h2>
+<div class="tw"><table>
+<tr><th>모델</th><th>구조</th><th>장점</th><th>단점</th><th>핵심 실패 모드</th></tr>
+<tr><td><b>온프레미스</b></td><td>IdP가 조직 데이터센터 안(예: AD FS, 자체 SAML IdP)</td><td>자격증명·해시가 외부로 나가지 않음. 국외 이전 제한 규제에 적합</td><td><b>IdP가 멈추면 모든 연합 로그인이 멈춤.</b> 인터넷 노출 구간, 패치, 인증서 갱신을 직접 운영</td><td><b>서명 인증서 만료</b> → 모든 SP에서 동시에 로그인 실패</td></tr>
+<tr><td><b>클라우드</b></td><td>IdP 자체가 클라우드 서비스(IDaaS)</td><td>가용성·확장성을 공급자가 책임. 조건부 접근, 이상 탐지, MFA, SaaS 커넥터 내장</td><td>신원 데이터가 외부에. <b>공급자 장애 = 조직 전체 로그인 장애.</b> 설정 실수가 즉시 인터넷에 노출</td><td><b>과도한 앱 동의 권한</b> → 악성 앱이 조직 데이터 읽기 권한을 영구 보유</td></tr>
+<tr><td><b>하이브리드</b></td><td>온프레미스 디렉터리가 신원 원천, 클라우드 IdP와 동기화</td><td>실무에서 가장 흔함. 기존 디렉터리 유지</td><td>두 환경을 잇는 연결 지점이 생김</td><td><b>동기화 계정 침해</b> → 양쪽이 함께 무너짐</td></tr>
+</table></div>
+<h3 id="s3-hybrid">하이브리드의 인증 처리 방식</h3>
+<div class="tw"><table>
+<tr><th>방식</th><th>동작</th><th>특징</th></tr>
+<tr><td><b>비밀번호 해시 동기화</b></td><td>해시를 클라우드로 보내 클라우드가 인증</td><td>온프레미스 장애에도 로그인 유지</td></tr>
+<tr><td><b>패스스루 인증</b></td><td>클라우드가 받은 자격증명을 온프레미스 에이전트로 검증</td><td>해시가 클라우드로 가지 않음</td></tr>
+<tr><td><b>연합(온프레미스 IdP로 리다이렉트)</b></td><td>인증을 온프레미스가 전담</td><td>통제력 최고, 가용성 최약</td></tr>
+</table></div>
+<p>원본은 하이브리드의 고유 위험 두 가지를 짚습니다. 첫째, <b>동기화 계정</b>은 양쪽에 높은 권한을 갖고 자동화되어 방치되기 쉽습니다. 둘째, <b>신원 원천이 어디인지 명확해야 합니다.</b> 양쪽에서 각자 계정을 만들 수 있으면 권한 해지가 한쪽에만 반영됩니다.</p>
+<p><b>원문 사례 — 하이브리드 동기화 계정 침해.</b> 동기화 서버가 침해되었는데, 동기화 계정은 양쪽에 높은 권한을 가졌고 3년간 비밀번호가 바뀌지 않았습니다. 공격자는 클라우드 측 계정 속성을 바꾸고 임의 사용자로 인증할 수 있었습니다. 동기화 서버를 <b>티어 0 자산으로 격리</b>하고, 관리형 계정으로 바꾸고, 속성 변경을 감시했습니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>세 모델 중 무엇을 고를지는 ① 신원 데이터가 조직 밖에 있어도 되는가(규제) ② IdP가 멈췄을 때 감당할 수 있는 범위는 어디까지인가(가용성) ③ 누가 패치·인증서·설정을 책임지는가(운영 역량) ④ 두 환경을 잇는 연결 지점을 누가 지키는가(하이브리드)로 가립니다. 어느 모델이든 “IdP 장애 = 로그인 장애”라는 점은 같고, 장애를 누가 책임지느냐가 다를 뿐입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>인증서 수명주기와 HSM은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 국외 이전 규제는 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>, 티어 0과 특권 계정 관리는 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>, 서비스 계정 관리는 <a class="xr" href="D5.1.html">D5.1 물리적·논리적 접근 통제</a>의 4절에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D5.3-Q12</div>
+<p>신원 공급자의 서명 인증서가 만료된 새벽 2시에 연합이 끊겨 어떤 서비스 공급자도 주장을 검증할 수 없었다. 무엇이 갖춰져 있어야 했는가?</p><ol type="A"><li>유예 기간 동안 만료된 인증서를 자동으로 수락하는 설정.</li><li>만료 후 인증서를 시험할 서비스 공급자 한 곳 지정.</li><li>갱신 빈도를 줄이기 위한 더 긴 인증서 유효 기간.</li><li>만료일 추적과 사전 경보, 전환 전에 새 인증서를 모든 서비스 공급자에 배포하는 계획된 교체 절차, 전환 기간 중 복수의 유효 서명 키 지원.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 연합에서 서명 인증서는 모든 서비스 공급자가 신뢰 근거로 들고 있는 값이다. 한쪽에서 바꾸면 상대 전부가 갱신해야 하므로 조율이 필요하다. 만료일을 자산으로 추적하고 사전에 경보를 받고, 전환 기간에 구·신 키를 동시에 유효하게 둬서 무중단으로 넘긴다. 유효 기간을 늘리는 것은 문제를 미루고 키 노출 위험을 키운다.</p><ul><li>A · 만료 인증서 수락은 신뢰 모델을 깨뜨린다.</li><li>B · 만료 후 시험은 이미 장애가 난 뒤다.</li><li>C · 만료 관리 부재라는 근본 문제가 남는다.</li></ul><div class="src">원문 위치 · D5.3-Q12</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.3.md §3 공식 개요의 세 모델, §7 사례 2 · 공식 개요 5.3 “On-premise”, “Cloud”, “Hybrid” · 기존 문제 Q12 주제</div>
+<h2 id="s4"><span class="n">4</span>프로토콜별 역할</h2>
+<div class="tw"><table>
+<tr><th>프로토콜</th><th>하는 일</th></tr>
+<tr><td><b>SAML 2.0</b></td><td>XML 주장으로 인증·속성 전달. 기업 웹 SSO 표준</td></tr>
+<tr><td><b>OIDC</b></td><td>OAuth 2.0 위의 인증 계층. ID 토큰(JWT)으로 신원 전달</td></tr>
+<tr><td><b>OAuth 2.0</b></td><td>권한 위임(인가) 프레임워크. <b>인증 프로토콜이 아님</b></td></tr>
+<tr><td><b>WS-Federation</b></td><td>레거시 마이크로소프트 계열 연합</td></tr>
+<tr><td><b>SCIM</b></td><td>연합 환경의 계정 <b>프로비저닝·해지</b> 표준</td></tr>
+</table></div>
+<p>가장 중요한 구분: <b>SAML과 OIDC는 “이 사용자가 누구인지”를 전달하고, OAuth 2.0은 “이 앱이 무엇을 해도 되는지”를 전달합니다.</b> OAuth 액세스 토큰을 로그인 성공의 증거로 쓰면 신원 위조로 이어집니다.</p>
+<p><b>원문 사례 — OAuth 토큰을 로그인 증거로 쓴 앱.</b> 외부 소셜 로그인의 액세스 토큰이 유효하면 로그인 성공으로 처리했더니, 다른 앱용으로 발급된 토큰을 제출해도 통과했습니다. OIDC의 ID 토큰으로 바꾸고 발급자, 대상, nonce를 검증했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>‘누가 로그인했는가’를 묻는 일과 ‘어떤 API 작업을 맡기는가’를 정하는 일은 질문이 다릅니다. 앞의 것은 신원 증거(ID 토큰, SAML 주장), 뒤의 것은 위임 범위를 담은 접근 토큰이 답합니다. 발코니 열쇠를 맡긴 손님이 집주인이라는 증거는 되지 않는 것과 같습니다.</p></div>
+<div class="src">원문 위치: D5.3.md §3 프로토콜별 역할, §7 사례 4</div>
+<h2 id="s5"><span class="n">5</span>SAML 웹 브라우저 SSO 흐름</h2>
+<ol class="steps">
+<li>사용자가 SP에 접근</li>
+<li>SP가 IdP로 인증 요청(AuthnRequest)을 리다이렉트</li>
+<li>IdP가 사용자를 인증(비밀번호 + MFA)</li>
+<li>IdP가 <b>서명된 SAML 주장</b> 발급</li>
+<li>브라우저가 SP에 주장을 전달(POST)</li>
+<li>SP가 <b>서명·발급자·대상·유효기간</b>을 검증한 뒤 세션 생성</li>
+</ol>
+<div class="tw"><table>
+<tr><th>시작 방식</th><th>특징</th></tr>
+<tr><td><b>SP-initiated</b></td><td>위 흐름. 사용자가 SP에서 시작</td></tr>
+<tr><td><b>IdP-initiated</b></td><td>포털에서 앱 아이콘을 눌러 시작. SP가 요청 상태를 모르므로 <b>주장 재생과 피싱에 상대적으로 약함</b></td></tr>
+</table></div>
+<p>SP가 반드시 검증할 항목: <b>서명</b>, <b>Issuer</b>(발급자), <b>Audience</b>(대상이 나인지), <b>NotBefore / NotOnOrAfter</b>(유효 시간), 재생 방지를 위한 <b>Assertion ID 기록</b>.</p>
+<div class="box add"><p><span class="tag">보충</span>서명 검증은 “신뢰하는 발급자가 만들었고 중간에 바뀌지 않았다”까지만 증명합니다. 같은 IdP가 여러 앱에 같은 형식으로 발급하므로, 서명이 맞아도 대상이 다른 앱이면 거부해야 합니다. 그래서 검증 항목은 하나라도 빠지면 안 되는 목록입니다. 서명(누가 만들었나) → 대상(누구를 위한 것인가) → 시간(지금 쓸 수 있나) → ID(이미 쓴 것은 아닌가) 순서로 보면 각 항목이 막는 공격이 따로 있습니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D5.3-Q18</div>
+<p>서비스 공급자가 SAML 주장의 서명을 검증하는 이유는?</p><ol type="A"><li>주장이 예상한 신원 공급자에서 왔고 변경되지 않았음을 확인하기 위해. 서비스 공급자는 자기가 사용자를 인증하는 대신 그 주장을 신뢰하기 때문이다.</li><li>주장 안의 사용자 속성을 암호화하기 위해.</li><li>더 빠른 전송을 위해 주장을 압축하기 위해.</li><li>사용자가 애플리케이션에서 보유한 역할을 판단하기 위해.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 주장은 "이 사용자는 인증되었다" 는 선언이다. 서명을 검증하지 않으면 누구나 그런 선언을 만들어 보낼 수 있다. 그래서 서명 검증은 연합 신뢰의 핵심이며 검증을 생략한 구현이 실제 침해로 이어진 사례가 있다. 압축과 암호화, 역할 판단은 별개 기능이다.</p><ul><li>B · 암호화는 별개 처리다.</li><li>C · 서명은 압축 기능이 아니다.</li><li>D · 역할 판단은 인가 단계다.</li></ul><div class="src">원문 위치 · D5.3-Q18</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.3.md §3 SAML 웹 브라우저 SSO 흐름 · 기존 문제 Q18 주제</div>
+<h2 id="s6"><span class="n">6</span>OIDC 흐름 요약</h2>
+<p>표준 권고는 <b>인가 코드 흐름(Authorization Code Flow)</b>입니다.</p>
+<ol class="steps">
+<li>RP → IdP: 인가 요청(<b>state, nonce, PKCE</b> 포함)</li>
+<li>IdP: 사용자 인증과 동의</li>
+<li>IdP → RP: 인가 코드(리다이렉트)</li>
+<li>RP → IdP: 코드와 PKCE verifier를 <b>백채널</b>로 교환</li>
+<li>IdP → RP: ID 토큰(JWT) + 액세스 토큰</li>
+</ol>
+<div class="tw"><table>
+<tr><th>요소</th><th>막는 것</th></tr>
+<tr><td><b>state</b></td><td>CSRF</td></tr>
+<tr><td><b>nonce</b></td><td>ID 토큰 재생</td></tr>
+<tr><td><b>PKCE</b></td><td>인가 코드 탈취. 공용 클라이언트(모바일·SPA)에 필수, 현재는 모든 클라이언트에 권고</td></tr>
+<tr><td>암묵적 흐름 Implicit Flow</td><td>토큰이 URL 프래그먼트로 노출되어 <b>더 이상 권고되지 않음</b></td></tr>
+</table></div>
+<div class="src">원문 위치: D5.3.md §3 OIDC 흐름 요약</div>
+<h2 id="s7"><span class="n">7</span>프로비저닝과 해지 전파</h2>
+<p>원본의 핵심 문장입니다. <b>연합은 인증을 통합하지만 계정 생애주기를 자동으로 통합하지는 않는다.</b></p>
+<div class="tw"><table>
+<tr><th>방식</th><th>동작</th><th>해지</th></tr>
+<tr><td><b>JIT 프로비저닝</b></td><td>첫 연합 로그인 때 SP가 계정 생성</td><td>간편하지만 <b>퇴사 시 계정이 SP에 남음</b></td></tr>
+<tr><td><b>SCIM 프로비저닝</b></td><td>IdP가 SP에 생성·수정·비활성화를 밀어 넣음</td><td><b>해지가 전파됨</b></td></tr>
+</table></div>
+<p>원본은 연합에서 가장 흔한 운영 사고를 <b>“로그인은 막혔는데 접근은 살아 있는 상태”</b>로 꼽습니다. IdP에서 계정을 비활성화해도 SP에 이미 발급된 <b>장수명 액세스 토큰, 리프레시 토큰, 앱 비밀번호, API 키</b>는 그대로 동작합니다. 해지는 <b>IdP 차단 + SP 세션·토큰 무효화</b>가 함께 이루어져야 완결됩니다.</p>
+<p><b>원문 사례 — 퇴사자가 SaaS에 남은 조직.</b> 20개 SaaS를 SAML로 연합하고 JIT 프로비저닝을 썼습니다. 퇴사자의 IdP 계정을 비활성화했지만, 접근 검토에서 12개 SaaS에 계정이 활성 상태로 남아 있고 그중 3개는 API 키가 발급된 상태였습니다. API 키는 IdP를 거치지 않아 계속 동작했습니다. SCIM으로 전환하고 퇴사 절차에 SP 측 토큰·API 키 무효화를 넣었습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>외부 IdP로 로그인하는 SaaS에서 퇴사자를 IdP에서 지웠는데, SaaS 관리자 화면에는 계정과 열린 세션이 그대로 보입니다. 판단은 세 흐름을 따로 그리는 데서 시작합니다. 신원 확인(새 로그인을 허용할지), 계정 생성·삭제(프로비저닝), 세션 발급·회수. 연합은 첫 번째만 결정합니다. 나머지 둘은 서비스마다 별도 동작일 수 있으므로 해지 이벤트를 보낸 뒤 실제로 계정과 권한이 제거되었다는 증거를 확인합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>계정 생애주기, 퇴사 처리, 접근 검토는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>, JIT의 의미는 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 10절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.3.md §3 프로비저닝과 해지 전파, §7 사례 1</div>
+<h2 id="s8"><span class="n">8</span>연합 고유의 위험</h2>
+<div class="tw"><table>
+<tr><th>위험</th><th>내용</th><th>대응</th></tr>
+<tr><td><b>IdP 침해 = 전체 침해</b></td><td><b>IdP 서명 키가 유출되면 임의 사용자로 유효한 주장을 발급</b>할 수 있고 SP는 구분할 수 없음</td><td>서명 키를 HSM에, 정기 교체, 발급 이력 감시</td></tr>
+<tr><td><b>주장·토큰 검증 누락</b></td><td>서명 미검증, 알고리즘 none 허용, Audience 미확인. <b>XML 서명 래핑(XSW)</b>: 서명된 요소를 둔 채 다른 요소를 끼워 파서와 검증기의 해석 차이를 악용</td><td>검증 항목 전부 확인, 검증된 라이브러리</td></tr>
+<tr><td><b>도메인·메일 기반 신뢰 남용</b></td><td>이메일 도메인이 같으면 같은 조직으로 처리 → 방치 도메인을 인수한 공격자가 테넌트 합류. 이메일을 영구 식별자로 쓰면 주소 재사용 시 접근 상속</td><td><b>변경되지 않는 고유 식별자</b>로 매칭</td></tr>
+<tr><td><b>토큰 탈취·재생</b></td><td>세션·리프레시 토큰을 훔치면 MFA 없이 접근</td><td>토큰 바인딩, 짧은 수명, 리프레시 토큰 회전, 민감 작업 재인증, 비정상 사용 탐지</td></tr>
+<tr><td><b>신뢰의 전이</b></td><td>SP가 하위 서비스에 신원을 넘기면 신뢰가 연쇄</td><td>토큰 교환(RFC 8693)처럼 <b>범위를 줄이며 전달</b></td></tr>
+</table></div>
+<p><b>원문 사례 — 방치된 도메인을 통한 테넌트 침입.</b> 캠페인용으로 쓰다 갱신하지 않은 도메인을 제3자가 인수해 메일박스를 만들었고, 이메일 도메인 일치만으로 가입을 허용하는 SaaS의 조직 테넌트에 합류했습니다. 도메인 인벤토리 관리, 테넌트 자동 가입 비활성화, IdP가 발급한 영구 식별자 기준 매칭으로 대응했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>서명 키 보호와 HSM은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 자산 인벤토리는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D5.3-Q07</div>
+<p>연합에서 신원 공급자의 서명 키가 가장 가치 높은 표적인 이유는?</p><ol type="A"><li>모든 서비스 공급자가 저장한 데이터를 암호화한다.</li><li>이를 보유한 자는 어떤 사용자로든 유효한 주장을 발급할 수 있고 서비스 공급자는 정당한 주장과 구분할 수 없다.</li><li>모든 연합 로그인의 전송 계층을 복호화하는 데 필요하다.</li><li>사용자가 등록할 수 있는 다중 인증 요소를 통제한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> SP 의 신뢰는 전적으로 IdP 서명 검증에 근거한다. 서명 키를 가진 자는 임의 사용자 명의의 유효한 주장을 만들 수 있고 SP 는 서명이 맞으므로 이를 정당한 것으로 수락한다. 그래서 서명 키는 HSM 에 보관하고 정기 교체하며 발급 이력을 감시한다.</p><ul><li>A · 서명 키는 SP 저장 데이터를 암호화하지 않는다.</li><li>C · 전송 계층 보호는 TLS 인증서의 역할이며 주장 서명 키와 다르다.</li><li>D · MFA 등록 정책은 IdP 설정이며 서명 키의 기능이 아니다.</li></ul><div class="src">원문 위치 · D5.3-Q07</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D5.3.md §3 연합 고유의 위험, §7 사례 3 · 기존 문제 Q07 주제</div>
+<h2 id="s9"><span class="n">9</span>실패 시 동작 설계</h2>
+<p>연합은 <b>외부 의존성</b>입니다. IdP 장애 때의 설계 선택이 보안 수준을 결정합니다.</p>
+<div class="tw"><table>
+<tr><th>선택</th><th>의미</th><th>위험</th></tr>
+<tr><td><b>Fail-secure</b>(기본 거부)</td><td>IdP가 응답하지 않으면 접근 차단</td><td>가용성 손실</td></tr>
+<tr><td><b>Fail-open / 로컬 폴백</b></td><td>로컬 계정으로 우회 허용</td><td><b>공격자가 IdP를 일부러 방해해 약한 경로로 유도</b>할 수 있음</td></tr>
+</table></div>
+<p>실무 타협은 <b>비상 계정(break-glass account)</b>을 소수만 두고 연합을 거치지 않게 하며, 강한 MFA, 금고 보관, 사용 즉시 알림을 적용하는 것입니다.</p>
+<p><b>원문 사례 — IdP 장애가 만든 우회 경로.</b> IdP 장애로 전사 로그인이 멈추자 운영팀이 주요 시스템에 로컬 계정 폴백을 허용했습니다. 폴백 계정은 MFA 없이 비밀번호만 요구했고 장애 뒤에도 비활성화되지 않았습니다. 원본의 표현대로 <b>가용성을 위해 만든 경로가 상시 취약점이 되었습니다.</b></p>
+<div class="box add"><p><span class="tag">보충</span>“연합을 쓸 수 없다”와 “인증에 실패했다”는 원인이 다르지만, 인증 증거를 얻지 못했다는 점은 같습니다. 그래서 장애를 이유로 인증을 생략하지 않고, 미리 승인된 최소 권한의 비상 접근을 사유·만료·사후 검토·정상 복귀 조건과 함께 준비해 둡니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>fail-secure와 fail-safe의 구분은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 비상 계정 관리는 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D5.3.md §3 실패 시 동작 설계, §7 사례 5</div>
+<h2 id="s10"><span class="n">10</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>연합 점검 결과다. ㉠ JIT 프로비저닝만 쓰며 퇴사자 SaaS 계정과 API 키가 남아 있다. ㉡ 한 앱이 OAuth 액세스 토큰을 로그인 증거로 쓴다. ㉢ IdP 장애 때 만든 로컬 폴백 계정이 비밀번호만으로 계속 열려 있다. ㉣ 서명 인증서 만료일을 아무도 추적하지 않는다. 가장 적절한 대책 묶음은?</p>
+<ol type="A">
+<li>㉠ 비밀번호 정책 강화 / ㉡ 토큰 수명 연장 / ㉢ 폴백 계정 비밀번호 변경 / ㉣ 유효기간이 긴 인증서</li>
+<li>㉠ SCIM으로 해지 전파 + SP 토큰·API 키 무효화 / ㉡ OIDC ID 토큰과 발급자·대상·nonce 검증 / ㉢ 소수 비상 계정으로 축소, 금고·강한 MFA·사용 알림 / ㉣ 만료 추적·사전 경보·전환 전 새 인증서 배포</li>
+<li>㉠ IdP 계정 삭제로 충분 / ㉡ TLS 적용 / ㉢ 폴백 유지 / ㉣ 만료 후 자동 수락</li>
+<li>㉠ SaaS별 별도 계정으로 회귀 / ㉡ SAML로 교체만 / ㉢ 폴백 삭제 후 비상 접근 없음 / ㉣ 수동 점검</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> ㉠ 7절(로그인 차단 ≠ 접근 차단), ㉡ 4절(OAuth는 인가), ㉢ 9절(가용성 경로가 상시 취약점이 되지 않게), ㉣ 3절(온프레미스 IdP의 핵심 실패 모드). C의 “IdP 계정 삭제로 충분”은 7절의 전형적 오해이고, D의 “비상 접근 없음”은 장애 때 더 나쁜 우회를 낳기 쉽습니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">11</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>연합으로 로그인한 사람이 퇴사하면 IdP 계정 비활성화만으로 끝날까요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>새로운 로그인은 막히더라도 이미 열린 세션이나 서비스에 생성된 별도 계정이 있을 수 있습니다. 해지 이벤트가 전달되는지와 서비스별 회수 증거를 확인합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">12</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>연합 = <b>IdP(인증·서명된 주장 발급) → SP/RP(검증·신뢰)</b>. 신뢰는 메타데이터와 서명 키로. <b>자격증명을 넘기지 않는다.</b></li>
+<li>SSO = 사용자 경험, 연합 = 신뢰 경계를 넘는 구조.</li>
+<li>온프레미스: 통제↑, <b>인증서 만료</b>가 핵심 실패. 클라우드: 운영 위탁, <b>과도한 앱 동의</b>가 핵심 실패. 하이브리드: 가장 흔함, <b>동기화 계정</b>과 <b>신원 원천</b>이 위험.</li>
+<li>하이브리드 인증: 해시 동기화(장애 내성) / 패스스루(해시 비전송) / 연합 리다이렉트(통제 최고, 가용성 최약).</li>
+<li><b>SAML·OIDC = 누구인가, OAuth 2.0 = 무엇을 해도 되나.</b> SCIM = 프로비저닝·해지.</li>
+<li>SP 검증: <b>서명, 발급자, 대상, 유효 시간, 주장 ID(재생 방지)</b>. IdP-initiated는 재생·피싱에 상대적으로 약함.</li>
+<li>OIDC: 인가 코드 흐름 + <b>state(CSRF), nonce(재생), PKCE(코드 탈취)</b>. 암묵적 흐름 비권고.</li>
+<li>JIT는 해지가 안 됨, <b>SCIM은 해지 전파</b>. 해지 = IdP 차단 + SP 세션·토큰·API 키 무효화.</li>
+<li><b>IdP 서명 키 유출 = 임의 사용자 위조</b>(HSM, 교체, 감시). XSW, 도메인 인수, 이메일 식별자 재사용, 토큰 재생, 신뢰 전이.</li>
+<li>IdP 장애: 기본은 fail-secure. 폴백 대신 <b>소수 비상 계정(금고, 강한 MFA, 사용 알림)</b>.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D5.3.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 “시험에서 가장 자주 나오는” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">13</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Federated Identity</span> <span class="term-ko">· 연합 식별</span></h3>
+<p>서로 다른 신뢰 경계 간에 신원을 전달해 접근을 허용하는 방식.</p>
+<h3 id="glossary-2"><span lang="en">IdP — Identity Provider</span> <span class="term-ko">· 신원 공급자</span></h3>
+<p>사용자를 인증하고 서명된 주장을 발급하는 주체.</p>
+<h3 id="glossary-3"><span lang="en">SP / RP (Service Provider / Relying Party)</span> <span class="term-ko">· 서비스 제공자 / 신뢰 당사자</span></h3>
+<p>주장을 검증해 접근을 허용하는 주체. 자체 비밀번호를 보관하지 않는다.</p>
+<h3 id="glossary-4"><span lang="en">Assertion</span> <span class="term-ko">· 주장</span></h3>
+<p>인증 사실과 속성을 담은 서명된 증거. SAML 에서는 XML, OIDC 에서는 JWT 형식의 ID 토큰이다.</p>
+<h3 id="glossary-5"><span lang="en">SAML 2.0 — Security Assertion Markup Language</span> <span class="term-ko">· 보안 주장 마크업 언어 2.0</span></h3>
+<p>XML 기반 연합 표준. 기업 웹 SSO 의 사실상 표준이다.</p>
+<h3 id="glossary-6"><span lang="en">OIDC (OpenID Connect)</span> <span class="term-ko">· 오픈아이디 연결 인증 계층</span></h3>
+<p>OAuth 2.0 위에 인증을 더한 계층. ID 토큰으로 신원을 전달한다.</p>
+<h3 id="glossary-7"><span lang="en">SCIM (System for Cross-domain Identity Management)</span> <span class="term-ko">· 도메인 간 신원 관리 표준</span></h3>
+<p>연합 환경의 계정 프로비저닝·해지 표준. 해지 전파를 가능하게 한다.</p>
+<h3 id="glossary-8"><span lang="en">JIT Provisioning</span> <span class="term-ko">· 적시 프로비저닝</span></h3>
+<p>첫 연합 로그인 시 SP 가 계정을 자동 생성하는 방식. 해지가 전파되지 않는 약점이 있다.</p>
+<h3 id="glossary-9"><span lang="en">PKCE (Proof Key for Code Exchange)</span> <span class="term-ko">· 인가 코드 교환의 요청 주체 검증</span></h3>
+<p>인가 코드 탈취를 막는 OAuth 확장. 공용 클라이언트에 필수다.</p>
+<h3 id="glossary-10"><span lang="en">Break-glass Account</span> <span class="term-ko">· 비상 계정</span></h3>
+<p>연합 장애 시 사용하는 비연합 긴급 계정. 강한 보호와 사용 알림이 필요하다.</p>
+<h3 id="glossary-11"><span lang="en">XSW (XML Signature Wrapping)</span> <span class="term-ko">· XML 서명 래핑</span></h3>
+<p>서명 검증과 데이터 파싱의 해석 차이를 악용하는 SAML 공격.</p>
+<h3 id="glossary-12"><span lang="en">Token Exchange</span> <span class="term-ko">· 토큰 교환</span></h3>
+<p>전달 과정에서 토큰의 권한 범위를 축소해 신뢰 전이를 제한하는 방식.</p>
+<div class="src">원문 위치 · D5.3.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">14</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-63C</strong> — 연합과 주장, FAL 수준</li>
+<li><strong>OASIS SAML 2.0</strong> — Core, Bindings, Web Browser SSO Profile</li>
+<li><strong>OpenID Connect Core 1.0</strong> — ID 토큰과 인증 흐름</li>
+<li><strong>RFC 6749 / 6819 / 8252</strong> — OAuth 2.0 및 보안 모범사례</li>
+<li><strong>RFC 7519 / 8725</strong> — JWT 와 JWT 보안 모범사례</li>
+<li><strong>RFC 7643 / 7644</strong> — SCIM 스키마와 프로토콜</li>
+<li><strong>RFC 8693</strong> — 토큰 교환(권한 축소 전달)</li>
+<li><strong>NIST SP 800-53 IA 통제군</strong> — 제3자 자격증명 수락(IA-8)</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D5.3.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">어떤 조직이 SAML 2.0 을 사용해 제3자 SaaS 공급자와 신원을 연합한다. 사용자가 로그인할 때 SaaS 공급자가 받는 것은?</a></li>
+<li><a href="#question-2">신원 공급자의 서명 인증서가 만료된 새벽 2시에 연합이 끊겨 어떤 서비스 공급자도 주장을 검증할 수 없었다. 무엇이 갖춰져 있어야 했는가?</a></li>
+<li><a href="#question-3">서비스 공급자가 SAML 주장의 서명을 검증하는 이유는?</a></li>
+<li><a href="#question-4">연합에서 신원 공급자의 서명 키가 가장 가치 높은 표적인 이유는?</a></li>
+<li><a href="#question-5">연합 점검 결과다. ㉠ JIT 프로비저닝만 쓰며 퇴사자 SaaS 계정과 API 키가 남아 있다. ㉡ 한 앱이 OAuth 액세스 토큰을 로그인 증거로 쓴다. ㉢ IdP 장애 때 만든 로컬 폴백 계정이 비밀번호만으로 계속 열려 있다. ㉣ 서명 인증서 만료일을 아무도 추적하지 않는다. 가장 적절한 대책 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D5.2.html"><small>← 이전 단원</small>5.2 식별·인증 전략</a><a href="D5.4.html" style="text-align:right"><small>다음 단원 →</small>5.4 인가 메커니즘</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

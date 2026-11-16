@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D2.5 적절한 자산 보존 보장 (EOL, 지원 종료) — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D2.5">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 6개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 2 자산 보안 › 2.5</div>
+<h1>적절한 자산 보존 보장 (EOL, 지원 종료)</h1>
+<div class="en">Ensure appropriate asset retention (e.g., End of Life (EOL), End of Support) · ISC2 CISSP Exam Outline(2024-04-15 발효) 2.5</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 6개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">장비와 소프트웨어는 영원히 쓸 수 없고, 데이터는 생각보다 오래 남아야 할 때가 있습니다. 이 단원은 “언제까지 쓸 것인가, 언제 치울 것인가”를 다룹니다. 핵심은 제조사의 지원이 끊기는 날짜를 미리 알고, 그날 이후에도 써야 한다면 어떻게 버틸지를 정하는 것입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a></td><td>EOL·EOS 날짜는 인벤토리의 필수 항목이다. 수명주기의 마지막 단계(폐기)를 이 단원이 자세히 본다 (3절, 7절)</td></tr>
+<tr><td><a class="xr" href="D1.9.html">D1.9 위험 관리</a> · <a class="xr" href="D1.6.html">D1.6 정책·표준·절차·지침</a></td><td>교체할 수 없을 때의 위험 수용과 기한 있는 예외 (4절)</td></tr>
+<tr><td><a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a></td><td>데이터 보존(얼마나 보관하나)과 이 단원의 자산 보존(얼마나 운영하나)은 다르다. 운영 종료 후의 매체 정화 (5절, 7절)</td></tr>
+<tr><td><a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a></td><td>라이브러리 수준의 지원 종료는 SBOM으로 추적한다 (3절)</td></tr>
+<tr><td><a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a></td><td>패치가 나오는 동안의 취약점 관리. 이 단원은 패치가 끊긴 뒤를 다룬다 (2절)</td></tr>
+<tr><td><a class="xr" href="D7.10.html">D7.10 복구 전략</a></td><td>백업의 복원 시험. 장기 보관 데이터도 복원해 봐야 안다 (6절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>EOL, EOS, EOSL</h2>
+<h3 id="s1-easy">쉬운 설명</h3>
+<p>제조사가 제품을 정리하는 과정에는 여러 날짜가 있습니다. 원본은 셋을 구분합니다.</p>
+<div class="tw"><table>
+<tr><th>용어</th><th>끝나는 것</th><th>보안 영향</th></tr>
+<tr><td><b>EOL</b> End of Life 수명 종료</td><td>제조사의 <b>판매·생산</b>. 지원은 계속될 수 있다</td><td>조달 문제</td></tr>
+<tr><td><b>EOS</b> End of Support 지원 종료</td><td>제조사의 <b>패치·기술지원</b></td><td><b>영구적 취약</b></td></tr>
+<tr><td><b>EOSL</b> End of Service Life 서비스 수명 종료</td><td>모든 형태의 지원이 완전히 종료</td><td>—</td></tr>
+</table></div>
+<p><b>보안 관점에서 치명적인 것은 EOS입니다.</b> 판매가 끝나는 것은 “새로 살 수 없다”는 조달 문제지만, 패치가 끊기는 것은 <b>알려진 취약점이 영원히 고쳐지지 않는다</b>는 뜻입니다. 원본은 공격자 관점에서 EOS 자산을 <b>만료되지 않는 취약점</b>이라고 표현합니다.</p>
+<p><b>원문 사례 — EOL과 EOS를 혼동한 경우.</b> 벤더가 특정 모델의 판매 중단(EOL)을 공지하자 운영팀은 “지원은 아직 2년 남았다”며 교체를 미뤘습니다. 그런데 공지를 잘못 읽어서, 실제 지원 종료(EOS)는 6개월 뒤였습니다. EOS 이후 발견된 취약점이 패치되지 않은 채 1년간 운영되었습니다. 조직은 <b>인벤토리에 EOL과 EOS를 별도 필드로 기록</b>하고 EOS 기준으로 알림을 걸었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>세 날짜의 이름과 간격은 제조사마다 다르고 같은 제조사 안에서도 제품마다 다릅니다. 어떤 제조사는 EOL과 EOS 사이에 수년의 유지보수 기간을 두고, 어떤 제조사는 둘을 거의 같은 날로 잡습니다. 같은 모델이라도 구매한 지원 계약이나 설치한 버전에 따라 실제 보안 지원 범위가 다를 수 있습니다. 그래서 공지의 제목이 아니라 “보안 패치가 마지막으로 나오는 날”이 언제인지를 찾아 인벤토리에 적어야 합니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D2.5-Q01</div>
+<p>벤더 제품을 운영하는 조직에게 보안 관점에서 가장 중요한 시점은?</p><ol type="A"><li>벤더가 제품 판매를 중단하는 수명 종료(EOL) 시점.</li><li>벤더가 보안 패치 발행을 중단하는 지원 종료(EOS) 시점.</li><li>제품의 최초 정식 출시일.</li><li>제품이 자산 인벤토리에 등재된 날짜.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> EOL 은 판매·생산 중단으로 조달 측면의 문제이지만, EOS 는 패치와 기술지원 중단을 뜻해 신규 취약점이 공개되어도 영영 수정되지 않는다. 보안 관점에서 결정적인 날짜는 EOS 다.</p><ul><li>A · 판매 중단만으로는 기존 자산의 보안 상태가 즉시 악화되지 않는다.</li><li>C · 출시일은 보안 위험 시점과 직접 관련이 없다.</li><li>D · 인벤토리 등재일은 관리 기록이며 위험 시점이 아니다.</li></ul><div class="src">원문 위치 · D2.5-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.5.md §2, §4 EOL·EOS·EOSL, §5 첫 표, §7 사례 1 · 공식 개요 2.5 “Ensure appropriate asset retention (e.g., End of Life (EOL), End of Support (EOS))” · 기존 문제 Q01 주제</div>
+<h2 id="s2"><span class="n">2</span>EOS 자산이 위험한 이유</h2>
+<p>원본은 다섯 가지 이유를 듭니다.</p>
+<ol>
+<li><b>새 취약점에 대한 패치가 없다</b> — 공개된 취약점이 그대로 남는다.</li>
+<li><b>공격 도구가 먼저 나온다</b> — 취약점이 공개되면 익스플로잇은 빠르게 퍼지지만 수정은 영영 오지 않는다.</li>
+<li><b>컴플라이언스 위반</b> — 여러 규제가 지원되는 소프트웨어 사용을 요구한다(원본은 PCI DSS를 예로 든다).</li>
+<li><b>연쇄 영향</b> — 지원 종료 운영체제 위에서는 최신 보안 도구와 암호 라이브러리도 동작하지 않는다.</li>
+<li><b>침해 시 책임</b> — “지원 종료 제품인 줄 알면서 썼다”는 사실은 과실 판단에 불리하게 작용한다.</li>
+</ol>
+<div class="box add"><p><span class="tag">보충</span>네 번째 이유가 자주 간과됩니다. 운영체제 지원이 끝나면 그 위에 올리던 백신, EDR 에이전트, 최신 TLS 라이브러리의 새 버전도 하나씩 그 운영체제 지원을 끊습니다. 결국 운영체제 하나의 문제가 그 장비에 적용할 수 있는 거의 모든 보안 통제의 문제로 번집니다. 다섯 번째 이유는 <a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a>의 Due Care와 연결됩니다. 알려진 위험을 알고도 합리적인 조치를 하지 않았다면 주의 의무를 다하지 않은 것으로 볼 여지가 생깁니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>패치가 나오는 동안의 취약점 관리와 우선순위는 <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>에서 다룹니다. 이 단원은 그 흐름이 끊긴 뒤의 이야기입니다. Due Care·Due Diligence는 <a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a>, PCI DSS의 성격은 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>에서 봤습니다.</p></div>
+<div class="src">원문 위치: D2.5.md §3 EOS 자산이 위험한 이유, §6 PCI DSS · 기존 문제 주제(EOS 위험)</div>
+<h2 id="s3"><span class="n">3</span>무엇을 추적하고, 언제 교체하는가</h2>
+<h3 id="s3-what">추적 대상</h3>
+<p>EOL·EOS는 운영체제에만 해당하지 않습니다.</p>
+<ul>
+<li>운영체제와 서버 소프트웨어</li>
+<li>데이터베이스와 미들웨어</li>
+<li><b>애플리케이션 프레임워크와 라이브러리</b> — SBOM과 연결된다</li>
+<li><b>하드웨어와 펌웨어</b> — 네트워크 장비, 스토리지, BMC(서버 원격 관리 컨트롤러)</li>
+<li>암호 알고리즘과 프로토콜 — 더 이상 안전하지 않다고 판정된 것</li>
+<li>인증서와 암호 키 — 유효기간</li>
+<li><b>클라우드 서비스의 API 버전과 런타임</b></li>
+</ul>
+<p>원본은 <b>EOL/EOS 정보가 자산 인벤토리의 필수 항목</b>이라고 정리합니다. 인벤토리에 지원 종료일이 없으면 다가오는 위험을 미리 볼 수 없습니다.</p>
+<h3 id="s3-refresh">계획적 교체 주기</h3>
+<p><b>기술 갱신(Technology Refresh)</b>을 계획으로 관리하는 것 자체가 보안 통제입니다.</p>
+<ul>
+<li>하드웨어는 통상 수년 단위의 교체 주기를 둔다</li>
+<li><b>지원 종료일에서 역산</b>해 교체 일정을 잡는다</li>
+<li>예산을 수립 단계에서 반영한다</li>
+</ul>
+<p>계획이 없으면 EOS가 닥친 뒤에 급히 대응하게 되고, 그때 선택지는 “위험 감수” 아니면 “긴급 교체”뿐입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>“역산”을 구체적으로 풀면 이렇습니다. EOS가 2년 뒤라면, 그 전에 대체 제품 선정, 호환성 시험, 예산 승인, 조달, 이관, 구 장비 폐기가 끝나야 합니다. 예산 주기가 1년이면 지금 다음 해 예산에 넣어야 제때 맞출 수 있습니다. 교체를 보안팀이 아니라 예산 주기가 결정한다는 점이 계획이 필요한 이유입니다. 원본은 이렇게 미뤄 둔 교체가 쌓인 상태를 <b>기술 부채(Technical Debt)</b>의 대표 사례로 듭니다.</p></div>
+<div class="box ex"><p><span class="tag">가상 예시</span>현장에 설치된 장비가 Windows 기반이라면 인벤토리에 “장비 모델”만 적어서는 부족합니다. 장비 안의 운영체제 버전과 그 버전의 지원 종료일, 장비에 들어간 데이터베이스 엔진, 주요 오픈소스 라이브러리, 원격 관리 모듈의 펌웨어를 적어야 합니다. 장비 자체의 지원 기간은 10년인데 그 안의 운영체제 지원이 3년 뒤 끝난다면, 장비가 멀쩡해도 3년 뒤부터 “만료되지 않는 취약점”을 안게 됩니다. 이 차이가 보이면 운영체제 업그레이드 경로를 제품 계획에 넣을 수 있습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>인벤토리의 항목 구성은 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, 라이브러리 수준의 구성요소 목록인 SBOM은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, 더 이상 안전하지 않은 암호 알고리즘은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 인증서와 키의 수명은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>의 키 수명주기 관리에서 다룹니다. 원본이 관련 표준으로 드는 NIST SP 800-53 SA 통제군에는 지원되지 않는 구성요소 관리가 포함됩니다.</p></div>
+<div class="src">원문 위치: D2.5.md §3 추적해야 할 대상, 계획적 교체 주기, §4 Technology Refresh·Technical Debt, §6 NIST SP 800-53 SA · 기존 문제 주제(추적 대상, 기술 갱신)</div>
+<h2 id="s4"><span class="n">4</span>교체할 수 없는 레거시 시스템</h2>
+<h3 id="s4-why">왜 필요한가</h3>
+<p>현실에서는 즉시 교체가 불가능한 경우가 많습니다. 원본이 드는 예는 벤더가 사라진 산업제어시스템, 교체 비용이 막대한 의료 장비, 특정 운영체제 버전에서만 동작하는 업무 애플리케이션입니다. 이때 할 일은 두 가지입니다. <b>위험을 공식적으로 수용</b>하고, <b>보완 통제(Compensating Control)</b>를 적용합니다.</p>
+<h3 id="s4-how">보완 통제의 전형</h3>
+<div class="tw"><table>
+<tr><th>통제</th><th>목적</th></tr>
+<tr><td><b>네트워크 격리</b></td><td>접근할 수 있는 범위를 최소화</td></tr>
+<tr><td>마이크로세그멘테이션</td><td>횡적 이동 차단</td></tr>
+<tr><td><b>가상 패치</b> Virtual Patching</td><td>시스템을 고치지 않고 앞단(IPS/WAF)에서 공격 패턴 차단</td></tr>
+<tr><td>애플리케이션 허용 목록</td><td>승인되지 않은 실행 차단</td></tr>
+<tr><td>강화된 모니터링</td><td>이상 징후 조기 탐지</td></tr>
+<tr><td>접근 통제 강화</td><td>특권 접근 경로 제한</td></tr>
+<tr><td>읽기 전용 운영</td><td>변경 자체를 제한</td></tr>
+</table></div>
+<p>원본의 요약은 <b>핵심은 격리</b>입니다. 패치할 수 없다면 <b>공격자가 도달할 수 없게</b> 만듭니다. 그리고 <b>예외는 반드시 기한과 함께</b> 관리합니다. 기한 없는 예외는 영구 면제가 됩니다.</p>
+<p><b>원문 사례 — 교체할 수 없는 의료 장비.</b> 영상 진단 장비가 지원 종료된 운영체제에서만 동작했고, 교체 비용과 인증 절차 때문에 수년간 계속 써야 했습니다. 조직은 격리 중심의 보완 통제를 적용했습니다.</p>
+<ul>
+<li>전용 VLAN으로 분리하고 인터넷 접근 차단</li>
+<li>필요한 통신만 허용하는 허용 목록 기반 방화벽 규칙</li>
+<li>앞단 IPS로 가상 패치</li>
+<li>해당 세그먼트에 대한 강화된 모니터링</li>
+<li><b>위험 수용을 문서화하고 교체 계획과 기한을 명시</b></li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>보완 통제를 고를 때는 “원래 통제가 막으려던 것이 무엇인가”에서 출발합니다. 패치는 취약점을 <b>없애는</b> 통제입니다. 없앨 수 없으니 남은 방법은 ① 그 취약점에 <b>도달하지 못하게</b>(격리, 접근 통제) ② 도달해도 <b>공격이 통하지 않게</b>(가상 패치, 허용 목록) ③ 통했을 때 <b>빨리 알게</b>(모니터링) 하는 것입니다. 원본이 격리를 핵심으로 꼽는 이유는 첫 번째가 가장 넓게 막기 때문입니다. 가상 패치는 알려진 공격 패턴만 막으므로, 혼자서는 격리를 대신하지 못합니다.</p></div>
+<div class="box ex"><p><span class="tag">가상 예시</span>병원에 설치된 지 7년 된 장비가 지원 종료된 Windows 버전에서 돌아갑니다. 장비 소프트웨어가 의료기기로 인증받은 구성이라, 운영체제를 병원이 마음대로 올릴 수 없습니다. 이때 제조사와 병원이 함께 할 수 있는 일은 ① 장비를 전용 네트워크 구역에 두고 영상 저장 서버와의 통신만 허용 ② 원격 지원은 상시 연결이 아니라 요청 시에만 열리는 경로로 ③ USB 자동 실행 차단과 허용 목록 ④ 이 장비 구역의 이상 통신 감시 ⑤ 병원의 위험 수용 문서에 “다음 장비 교체 시점까지”라는 기한과 책임자 기재입니다. 마지막 항목이 빠지면 이 예외는 장비가 고장 날 때까지 계속됩니다.</p></div>
+<div class="box warn"><p><span class="tag">용어 주의</span>Compensating Control은 이 교재에서 <b>보완 통제</b>로 통일합니다. 원본 일부 단원(D6.4, D7.8, D8.3)은 ‘보상 통제’로 씁니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>위험 수용의 조건(권한 있는 사람의 승인, 문서화)은 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>, 기한 있는 예외 절차는 <a class="xr" href="D1.6.html">D1.6 정책·표준·절차·지침</a>, 통제 분류에서 보완 통제의 위치도 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>에서 봤습니다. 네트워크 분할과 마이크로세그멘테이션은 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>, IPS와 허용 목록의 운영은 <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a>, 패치할 수 없는 시스템의 취약점 관리는 <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>에서 다룹니다. 테일러링에서 보완 통제가 어떻게 쓰이는지는 다음 단원 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>에 있습니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>교체할 수 없는 레거시 상황에서는 ① 즉시 교체가 정말 불가능한지(지문의 제약 조건) 확인하고 ② 불가능하면 <b>문서화된 위험 수용 + 보완 통제 + 기한 있는 교체 계획</b>이 함께 있는 선택지를 찾습니다. 보완 통제만 있고 기한이 없거나, 위험 수용 문서만 있고 통제가 없으면 하나가 빠진 것입니다. 보완 통제 중에서는 격리가 우선입니다.</p></div>
+<div class="quiz" id="question-2">
+<div class="qh">이해 확인 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>공장의 생산 설비 제어 PC가 지원 종료된 운영체제에서 돌아가고, 제어 소프트웨어 벤더는 폐업했다. 설비 교체는 3년 뒤 예정이다. 현재 이 PC는 사무망과 같은 네트워크에 있다. 가장 먼저 해야 할 조치는?</p>
+<ol type="A">
+<li>운영체제를 최신 버전으로 업그레이드한다.</li>
+<li>PC를 별도 구역으로 격리해 필요한 통신만 허용하고, 위험 수용과 교체 기한을 문서로 남긴다.</li>
+<li>백신을 설치하고 매주 수동 점검한다.</li>
+<li>설비 교체를 즉시 앞당긴다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 패치할 수 없으니 도달할 수 없게 만드는 것이 우선이고, 그 상태를 공식적인 위험 수용과 기한으로 관리합니다.</p>
+<ul><li>A: 벤더가 없어 제어 소프트웨어가 새 운영체제에서 동작하는지 알 수 없습니다. 설비가 멈출 수 있습니다.</li>
+<li>C: 지원 종료 운영체제에는 최신 보안 도구가 설치되지 않을 수 있고(연쇄 영향), 사무망에 그대로 두는 문제가 남습니다.</li>
+<li>D: 가능하다면 좋지만 지문은 교체 일정이 정해진 상황입니다. 그때까지의 위험을 다루는 것이 질문입니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.5.md §3 교체할 수 없는 레거시 시스템, §4 Legacy System·Compensating Control·Virtual Patching·Network Isolation, §7 사례 2 · 기존 문제 주제(보완 통제, 격리)</div>
+<h2 id="s5"><span class="n">5</span>자산 보존과 데이터 보존</h2>
+<p>원본은 둘을 혼동하지 말라고 강조합니다.</p>
+<div class="tw"><table>
+<tr><th>구분</th><th>묻는 것</th></tr>
+<tr><td><b>데이터 보존</b></td><td>정보를 얼마나 오래 <b>보관</b>할 것인가</td></tr>
+<tr><td><b>자산 보존</b></td><td>장비·소프트웨어를 얼마나 오래 <b>운영</b>할 것인가</td></tr>
+</table></div>
+<p>둘이 만나는 지점이 있습니다. <b>데이터 보존 기간이 자산 수명보다 길면 문제가 생깁니다.</b> 7년간 보존해야 하는 데이터가 3년 뒤 지원 종료되는 시스템에만 있다면 마이그레이션 계획이 필요합니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>지원 종료 시스템 안에 오래 보관해야 할 기록이 있을 때 ① 그 기록을 어떤 형식으로, 어떤 근거로 얼마나 보존해야 하는지 정하고 ② 승인된 형식으로 내보내 건수·무결성·색인·읽기 가능성을 확인하고 ③ 새 도구로 읽힌다면 기존 시스템의 운영 종료를 검토하고 ④ 원래 환경이 있어야만 재현되는 기록이라면 그 환경을 평소에는 꺼 두고 필요할 때 복구할 수 있는지 검증합니다. “기록을 보려면 낡은 서버를 계속 켜 둬야 한다”는 결론은 마지막에 검토할 선택지입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>데이터 보존 기간을 정하는 요소와 과잉 보존의 위험은 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>에서 다뤘습니다. 두 보존이 어긋날 때의 마이그레이션은 <a class="xr" href="D3.10.html">D3.10 정보시스템 생애주기</a>의 정보시스템 생애주기 중 폐기·처분 단계(데이터 마이그레이션 또는 파기 결정)와 이어집니다.</p></div>
+<div class="src">원문 위치: D2.5.md §3 자산 보존과 데이터 보존의 차이, §5 둘째 표 · 기존 문제 주제(자산 보존 vs 데이터 보존)</div>
+<h2 id="s6"><span class="n">6</span>장기 보존의 기술적 과제</h2>
+<h3 id="s6-why">왜 필요한가</h3>
+<p>법정 보존 기간이 길면, 보관해 둔 데이터가 정말로 읽히는지가 문제가 됩니다. 원본은 네 가지 과제를 듭니다.</p>
+<div class="tw"><table>
+<tr><th>과제</th><th>무슨 일이 생기나</th><th>대응</th></tr>
+<tr><td><b>매체 수명</b> Media Longevity</td><td>자기 테이프, 광 디스크는 물리적으로 열화된다</td><td>주기적 재기록(refresh)</td></tr>
+<tr><td><b>포맷 노후화</b> Format Obsolescence</td><td>매체는 멀쩡해도 <b>읽을 장비나 소프트웨어가 없으면</b> 사라진 것과 같다</td><td>개방형 표준 포맷, 마이그레이션</td></tr>
+<tr><td><b>암호 키 보존</b></td><td>암호화해 보관한 데이터는 <b>키가 없으면 영구 소실</b></td><td>장기 키 관리(키 에스크로, 소유자 이중화)</td></tr>
+<tr><td><b>비트 부패</b> Bit Rot</td><td>장기 보관 중 비트가 손상된다</td><td>주기적 해시 검증, 다중 사본</td></tr>
+</table></div>
+<p>원본의 대응 전략은 주기적 <b>마이그레이션</b>, <b>개방형 표준 포맷</b>, <b>복원 테스트</b>, 다중 사본과 지리적 분산입니다. 특히 <b>보관만 하고 복원을 시험하지 않으면 실제로 읽히는지 알 수 없습니다.</b></p>
+<p><b>원문 사례 — 읽을 수 없게 된 백업.</b> 법정 보존 의무에 따라 12년치 백업 테이프를 보관해 왔는데, 감사에서 복원을 요구받자 그 테이프를 읽을 드라이브가 단종되어 조직에 남아 있지 않았습니다. 매체는 멀쩡했지만 포맷 가독성이 사라진 것입니다. 이후 5년 주기 마이그레이션과 연 1회 복원 테스트를 정책에 넣었습니다.</p>
+<p><b>원문 사례 — 키를 잃어버린 아카이브.</b> 암호화해 장기 보관한 데이터의 복호화 키가 담당자 퇴사와 시스템 교체 과정에서 사라졌습니다. 데이터는 그대로 있었지만 영구적으로 읽을 수 없게 되었습니다. 원본의 결론은 <b>장기 보존 데이터의 키 관리는 데이터 자체만큼 중요하다</b>이며, 키 에스크로와 소유자 이중화가 필요하다는 것입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>키 사례는 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>의 암호 소거를 뒤집어 본 것입니다. 키를 일부러 파기하면 데이터를 안전하게 없앨 수 있고, 키를 실수로 잃으면 데이터를 원치 않게 잃습니다. 같은 원리가 의도에 따라 통제가 되기도 하고 사고가 되기도 합니다. 그래서 장기 보존 데이터를 암호화할 때는 “누가, 어디에, 몇 벌, 보존 기간이 끝날 때까지” 키를 지킬지를 함께 정해야 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>키 에스크로와 키 수명주기는 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 백업 전략과 복원 시험은 <a class="xr" href="D7.10.html">D7.10 복구 전략</a>·<a class="xr" href="D7.12.html">D7.12 DRP 테스트</a>, 해시로 무결성을 확인하는 원리는 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 다룹니다. 원본이 드는 ISO 14721(OAIS)은 장기 디지털 보존의 참조 모델입니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D2.5-Q07</div>
+<p>조직이 장기 아카이브를 보관하고 있으나 복원을 한 번도 시도해 본 적이 없다. 가장 핵심적인 위험은?</p><ol type="A"><li>아카이브가 일정 기간 후 자동으로 만료된다.</li><li>규제기관이 복원해 보지 않은 아카이브를 금지한다.</li><li>실제로 필요할 때 복원할 수 없을 수 있고 그때까지 그 사실을 알 수 없다.</li><li>저장 비용이 필요 이상으로 높아진다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 보관만 하고 복원을 시험하지 않으면 매체 열화, 포맷 노후화, 키 소실, 비트 부패가 발생했는지 알 수 없다. 정기 복원 테스트가 있어야 아카이브가 실제로 유효한지 확인된다.</p><ul><li>A · 자동 만료는 일반적 동작이 아니다.</li><li>B · 그러한 금지 규정은 존재하지 않는다.</li><li>D · 비용은 부차적 문제다.</li></ul><div class="src">원문 위치 · D2.5-Q07</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D2.5-Q18</div>
+<p>장기 보관 데이터를 주기적으로 복원 시험해야 하는 이유는?</p><ol type="A"><li>매체가 열화되고 포맷을 읽을 수 없게 되며 키가 유실될 수 있으므로. 실제 복원만이 데이터가 여전히 사용 가능함을 증명한다.</li><li>보관본을 현재 데이터로 갱신하기 위해.</li><li>보관본이 차지하는 저장 공간을 줄이기 위해.</li><li>백업 작업이 성공적으로 완료되었는지 확인하기 위해.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 작업 성공 로그는 "썼다" 만 말해 준다. 수년이 지나면 매체가 열화되고, 그 포맷을 읽을 소프트웨어가 사라지고, 암호화되어 있었다면 키가 유실될 수 있다. 실제로 복원해 읽어 보는 것만이 사용 가능성을 입증하며 보존 의무가 긴 데이터에서 특히 중요하다.</p><ul><li>B · 보관본은 갱신 대상이 아니다.</li><li>C · 공간 절감과 무관하다.</li><li>D · 작업 로그는 복원 가능성을 증명하지 않는다.</li></ul><div class="src">원문 위치 · D2.5-Q18</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.5.md §3 장기 보존의 기술적 과제, §4 Media Longevity·Format Obsolescence·Bit Rot, §5 셋째 표, §6 ISO 14721, §7 사례 3, 사례 4 · 기존 문제 Q07, Q18 주제</div>
+<h2 id="s7"><span class="n">7</span>보존 종료 시점의 처리</h2>
+<p>자산 운영이 끝나면 다음이 이어집니다.</p>
+<ol class="steps">
+<li>데이터 <b>마이그레이션</b> 또는 파기 결정</li>
+<li><b>매체 정화</b></li>
+<li>라이선스 해지와 회수</li>
+<li><b>인벤토리에서 제거</b></li>
+<li>처분(매각·재활용·폐기)과 증빙</li>
+</ol>
+<p>원본은 <b>인벤토리에서 제거하지 않으면</b> 실체 없는 항목이 쌓여 인벤토리 신뢰도가 떨어진다고 경고합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>순서에 이유가 있습니다. 데이터를 옮기거나 파기를 결정하기 전에 매체를 정화하면 필요한 기록을 잃을 수 있고, 정화하기 전에 인벤토리에서 지우면 그 장비가 정화되었는지 확인할 근거가 사라집니다. 서버를 목록에서 내리는 것은 “더 이상 운영하지 않는다”는 기록일 뿐이므로, 그 전에 남은 자료가 이전되었는지, 사본이 파기 범위에 들어 있는지, 매체에 맞는 정화가 검증되었는지 확인하고, 폐기 증빙이 필요하면 장비 식별번호와 처리 기록을 연결해 둡니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>정화 방법(Clear / Purge / Destroy)과 파기 증명서는 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>, 수명주기 전체(등록부터 폐기까지)는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, 정보시스템 생애주기의 폐기·처분 단계는 <a class="xr" href="D3.10.html">D3.10 정보시스템 생애주기</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D2.5.md §3 보존 종료 시점의 처리</div>
+<h2 id="s8"><span class="n">8</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>한 회사의 점검 결과다. ㉠ 인벤토리의 ‘지원 종료일’ 칸에 벤더의 판매 중단일이 적혀 있다. ㉡ 지원 종료된 장비 10대가 격리되어 있으나 위험 수용 문서에 기한이 없다. ㉢ 10년 보존 의무가 있는 기록이 이 장비들에만 있다. 가장 적절한 조치 묶음은?</p>
+<ol type="A">
+<li>㉠ EOL과 EOS를 별도 필드로 나누고 EOS 기준 알림 / ㉡ 위험 수용에 교체 기한과 책임자 추가 / ㉢ 읽을 수 있는 형식으로 기록을 이관하고 복원 시험</li>
+<li>㉠ 판매 중단일이 더 이르므로 그대로 둔다 / ㉡ 격리했으므로 기한은 필요 없다 / ㉢ 장비를 10년간 계속 운영한다</li>
+<li>㉠ 칸을 삭제한다 / ㉡ 장비를 인터넷에 다시 연결해 패치 여부를 확인한다 / ㉢ 기록을 즉시 파기한다</li>
+<li>㉠ 문제없음 / ㉡ 위험 수용 문서를 폐기한다 / ㉢ 테이프에 백업만 해 둔다</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b></p>
+<ul>
+<li>㉠ 원문 사례 1. 보안상 중요한 날짜는 EOS입니다(1절).</li>
+<li>㉡ 기한 없는 예외는 영구 면제가 됩니다(4절).</li>
+<li>㉢ 데이터 보존 기간이 자산 수명보다 길면 마이그레이션이 필요하고(5절), 이관한 기록은 읽히는지 복원해 봐야 압니다(6절). 테이프 백업만 해 두면(D) 포맷 노후화 문제가 그대로입니다.</li>
+</ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-6"><div class="qh">원본 연습문제 · D2.5-Q12</div>
+<p>수명 종료 플랫폼에 대한 연장 지원 계약에 의존하기 전에 무엇을 확인해야 하는가?</p><ol type="A"><li>공급업체가 재무적으로 안정적인지만.</li><li>계약이 자동 갱신되는지만.</li><li>실제 보장 범위다. 사용 중인 모든 구성요소에 보안 패치가 포함되는지, 대응 기한이 어떻게 되는지, 그 조치가 언제까지 제공되는지, 그리고 그것이 끝날 때 위험이 어떻게 되는지.</li><li>계약의 연간 비용만.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 연장 지원이라는 이름만 보고 안심하는 경우가 많다. 실제로는 핵심 구성요소만 포함되거나 긴급 취약점에만 적용되거나 특정 연도까지만 제공되는 경우가 흔하다. 무엇이 빠져 있는지를 알아야 그 공백을 보완 통제로 메울 수 있고, 연장 지원이 끝나는 시점에 대한 계획이 없으면 같은 문제가 반복된다.</p><ul><li>A · 재무 안정성은 보장 범위와 별개다.</li><li>B · 갱신 조건은 범위를 말해 주지 않는다.</li><li>D · 비용만으로는 보장 범위를 알 수 없다.</li></ul><div class="src">원문 위치 · D2.5-Q12</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">9</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>지원이 끊긴 장비와 그 안의 장기 보존 기록을 어떻게 다르게 판단하나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>장비는 계속 연결할 위험과 교체 기간을 판단합니다. 기록만 필요하면 읽을 수 있는 형식으로 이관해 필요 기간 동안 검증하고, 장비는 안전하게 정리할 수 있는지 따로 판단합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">10</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>EOL = 판매·생산 중단, EOS = 패치·지원 중단, EOSL = 모든 지원 종료.</b> 보안상 중요한 것은 <b>EOS</b>.</li>
+<li>EOS 자산 = <b>만료되지 않는 취약점</b>. 패치 없음, 공격 도구 선행, 컴플라이언스 위반, 연쇄 영향(최신 보안 도구 불가), 침해 시 책임.</li>
+<li>추적 대상: 운영체제, DB·미들웨어, <b>라이브러리, 하드웨어·펌웨어, 암호 알고리즘, 인증서·키, 클라우드 API·런타임</b>.</li>
+<li><b>EOL/EOS 날짜는 인벤토리 필수 항목.</b> 별도 필드로, EOS 기준 알림.</li>
+<li>계획적 교체(Technology Refresh): <b>지원 종료일에서 역산</b>해 일정과 예산을 잡는다. 미룬 교체는 기술 부채.</li>
+<li>교체 불가 시: <b>문서화된 위험 수용 + 보완 통제 + 기한</b>.</li>
+<li>보완 통제의 핵심은 <b>격리</b>. 그 밖에 마이크로세그멘테이션, <b>가상 패치</b>(앞단 IPS/WAF), 허용 목록, 강화된 모니터링, 특권 접근 제한, 읽기 전용 운영.</li>
+<li><b>데이터 보존(정보 보관) ≠ 자산 보존(운영 기간).</b> 데이터 보존 기간 &gt; 자산 수명이면 마이그레이션.</li>
+<li>장기 보존 과제: <b>매체 열화 / 포맷 노후화 / 키 소실 / 비트 부패</b>. 대응: 주기적 마이그레이션, 개방형 포맷, <b>복원 테스트</b>, 다중 사본, 키 에스크로.</li>
+<li>운영 종료: 마이그레이션·파기 결정 → 정화 → 라이선스 해지 → <b>인벤토리 제거</b> → 처분 증빙.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D2.5.md §8 CISSP 시험 관점, §9 핵심 암기 요약(12항목). 원본의 “시험은 ~을 요구한다” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다. 원본 §6의 ISO/IEC 19770(IT 자산 관리)과 ISO/IEC 27002:2022(자산 반환, 매체 폐기, 기술 취약점 관리)는 여기에 적어 둡니다. 공식 개요 2.5에는 세부 항목 목록이 없고 제목에 EOL·EOS가 예로 들어 있습니다.</div>
+<h2 id="glossary"><span class="n">11</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">EOL — End of Life</span> <span class="term-ko">· 수명 종료</span></h3>
+<p>제조사가 제품의 판매와 생산을 중단하는 시점. 지원은 일정 기간 계속될 수 있다.</p>
+<h3 id="glossary-2"><span lang="en">EOS — End of Support</span> <span class="term-ko">· 지원 종료</span></h3>
+<p>제조사가 패치와 기술지원을 중단하는 시점. 보안 관점에서 가장 중요한 날짜다.</p>
+<h3 id="glossary-3"><span lang="en">EOSL — End of Service Life</span> <span class="term-ko">· 서비스 수명 종료</span></h3>
+<p>모든 형태의 지원이 완전히 종료되는 시점.</p>
+<h3 id="glossary-4"><span lang="en">Technology Refresh</span> <span class="term-ko">· 기술 갱신</span></h3>
+<p>계획적으로 자산을 교체하는 주기. 지원 종료일 기준으로 역산해 일정을 잡는다.</p>
+<h3 id="glossary-5"><span lang="en">Legacy System</span> <span class="term-ko">· 레거시 시스템</span></h3>
+<p>지원이 종료되었거나 현대적 통제를 적용하기 어려운 구형 시스템.</p>
+<h3 id="glossary-6"><span lang="en">Compensating Control</span> <span class="term-ko">· 보완 통제</span></h3>
+<p>요구된 통제를 적용할 수 없을 때 동등한 보호를 제공하는 대체 통제.</p>
+<h3 id="glossary-7"><span lang="en">Virtual Patching</span> <span class="term-ko">· 가상 패치</span></h3>
+<p>시스템 자체를 수정하지 않고 IPS/WAF 등 앞단에서 공격 패턴을 차단하는 방식.</p>
+<h3 id="glossary-8"><span lang="en">Network Isolation / Segmentation</span> <span class="term-ko">· 네트워크 격리·분할</span></h3>
+<p>접근 가능 범위를 제한해 취약한 자산에 도달하지 못하게 하는 통제.</p>
+<h3 id="glossary-9"><span lang="en">Media Longevity</span> <span class="term-ko">· 매체 수명</span></h3>
+<p>저장 매체가 물리적으로 데이터를 유지할 수 있는 기간.</p>
+<h3 id="glossary-10"><span lang="en">Format Obsolescence</span> <span class="term-ko">· 포맷 노후화</span></h3>
+<p>매체는 멀쩡해도 읽을 장비나 소프트웨어가 없어 데이터에 접근할 수 없게 되는 현상.</p>
+<h3 id="glossary-11"><span lang="en">Bit Rot</span> <span class="term-ko">· 비트 부패</span></h3>
+<p>장기 보관 중 저장 매체의 비트가 손상되는 현상.</p>
+<h3 id="glossary-12"><span lang="en">Technical Debt</span> <span class="term-ko">· 기술 부채</span></h3>
+<p>단기 선택으로 미뤄 둔 개선 과제가 누적된 상태. EOS 자산이 대표적이다.</p>
+<div class="src">원문 위치 · D2.5.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">12</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-53 SA 통제군</strong> — 시스템 수명주기 지원, 지원되지 않는 구성요소 관리</li>
+<li><strong>ISO/IEC 19770</strong> — IT 자산 관리와 수명주기</li>
+<li><strong>ISO/IEC 27002:2022</strong> — 자산 반환, 매체 폐기, 기술 취약점 관리</li>
+<li><strong>PCI DSS</strong> — 지원되는 소프트웨어 사용 요구</li>
+<li><strong>ISO 14721 (OAIS)</strong> — 장기 디지털 보존 참조 모델</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D2.5.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 6개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">벤더 제품을 운영하는 조직에게 보안 관점에서 가장 중요한 시점은?</a></li>
+<li><a href="#question-2">공장의 생산 설비 제어 PC가 지원 종료된 운영체제에서 돌아가고, 제어 소프트웨어 벤더는 폐업했다. 설비 교체는 3년 뒤 예정이다. 현재 이 PC는 사무망과 같은 네트워크에 있다. 가장 먼저 해야 할 조치는?</a></li>
+<li><a href="#question-3">조직이 장기 아카이브를 보관하고 있으나 복원을 한 번도 시도해 본 적이 없다. 가장 핵심적인 위험은?</a></li>
+<li><a href="#question-4">장기 보관 데이터를 주기적으로 복원 시험해야 하는 이유는?</a></li>
+<li><a href="#question-5">한 회사의 점검 결과다. ㉠ 인벤토리의 ‘지원 종료일’ 칸에 벤더의 판매 중단일이 적혀 있다. ㉡ 지원 종료된 장비 10대가 격리되어 있으나 위험 수용 문서에 기한이 없다. ㉢ 10년 보존 의무가 있는 기록이 이 장비들에만 있다. 가장 적절한 조치 묶음은?</a></li>
+<li><a href="#question-6">수명 종료 플랫폼에 대한 연장 지원 계약에 의존하기 전에 무엇을 확인해야 하는가?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D2.4.html"><small>← 이전 단원</small>2.4 데이터 생애주기</a><a href="D2.6.html" style="text-align:right"><small>다음 단원 →</small>2.6 데이터 보안 통제</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

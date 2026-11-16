@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D8.5 안전한 코딩 지침 및 표준의 정의와 적용 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D8.5">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 8 소프트웨어 개발 보안 › 8.5</div>
+<h1>안전한 코딩 지침 및 표준의 정의와 적용</h1>
+<div class="en">Define and apply secure coding guidelines and standards · ISC2 CISSP Exam Outline(2024-04-15 발효) 8.5</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">원본은 이 단원을 이렇게 시작합니다. <b>“안전하게 코딩하라”는 지침이 아니다.</b> 실효성 있는 코딩 표준은 무엇을 하지 말고 무엇을 대신 쓸지 구체적으로 지정하고, 자동으로 강제되며, 안전한 선택이 기본값이 되게 만듭니다. 공식 개요 8.5는 소스 코드 수준의 약점과 취약점, API 보안, 안전한 코딩 실천, 소프트웨어 정의 보안을 듭니다. 도메인 8의 마지막 단원이자, 앞 단원에서 반복해서 “구조적 대응”이라고 부른 것의 구체적인 내용입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a> · <a class="xr" href="D8.3.html">D8.3 소프트웨어 보안 효과성</a></td><td>도구가 찾는 결함과 놓치는 결함, CWE 분류와 안전한 기본값 (1절, 3절)</td></tr>
+<tr><td><a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a> · <a class="xr" href="D5.1.html">D5.1 물리적·논리적 접근 통제</a></td><td>참조 모니터와 완전한 중재, 객체 수준 인가(IDOR) (3절)</td></tr>
+<tr><td><a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a> · <a class="xr" href="D5.6.html">D5.6 인증 시스템</a></td><td>세션 관리, 자격증명 저장, 사용자 열거 (4절)</td></tr>
+<tr><td><a class="xr" href="D3.6.html">D3.6 암호 솔루션</a> · <a class="xr" href="D7.5.html">D7.5 자원 보호</a></td><td>암호 선택과 교체 가능성, 서비스 간 mTLS (4절, 6절)</td></tr>
+<tr><td><a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a></td><td>오용 사례 테스트, 클라이언트 측 통제의 한계 (3절, 5절)</td></tr>
+<tr><td><a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a> · <a class="xr" href="D7.3.html">D7.3 구성 관리</a> · <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a></td><td>PDP/PEP, 정책 코드와 자동 교정, 소프트웨어 정의 네트워킹 (9절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>결함을 줄이는 세 가지 접근</h2>
+<div class="tw"><table>
+<tr><th>접근</th><th>효과</th></tr>
+<tr><td>개발자가 주의한다</td><td>가장 약함 — 사람은 실수함</td></tr>
+<tr><td>검토와 테스트로 찾는다</td><td>필요하지만 사후적</td></tr>
+<tr><td><b>안전한 선택을 기본값으로 만든다</b></td><td><b>가장 강함</b></td></tr>
+</table></div>
+<p>자동 출력 인코딩이 기본인 템플릿 엔진, 파라미터화만 가능한 데이터 접근 계층, 인가를 강제하는 프레임워크를 쓰면 <b>실수할 여지 자체가 줄어듭니다.</b> 이 단원의 나머지는 이 원칙이 약점 범주마다 어떻게 구체화되는지 보여 줍니다.</p>
+<p>약점은 <b>CWE</b>가 유형으로 분류하고, <b>OWASP Top 10</b>이 웹에서 흔한 위험을, OWASP API Security Top 10이 API 위험을 정리합니다. 개별 취약점을 외우기보다 <b>범주와 공통 원리</b>로 묶어 이해하면 처음 보는 상황에도 대응할 수 있습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>CWE 분류로 반복 유형을 찾아 기본값을 바꾸는 흐름은 <a class="xr" href="D8.3.html">D8.3 소프트웨어 보안 효과성</a>의 7절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D8.5.md §2, §3 소스 코드 수준의 주요 약점 도입부 · 공식 개요 8.5 “Security weaknesses and vulnerabilities at the source-code level”</div>
+<h2 id="s2"><span class="n">2</span>주입과 출력 인코딩</h2>
+<p>주입의 공통 원리는 <b>데이터가 코드나 명령으로 해석되는 것</b>입니다.</p>
+<div class="tw"><table>
+<tr><th>유형</th><th>데이터가 섞여 들어가는 대상</th></tr>
+<tr><td>SQL 주입</td><td>SQL 질의</td></tr>
+<tr><td>명령 주입</td><td>OS 명령</td></tr>
+<tr><td>LDAP 주입</td><td>디렉터리 검색 필터</td></tr>
+<tr><td>XPath/XML 주입, 템플릿 주입</td><td>질의 표현식, 서버 측 템플릿</td></tr>
+<tr><td>로그 주입</td><td>로그 항목</td></tr>
+<tr><td>크로스 사이트 스크립팅(XSS)</td><td>HTML/JavaScript 문맥</td></tr>
+</table></div>
+<p>올바른 대응에는 순서가 있습니다.</p>
+<ol class="steps">
+<li><b>구조적 분리</b>: 파라미터화 질의(prepared statement), 명령 실행을 API 호출로 대체. 데이터와 코드를 애초에 섞지 않습니다.</li>
+<li><b>문맥에 맞는 인코딩·이스케이프</b>: 분리가 불가능할 때</li>
+<li><b>입력 검증(허용 목록)</b>: 보조 수단</li>
+<li><b>최소권한</b>: 뚫렸을 때 피해 축소</li>
+</ol>
+<p>원본은 <b>입력 검증만으로 주입을 막으려는 것이 전형적 오류</b>라고 강조합니다. 블랙리스트는 우회되고, 인코딩만으로는 문맥 혼동이 생깁니다. 근본 해결은 파라미터화입니다.</p>
+<p><b>XSS는 출력 문맥(HTML 본문, 속성, JavaScript, URL, CSS)마다 인코딩 규칙이 다릅니다.</b> 그래서 자동 문맥 인식 인코딩을 기본 제공하는 템플릿 엔진이 가장 안전하고, 원시(raw) 출력은 예외로 다뤄 검토 대상으로 만듭니다.</p>
+<p><b>원문 사례 — 입력 검증만으로 막으려 한 SQL 주입.</b> 금지 문자 블랙리스트 필터를 공격자가 인코딩 변형과 유니코드 동등 문자로 우회했습니다. 파라미터화 질의로 바꾸자 그 결함 범주가 사라졌습니다.</p>
+<p><b>원문 사례 — 문맥을 혼동한 인코딩.</b> HTML 본문 기준 인코딩을 전역 적용했지만 JavaScript 문맥과 HTML 속성 문맥에 삽입되는 지점에서 스크립팅이 성립했습니다. 문맥 인식 템플릿 엔진으로 바꾸고 원시 출력을 예외로 관리했습니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>사용자가 준 값을 처리 없이 페이지에 넣으면 무엇이 문제일까요? 값 안에 스크립트가 들어 있으면 브라우저는 그것을 <b>그 사이트의 문맥에서</b> 실행합니다. 세션 쿠키 탈취나 사용자 대신 요청 보내기가 가능해지는 이유입니다. 대응은 “값을 거르는 것”보다 “표시될 문맥에 맞게 인코딩해 데이터로만 해석되게 하는 것”이 먼저입니다.</p></div>
+<div class="box add"><p><span class="tag">보충</span>입력 검증과 출력 인코딩은 서로 다른 질문에 답합니다. 검증은 “받은 값의 형식과 범위가 맞는가”, 인코딩은 “이 값이 표시될 때 코드가 아닌 데이터로 해석되는가”입니다. 값이 검증을 통과했더라도 화면에서는 문맥별 인코딩, 데이터베이스 호출에서는 매개변수 사용이 각각 필요합니다. 다른 내부 시스템에서 온 값이라도 사용 문맥이 바뀌면 필요한 보호가 달라집니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D8.5-Q01</div>
+<p>어떤 팀이 금지 문자 블랙리스트 필터로 SQL 주입에 대응했다. 공격자가 인코딩 변형과 유니코드 동등 문자로 우회했다. 올바른 주 통제는?</p><ol type="A"><li>질의 구조와 데이터를 분리해 데이터가 코드로 해석되지 않게 하는 파라미터화 질의.</li><li>질의 문자열을 구성하기 전에 사용자 입력의 모든 단일 인용부호를 이스케이프한다.</li><li>알려진 모든 우회 인코딩을 포함하도록 블랙리스트를 확장한다.</li><li>모든 작업에 읽기 전용 데이터베이스 계정을 사용한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 주입의 공통 원리는 데이터가 코드로 해석되는 것이므로 애초에 섞지 않는 구조적 분리가 근본 해결이다. 파라미터화 질의는 질의 구조를 먼저 확정하고 데이터를 값으로만 전달하므로 입력 내용과 무관하게 구조가 바뀌지 않는다. 입력 검증과 최소권한은 보조 수단이다.</p><ul><li>B · 수동 이스케이프는 누락과 문맥 혼동이 발생한다.</li><li>C · 블랙리스트는 새로운 우회가 계속 나타나 유지가 불가능하다.</li><li>D · 읽기 전용 계정은 피해를 줄이지만 조회형 주입은 그대로 성립한다.</li></ul><div class="src">원문 위치 · D8.5-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D8.5-Q23</div>
+<p>어떤 애플리케이션이 사용자가 제공한 값을 처리 없이 페이지에 직접 포함시킨다. 어떤 약점이 생기는가?</p><ol type="A"><li>처리되지 않은 값이 페이지가 만들어질 때 한 번, 브라우저가 렌더링할 때 다시 읽히므로 경쟁 조건.</li><li>길이 제한 없는 사용자 제공 값이 크기 검사 없이 페이지에 복사되므로 버퍼 오버플로.</li><li>같은 처리되지 않은 값이 페이지의 나머지 내용을 가져오는 질의를 구성하는 데도 쓰이므로 SQL 주입.</li><li>값에 스크립트가 포함될 수 있고 브라우저가 그것을 해당 사이트의 문맥에서 실행하므로 크로스사이트 스크립팅.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 사용자 입력이 HTML 로 그대로 출력되면 브라우저가 그것을 마크업과 스크립트로 해석한다. 공격자가 스크립트를 넣으면 피해자의 브라우저에서 그 사이트 권한으로 실행되어 세션 탈취 등으로 이어진다. 대응은 출력 문맥에 맞는 인코딩이며 SQL 주입은 데이터베이스 쿼리로 가는 경우의 문제다.</p><ul><li>A · 시점 경쟁과 무관하다. 경쟁 조건은 확인과 사용 사이의 상태 변화 문제이고, 여기서는 값이 코드로 해석되는 것이 문제다.</li><li>B · 길이 문제가 아니라 해석 문제다. 웹 템플릿은 관리되는 메모리를 쓰므로 긴 문자열이 인접 메모리를 덮어쓰지 않는다.</li><li>C · 지문은 값을 페이지에 넣는 것만 말한다. 질의에 쓰인다면 그것은 별개의 결함이고, 브라우저가 실행하는 문제와 다르다.</li></ul><div class="src">원문 위치 · D8.5-Q23</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D8.5.md §3 1) 주입, §7 사례 1, 사례 2 · 기존 문제 Q01, Q23 주제</div>
+<h2 id="s3"><span class="n">3</span>인가 결함</h2>
+<p>원본은 인가 결함을 <b>자동 도구가 가장 찾기 어려운 범주</b>로 봅니다. 코드는 문법적으로 올바르고, <b>명세를 알아야 틀렸다는 것을 알 수 있기</b> 때문입니다.</p>
+<ul>
+<li><b>객체 수준 인가 누락(IDOR)</b>: 식별자를 바꾸면 남의 자원이 반환됨. 가장 흔함</li>
+<li><b>기능 수준 인가 누락</b>: 관리 기능이 권한 검사 없이 노출</li>
+<li>수평·수직 권한 상승</li>
+<li><b>클라이언트 측 통제 의존</b>: UI에서 버튼을 숨기는 것은 통제가 아님</li>
+<li>다단계 흐름의 중간 단계 우회: 결제 확인을 건너뛰고 완료 단계를 직접 호출</li>
+<li><b>대량 할당</b>(mass assignment): 요청 본문 필드가 객체에 그대로 매핑되어 역할 필드까지 설정 가능</li>
+</ul>
+<p>대응: 모든 요청마다 <b>서버 측 인가 검증</b>(완전한 중재), <b>중앙 인가 계층</b>(엔드포인트마다 직접 구현하면 누락), <b>기본 거부</b>, <b>입력 바인딩 허용 목록</b>, 오용 사례 테스트와 수동 검토.</p>
+<div class="box add"><p><span class="tag">보충</span>화면에서 관리자 버튼을 숨기면 일반 사용자가 보는 인터페이스만 달라집니다. 요청은 여전히 서버로 직접 보낼 수 있으므로, 해당 작업을 처리하는 서버에서 주체·객체·동작을 근거로 허용 여부를 판단해야 접근 통제가 성립합니다.</p></div>
+<div class="box warn"><p><span class="tag">확인 필요</span>원본은 완전한 중재의 참조 위치를 D3.1로 적었지만, 이 저장소에서 완전한 중재(참조 모니터의 요건)는 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>와 <a class="xr" href="D5.1.html">D5.1 물리적·논리적 접근 통제</a>에 나옵니다. 이 교재는 그 두 단원으로 연결합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>IDOR와 객체 수준 인가는 <a class="xr" href="D5.1.html">D5.1 물리적·논리적 접근 통제</a>, 권한 상승은 <a class="xr" href="D5.5.html#s5">D5.5 5절</a>, 오용 사례는 <a class="xr" href="D6.2.html#s6">D6.2 6절</a>에서 다룹니다. API에서의 구체적 사례는 6절에 있습니다.</p></div>
+<div class="src">원문 위치: D8.5.md §3 2) 인가 결함</div>
+<h2 id="s4"><span class="n">4</span>인증·세션 결함과 암호 사용 오류</h2>
+<h3 id="s4-1">인증과 세션</h3>
+<ul>
+<li>약한 자격증명 저장: 솔트 없는 빠른 해시, (해시 대신) 암호화 저장</li>
+<li>세션 식별자: 예측 가능, URL 노출, <b>로그인 후 재발급 누락(세션 고정)</b></li>
+<li>쿠키 속성 누락: HttpOnly, Secure, SameSite</li>
+<li>로그아웃·만료 미구현: 서버 측 세션 무효화 없이 클라이언트만 삭제</li>
+<li>사용자 열거: 오류 메시지와 응답 시간 차이</li>
+<li>비밀번호 재설정 흐름: 토큰 예측 가능성, 만료, 일회성, 소유 확인</li>
+</ul>
+<h3 id="s4-2">암호 사용</h3>
+<p>원본의 요점은 <b>암호 자체보다 사용 방식에서 결함이 생긴다</b>는 것입니다.</p>
+<div class="tw"><table>
+<tr><th>오류</th><th>실천</th></tr>
+<tr><td>알고리즘·프로토콜 직접 구현</td><td><b>검증된 라이브러리</b>, 알고리즘과 모드를 직접 고르지 않아도 되는 고수준 API</td></tr>
+<tr><td>폐기된 알고리즘과 모드</td><td><b>교체 가능성(crypto agility)</b>을 고려한 설계</td></tr>
+<tr><td>비암호학적 난수로 토큰·키 생성</td><td>암호학적 난수 생성기</td></tr>
+<tr><td>하드코딩된 키와 비밀</td><td>비밀은 금고에서</td></tr>
+<tr><td>초기화 벡터 재사용, 무결성 없는 암호화</td><td>인증 암호화(AEAD) 사용</td></tr>
+<tr><td>인증서 검증 비활성화</td><td>검증 유지, 예외 금지</td></tr>
+</table></div>
+<div class="box link"><p><span class="tag">연결</span>세션 고정과 세션 관리는 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>, 자격증명 저장과 사용자 열거는 <a class="xr" href="D5.6.html">D5.6 인증 시스템</a>, 암호 선택과 교체 가능성은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 비밀 관리는 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D8.5.md §3 3) 인증과 세션 결함, 4) 암호 사용 오류, 안전한 코딩 실천 — 암호 사용</div>
+<h2 id="s5"><span class="n">5</span>역직렬화, SSRF, 경쟁 조건, 메모리, 오류 처리, 비즈니스 논리</h2>
+<div class="tw"><table>
+<tr><th>범주</th><th>원리</th><th>대응</th></tr>
+<tr><td><b>안전하지 않은 역직렬화</b></td><td>직렬화된 페이로드가 <b>생성될 타입과 상태를 지정</b>할 수 있어 코드 실행으로 이어짐</td><td>신뢰할 수 없는 입력은 역직렬화하지 않음, 데이터 전용 형식, 타입 허용 목록</td></tr>
+<tr><td><b>SSRF</b></td><td>앱이 사용자가 지정한 주소로 요청을 보냄. 클라우드에서 <b>메타데이터 서비스</b>로 자격증명 탈취</td><td>목적지 허용 목록, 내부 주소 범위 차단, 리다이렉트 추적 제한, 메타데이터 접근 통제</td></tr>
+<tr><td><b>경쟁 조건·TOCTOU</b></td><td>검사 시점과 사용 시점의 간격 — 동시 요청으로 중복 사용</td><td><b>원자적 연산</b>, 잠금, 트랜잭션 격리 수준, 멱등성 키</td></tr>
+<tr><td>메모리 안전 결함</td><td>버퍼 오버플로, 해제 후 사용, 이중 해제, 정수 오버플로</td><td>메모리 안전 언어에서 대부분 제거</td></tr>
+<tr><td>오류 처리·정보 노출</td><td>상세 오류, <b>예외 시 인가 검사를 건너뛰는 경로</b>, 민감 정보 노출</td><td>사용자에게 일반 메시지·내부에 상세 기록, <b>fail-secure</b>, 예외 삼키기 금지</td></tr>
+<tr><td>비즈니스 논리 결함</td><td>할인 중복, 음수 수량, 금액 정합성, 단계 우회, 재시도 악용 — <b>명세를 알아야 찾음</b></td><td>오용 사례 테스트</td></tr>
+</table></div>
+<p><b>원문 사례 — 경쟁 조건으로 중복 사용된 쿠폰.</b> 유효성 검사와 사용 처리 사이에 간격이 있어 동시 요청으로 같은 쿠폰이 여러 번 적용되었습니다. 원자적 연산, 트랜잭션 격리, 멱등성 키를 적용했습니다.</p>
+<p><b>원문 사례 — 메타데이터 서비스를 노린 SSRF.</b> 이미지 URL을 받아 내려받는 기능에 공격자가 클라우드 메타데이터 서비스 주소를 넣어 인스턴스 자격증명을 얻었습니다.</p>
+<p><b>원문 사례 — 예외 시 인가를 건너뛴 코드.</b> 인가 검사 함수가 예외를 던지면 호출 측이 잡아 기본값으로 허용했고, 외부 의존성 장애 때 모든 요청이 허용되었습니다. 예외 처리 패턴을 코딩 표준과 린트 규칙으로 강제했습니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>역직렬화가 위험한 이유를 묻는 질문에서 “메모리를 많이 쓴다”, “전송 중 변조를 못 막는다”는 부수적 측면입니다. 핵심은 <b>공격자가 어떤 객체가 어떤 상태로 만들어질지를 정할 수 있다</b>는 점입니다. 그래서 대응도 “신뢰할 수 없는 입력은 역직렬화하지 않는다, 타입을 허용 목록으로 제한한다”가 됩니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>메모리 안전 언어와 상세 오류 노출은 <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>, 비즈니스 논리와 오용 사례는 <a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a>, 도구가 비즈니스 논리 결함을 놓치는 이유는 <a class="xr" href="D8.3.html">D8.3 소프트웨어 보안 효과성</a>의 6절, SSRF와 클라우드 메타데이터는 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D8.5-Q08</div>
+<p>쿠폰 사용 처리가 쿠폰을 검증한 뒤 사용 처리했고 두 단계 사이에 간격이 있었다. 동시 요청으로 같은 쿠폰이 여러 번 적용되었다. 이는 어떤 결함 범주이며 어떻게 해소하는가?</p><ol type="A"><li>안전하지 않은 역직렬화. 인스턴스화 가능한 타입을 제한하고 복원 전에 페이로드를 검증해 대응한다.</li><li>주입. 쿠폰 코드가 사용 처리 질의의 구조를 바꾸지 못하도록 매개변수화 질의로 대응한다.</li><li>검사 시점과 사용 시점 사이의 경쟁 조건이며 원자적 연산과 적절한 트랜잭션 격리, 멱등성 키로 해소한다.</li><li>과도한 데이터 노출. 쿠폰의 내부 상태가 클라이언트로 반환되지 않도록 응답 모델을 분리해 대응한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 검사와 사용 사이에 간격이 있으면 그 사이에 상태가 바뀔 수 있고 동시 요청이 같은 검사 결과를 공유해 중복 사용이 성립한다. 검사와 사용을 하나의 원자적 연산으로 묶거나 적절한 트랜잭션 격리 수준을 적용하고 멱등성 키로 중복 처리를 차단해야 한다.</p><ul><li>A · 역직렬화와 무관하다. 쿠폰 객체를 복원하는 과정이 아니라 확인과 사용 사이의 시간 간격이 문제다.</li><li>B · 질의 구성 문제가 아니다. 같은 정상 코드가 동시에 여러 번 처리된 것이므로 동시성 통제가 필요하다.</li><li>D · 데이터 노출과 무관하다. 클라이언트가 내부 상태를 보지 못하게 해도 동시 요청은 여전히 같은 간격을 파고든다.</li></ul><div class="src">원문 위치 · D8.5-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D8.5-Q16</div>
+<p>신뢰할 수 없는 데이터를 역직렬화하는 것이 위험한 이유는?</p><ol type="A"><li>공격자가 통제하는 데이터를 역직렬화하면 매우 큰 객체 그래프를 할당해 메모리를 소진시키고 서비스를 중단시킬 수 있으므로.</li><li>직렬화된 페이로드가 어떤 타입을 생성하고 어떤 상태를 가질지 지정할 수 있어 조작된 입력이 객체 재구성 과정에서 애플리케이션의 어떤 검증보다 먼저 코드 실행을 유발할 수 있으므로.</li><li>직렬화 형식 자체에 무결성 보호가 없어 페이로드가 전송 중에 탐지되지 않고 변경될 수 있으므로.</li><li>역직렬화는 데이터 접근 계층을 거치지 않고 객체를 복원하므로 통상의 질의 감사가 그것을 기록하지 않으므로.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 역직렬화는 바이트를 객체로 되살리는 과정에서 생성자나 특수 메서드를 호출한다. 페이로드가 어떤 클래스를 쓰라고 지시할 수 있으면 공격자가 그 과정에 걸리는 메서드 연쇄를 구성해 코드 실행에 이를 수 있다. 애플리케이션 검증 코드는 객체가 만들어진 뒤에 돌기 때문에 늦다. 대응은 신뢰할 수 없는 데이터 역직렬화를 피하고 데이터 전용 형식과 허용 타입 목록, 무결성 검증을 쓰는 것이다.</p><ul><li>A · 실제 위험의 하나이지만 가장 심각한 것이 아니다. 핵심은 페이로드가 어떤 타입을 만들지 지정할 수 있어 복원 중에 코드가 실행된다는 점이다.</li><li>C · 서명이나 암호화를 덧붙여 해결할 수 있는 문제다. 신뢰할 수 없는 출처의 역직렬화가 위험한 이유는 변경 탐지가 아니라 복원 자체의 동작이다.</li><li>D · 감사 공백은 부수 문제다. 위험의 본질은 복원 과정이 애플리케이션 검증보다 먼저 일어나 임의 코드 실행에 이를 수 있다는 점이다.</li></ul><div class="src">원문 위치 · D8.5-Q16</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D8.5.md §3 5)~10), 안전한 코딩 실천 — 오류 처리, §7 사례 9~11 · 기존 문제 Q08, Q16 주제</div>
+<h2 id="s6"><span class="n">6</span>API 보안</h2>
+<p>공식 개요에 명시된 항목입니다. <b>API는 UI라는 보호막 없이 기능을 직접 노출</b>합니다.</p>
+<div class="tw"><table>
+<tr><th>고유 위험</th><th>통제</th></tr>
+<tr><td><b>객체 수준 인가 누락</b> — API에서 가장 흔함</td><td>모든 요청에 기능·객체 수준 인가, <b>중앙 인가와 정책 집행 지점</b></td></tr>
+<tr><td>기능 수준 인가 누락</td><td>관리 엔드포인트도 같은 인가 계층으로</td></tr>
+<tr><td><b>과도한 데이터 노출</b> — 클라이언트가 걸러낸다고 가정</td><td><b>응답 최소화</b> — 서버 측에서 필요한 필드만</td></tr>
+<tr><td>대량 할당</td><td>입력 바인딩 허용 목록, 요청·응답 스키마 검증</td></tr>
+<tr><td>속도 제한 부재 — 열거, 자격증명 대입, 자원 소진</td><td>엔드포인트별·사용자별 속도 제한과 할당량</td></tr>
+<tr><td><b>문서화되지 않은 엔드포인트, 버전 간 불일치</b></td><td><b>API 인벤토리와 폐기 관리</b></td></tr>
+<tr><td><b>“내부 API”라는 가정</b> — 인증 생략</td><td>서비스 간 <b>mTLS</b>와 토큰 인증, 네트워크 위치를 신뢰 근거로 삼지 않음</td></tr>
+<tr><td>GraphQL류 — 질의 깊이·복잡도, 단일 엔드포인트</td><td>깊이·복잡도 제한, 필드 수준 인가</td></tr>
+</table></div>
+<p>그 밖에 게이트웨이로 인증·속도 제한·로깅을 일관되게 적용하되 <b>게이트웨이 우회 경로가 없어야</b> 하고, 토큰은 범위 최소화·짧은 수명·대상 검증으로 설계하며, 인가 거부와 비정상 패턴을 로깅합니다.</p>
+<p><b>원문 사례 — 식별자만 바꾸면 통하던 API.</b> 토큰으로 로그인 여부는 확인했지만 요청한 주문이 그 사용자의 것인지 검증하지 않아, 식별자를 바꾸면 다른 고객의 주문이 반환되었습니다.</p>
+<p><b>원문 사례 — 대량 할당으로 역할 변경.</b> 프로필 수정 API가 요청 본문의 모든 필드를 바인딩해, 공격자가 역할 필드를 추가하고 자신을 관리자로 만들었습니다. 수정 가능한 필드를 명시하고 나머지는 무시하게 했습니다.</p>
+<p><b>원문 사례 — 클라이언트가 걸러낸다고 가정한 응답.</b> 응답에 주민등록번호와 내부 메모를 포함한 전체 사용자 객체가 담겼고, 화면엔 안 보였지만 응답 본문으로는 그대로 노출되었습니다. 서버 측 응답 모델을 분리했습니다.</p>
+<p><b>원문 사례 — 속도 제한 없는 인증 엔드포인트.</b> 로그인 API로 자격증명 대입과 사용자 열거가, 재설정 API로 대량 메일 발송이 이루어졌습니다.</p>
+<p><b>원문 사례 — 폐기되었으나 살아 있던 구버전 API.</b> v2에서 인가를 강화했지만 v1이 비활성화되지 않아 공격자가 v1을 썼습니다. 폐기 절차에 실제 비활성화 확인을 넣었습니다.</p>
+<p><b>원문 사례 — 내부 전용이라 가정한 API.</b> 서비스 간 API가 인증 없이 운영되었고, 서버 하나가 침해되자 그 API로 데이터를 자유롭게 조회당했습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>환자 모니터링 기기가 클라우드 API로 측정값을 올리고, 의료진 앱이 같은 API에서 환자 목록을 받는 구조를 생각해 봅시다. 점검 질문은 이렇습니다. 의료진 토큰으로 다른 병원 환자 ID를 조회하면 거부되는가(객체 수준 인가)? 응답에 앱이 쓰지 않는 필드가 들어 있지 않은가(과도한 노출)? 펌웨어 구버전이 쓰던 v1 엔드포인트가 아직 살아 있지 않은가(인벤토리)? 기기와 백엔드 사이가 “내부망”이라는 이유로 인증이 생략되지 않았는가(mTLS)? (설명을 위한 가상 구조입니다.)</p></div>
+<div class="box link"><p><span class="tag">연결</span>PDP/PEP와 우회 경로 금지는 <a class="xr" href="D5.4.html#s7">D5.4 7절</a>, 토큰 설계와 연합은 <a class="xr" href="D5.3.html">D5.3 연합 식별</a>, 서비스 간 mTLS는 <a class="xr" href="D7.5.html">D7.5 자원 보호</a>, 인가 거부 로깅은 <a class="xr" href="D8.3.html">D8.3 소프트웨어 보안 효과성</a>의 3절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D8.5.md §3 API 보안, §7 사례 3~8 · 공식 개요 8.5 “Security of APIs” · 원본은 mTLS 참조를 D4.3으로 적었으나, 서비스 간 mTLS 설명과 내부 API 사례는 이 저장소의 D7.5에 있어 그쪽으로 연결함</div>
+<h2 id="s7"><span class="n">7</span>안전한 코딩 실천</h2>
+<div class="tw"><table>
+<tr><th>실천</th><th>요점</th></tr>
+<tr><td><b>입력 검증</b></td><td><b>서버 측</b>(클라이언트 검증은 사용성 수단), <b>허용 목록</b> 선호, <b>정규화 후 검증</b>(인코딩·유니코드 정규화를 먼저 하지 않으면 우회), 타입·길이·범위·형식. 주입 방지의 <b>보조</b> 수단</td></tr>
+<tr><td><b>출력 인코딩</b></td><td>문맥별 인코딩, 문맥 인식 템플릿 엔진, 원시 출력은 예외·검토 대상</td></tr>
+<tr><td><b>오류 처리</b></td><td>사용자에게 일반 메시지·내부에 상세 기록, <b>fail-secure</b>, 예외 삼키기 금지</td></tr>
+<tr><td>암호 사용</td><td>검증된 라이브러리, 고수준 API, 암호학적 난수, 금고, 교체 가능성(4절)</td></tr>
+<tr><td>그 외</td><td>최소권한 실행, <b>안전한 기본값</b>, 공격 표면 최소화, 의존성 관리, 비밀 하드코딩 금지, 방어적 복사와 불변성</td></tr>
+</table></div>
+<div class="box warn"><p><span class="tag">주의</span>“단일 인용부호를 이스케이프한다”, “블랙리스트를 확장한다”는 모두 입력 쪽에서 문제를 잡으려는 시도입니다. 원본의 순서로는 구조적 분리가 먼저이고, 입력 검증은 그 위에 얹는 보조 수단입니다. “읽기 전용 계정 사용”은 4단계(최소권한)로 피해를 줄일 뿐 주입 자체를 막지는 못합니다.</p></div>
+<div class="src">원문 위치: D8.5.md §3 안전한 코딩 실천 · 공식 개요 8.5 “Secure coding practices”</div>
+<h2 id="s8"><span class="n">8</span>코딩 표준을 실제로 적용하기</h2>
+<p>원본의 핵심 문장은 <b>문서로 존재하는 표준은 지켜지지 않는다</b>입니다.</p>
+<div class="tw"><table>
+<tr><th>적용 수단</th><th>효과</th></tr>
+<tr><td><b>안전한 기본값 제공</b></td><td>가장 강함 — 실수할 여지를 줄임</td></tr>
+<tr><td>공통 라이브러리와 프레임워크</td><td>매번 구현하지 않게 함</td></tr>
+<tr><td>린트 규칙과 자동 검사</td><td>작성 시점에 차단</td></tr>
+<tr><td>코드 검토 체크리스트</td><td>사람의 검토를 일관되게</td></tr>
+<tr><td>구체적 예시 중심 표준</td><td>“하지 말 것”과 “대신 쓸 것”을 쌍으로</td></tr>
+<tr><td>반복 유형 기반 교육</td><td>실제 발생 패턴에 초점</td></tr>
+</table></div>
+<p>표준 설계 원칙: <b>구체성</b>(“이 함수 대신 저 함수를 이렇게”), <b>금지와 대안의 쌍</b>(금지만 있으면 우회 방법을 스스로 찾음), 언어·프레임워크별, <b>예외 경로</b>(승인과 기록), 갱신, 자동 측정 가능성.</p>
+<p><b>원문 사례 — 표준을 기본값으로 바꾼 성과.</b> 코딩 표준 문서가 있었지만 출력 인코딩 결함이 계속 나왔습니다. 템플릿 엔진 기본값을 자동 인코딩으로 바꾸고 원시 출력에 린트 경고를 추가하자 그 유형의 신규 발견이 급감했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>ISO 27001:2022의 부속서 A에는 안전한 코딩(8.28) 통제가 있습니다. 심사에서 코딩 표준 문서만 확인하면 이 단원이 말하는 “문서로만 존재하는 표준”을 놓치기 쉽습니다. 표준의 금지 항목이 린트 규칙이나 프레임워크 기본값으로 실제 강제되는지, 예외가 승인·기록되는지까지 표본으로 확인하면 효과를 볼 수 있습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>CWE 반복 유형과 구조적 대응은 <a class="xr" href="D8.3.html">D8.3 소프트웨어 보안 효과성</a>의 7절, 예외 관리는 <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D8.5.md §3 코딩 표준을 실제로 적용하기, §7 사례 12 · ISO 27001:2022 부속서 A 8.28 언급은 보충</div>
+<h2 id="s9"><span class="n">9</span>소프트웨어 정의 보안</h2>
+<p>공식 개요에 명시된 항목입니다. <b>보안 정책과 통제를 소프트웨어로 정의하고 자동으로 집행</b>하는 접근입니다.</p>
+<div class="tw"><table>
+<tr><th>구성</th><th>설명</th></tr>
+<tr><td>정책 코드(policy as code)</td><td>정책을 코드로 표현해 자동 평가, 배포 전 차단</td></tr>
+<tr><td>코드형 인프라</td><td>보안 설정이 검토·버전 관리 대상</td></tr>
+<tr><td>소프트웨어 정의 네트워킹, 마이크로세그먼테이션</td><td>네트워크 정책을 소프트웨어로 정의</td></tr>
+<tr><td>중앙 정책 결정·분산 집행</td><td>PDP/PEP 구조</td></tr>
+<tr><td>자동 교정</td><td>일탈을 자동으로 되돌림</td></tr>
+</table></div>
+<p>가치: <b>일관성</b>(사람의 편차 제거), <b>확장성</b>, <b>검토 가능성</b>, <b>증거 자동 생성</b>(적용 이력이 감사 증거), <b>사전 차단</b>.</p>
+<p>주의:</p>
+<ul>
+<li><b>정책 코드 자체가 통제 대상</b>입니다. 바꿀 수 있으면 모든 통제를 우회할 수 있습니다.</li>
+<li>오류가 광범위하게 전파되므로 단계적 적용과 롤백이 필요합니다.</li>
+<li>정책 집행 지점을 우회하는 경로가 없어야 합니다.</li>
+<li>정책이 과도하면 예외가 누적되어 <b>실질 수준이 예외로 결정</b>됩니다.</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>정책을 코드로 관리하면 검토·배포·시험의 근거가 남지만, 승인되지 않은 정책도 자동으로 배포되면 영향이 커집니다. 정책 변경 때 허용되어야 할 흐름과 거부되어야 할 흐름을 함께 시험하고, 실제 배치가 승인된 정책 버전을 쓰는지 기록과 대조합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>PDP/PEP는 <a class="xr" href="D5.4.html#s7">D5.4 7절</a>, 정책 코드·코드형 인프라·자동 교정은 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>, 변경 통제는 <a class="xr" href="D7.9.html">D7.9 변경 관리</a>, 소프트웨어 정의 네트워킹과 마이크로세그먼테이션은 <a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>, 감사 증거는 <a class="xr" href="D6.5.html">D6.5 보안 감사</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D8.5.md §3 소프트웨어 정의 보안 · 공식 개요 8.5 “Software-defined security”</div>
+<h2 id="s10"><span class="n">10</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>주문 API 점검 결과다. ㉠ 주문 조회 시 토큰은 검증하지만 주문 소유자는 확인하지 않는다. ㉡ 인가 함수가 예외를 던지면 호출 측이 허용으로 처리한다. ㉢ v1 엔드포인트가 폐기 공지 후에도 응답한다. ㉣ 코딩 표준 문서에 “출력을 인코딩하라”는 문장만 있고 XSS가 반복된다. 가장 적절한 조치 묶음은?</p>
+<ol type="A">
+<li>㉠ 클라이언트에서 다른 사용자 주문 숨김 / ㉡ 로그만 추가 / ㉢ 문서에 폐기 표시 / ㉣ 개발자 교육 1회</li>
+<li>㉠ 중앙 인가 계층에서 객체 수준 인가 / ㉡ fail-secure로 바꾸고 린트 규칙으로 강제 / ㉢ API 인벤토리와 실제 비활성화 확인 / ㉣ 문맥 인식 자동 인코딩 기본값과 원시 출력 린트 경고</li>
+<li>㉠ 식별자를 난수로 변경 / ㉡ 예외를 삼켜 서비스 유지 / ㉢ 게이트웨이에서만 차단 / ㉣ 블랙리스트 필터 추가</li>
+<li>㉠ WAF 규칙 / ㉡ 재시도 횟수 증가 / ㉢ v1 속도 제한 / ㉣ 표준 문서 분량 확대</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> ㉠ 객체 수준 인가는 서버의 중앙 계층에서 모든 요청마다(3절·6절). 식별자 난수화(C)는 추측만 어렵게 할 뿐 인가가 아닙니다. ㉡ 예외 시 허용은 심각한 결함 — fail-secure(5절). ㉢ 문서화되지 않은·구버전 엔드포인트가 공격 표면 — 인벤토리와 실제 비활성화(6절). 게이트웨이만 막으면 우회 경로가 남을 수 있습니다. ㉣ 문서로 존재하는 표준은 지켜지지 않음 — 안전한 기본값과 자동 강제(8절).</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">11</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>유효한 입력값을 받았다는 사실로 코드의 보안을 보장할 수 있나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>형식 검증으로 받은 값이 조건에 맞는지 판단합니다. 저장이나 명령을 처리하는 API에서 데이터와 명령을 분리하고, 표시할 때는 문맥에 맞게 인코딩합니다. 해당 요청자의 권한도 별도로 확인합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">12</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>세 접근 중 <b>안전한 선택을 기본값으로</b> 만드는 것이 가장 강함. 표준은 구체적이고, 자동 강제되고, 금지와 대안을 쌍으로.</li>
+<li>주입 = 데이터가 코드로 해석됨. 대응 순서: <b>구조적 분리(파라미터화)</b> → 문맥 인코딩 → 허용 목록 검증(보조) → 최소권한. 블랙리스트는 우회됨.</li>
+<li>XSS는 출력 문맥마다 인코딩 규칙이 다름 → 문맥 인식 템플릿 엔진, 원시 출력은 예외.</li>
+<li>인가 결함은 도구가 가장 찾기 어려움: IDOR, 기능 수준, 클라이언트 측 통제 의존, 단계 우회, <b>대량 할당</b>. 서버 측·중앙 계층·기본 거부·바인딩 허용 목록·오용 사례.</li>
+<li>세션 고정, 쿠키 속성, 서버 측 무효화, 사용자 열거. 암호는 <b>사용 방식</b>에서 결함 — 검증된 라이브러리, 암호학적 난수, AEAD, 교체 가능성.</li>
+<li>역직렬화(타입·상태를 공격자가 지정), SSRF(메타데이터 자격증명), <b>TOCTOU(원자적 연산·멱등성 키)</b>, 메모리 안전, <b>fail-secure</b>, 비즈니스 논리(명세 필요).</li>
+<li>API: 객체 수준 인가가 가장 흔함, <b>응답 최소화</b>, 바인딩 허용 목록, 속도 제한, <b>인벤토리·폐기</b>, 내부 API도 mTLS·토큰, 게이트웨이 우회 금지.</li>
+<li>입력 검증은 서버 측·허용 목록·<b>정규화 후</b>. 오류는 사용자에게 일반, 내부에 상세.</li>
+<li>소프트웨어 정의 보안: 정책 코드, IaC, SDN·마이크로세그먼테이션, PDP/PEP, 자동 교정. 가치는 일관성·확장성·검토·증거·사전 차단, <b>정책 코드 자체가 통제 대상</b>.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D8.5.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">13</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">CWE (Common Weakness Enumeration)</span> <span class="term-ko">· 공통 약점 유형 목록</span></h3>
+<p>소프트웨어 결함 유형 분류 체계. 근본 원인 분석과 패턴 식별에 쓰인다.</p>
+<h3 id="glossary-2"><span lang="en">Injection</span> <span class="term-ko">· 주입</span></h3>
+<p>데이터가 코드나 명령으로 해석되는 결함 범주.</p>
+<h3 id="glossary-3"><span lang="en">Parameterized Query</span> <span class="term-ko">· 파라미터화 질의</span></h3>
+<p>질의 구조와 데이터를 분리해 주입을 근본적으로 막는 방식.</p>
+<h3 id="glossary-4"><span lang="en">Context-aware Encoding</span> <span class="term-ko">· 문맥 인식 인코딩</span></h3>
+<p>출력 위치에 맞는 인코딩을 자동 적용하는 방식.</p>
+<h3 id="glossary-5"><span lang="en">IDOR (Insecure Direct Object Reference)</span> <span class="term-ko">· 안전하지 않은 직접 객체 참조</span></h3>
+<p>객체 수준 인가 검증 누락으로 식별자 변경만으로 남의 자원에 접근하는 결함.</p>
+<h3 id="glossary-6"><span lang="en">Mass Assignment</span> <span class="term-ko">· 대량 할당</span></h3>
+<p>요청 필드가 객체에 그대로 바인딩되어 의도하지 않은 속성이 설정되는 결함.</p>
+<h3 id="glossary-7"><span lang="en">Session Fixation</span> <span class="term-ko">· 세션 고정</span></h3>
+<p>인증 후 세션 식별자를 재발급하지 않아 가로채기가 가능한 결함(D5.2 참조).</p>
+<h3 id="glossary-8"><span lang="en">Insecure Deserialization</span> <span class="term-ko">· 안전하지 않은 역직렬화</span></h3>
+<p>신뢰할 수 없는 직렬화 데이터 처리가 코드 실행으로 이어지는 결함.</p>
+<h3 id="glossary-9"><span lang="en">SSRF (Server-Side Request Forgery)</span> <span class="term-ko">· 서버 측 요청 위조</span></h3>
+<p>애플리케이션이 사용자가 지정한 주소로 요청을 보내게 만드는 결함.</p>
+<h3 id="glossary-10"><span lang="en">TOCTOU (Time-of-Check to Time-of-Use)</span> <span class="term-ko">· 검사 시점과 사용 시점 사이의 경쟁 상태</span></h3>
+<p>검사 시점과 사용 시점의 간격을 악용하는 경쟁 조건.</p>
+<h3 id="glossary-11"><span lang="en">Excessive Data Exposure</span> <span class="term-ko">· 과도한 데이터 노출</span></h3>
+<p>응답에 필요 이상의 필드를 담아 클라이언트가 걸러낼 것으로 가정하는 API 결함.</p>
+<h3 id="glossary-12"><span lang="en">Rate Limiting</span> <span class="term-ko">· 속도 제한</span></h3>
+<p>요청 빈도를 제한해 열거와 대입, 자원 소진을 막는 통제.</p>
+<h3 id="glossary-13"><span lang="en">Crypto Agility</span> <span class="term-ko">· 알고리즘 교체 가능성</span></h3>
+<p>암호 알고리즘을 교체할 수 있게 설계하는 성질.</p>
+<h3 id="glossary-14"><span lang="en">Secure Defaults</span> <span class="term-ko">· 안전한 기본값</span></h3>
+<p>설정하지 않았을 때 안전한 쪽으로 동작하는 설계.</p>
+<h3 id="glossary-15"><span lang="en">Policy as Code</span> <span class="term-ko">· 정책 코드</span></h3>
+<p>보안 정책을 코드로 표현해 자동 평가·집행하는 방식.</p>
+<h3 id="glossary-16"><span lang="en">Software-defined Security</span> <span class="term-ko">· 소프트웨어 정의 보안</span></h3>
+<p>보안 정책과 통제를 소프트웨어로 정의하고 자동 집행하는 접근.</p>
+<div class="src">원문 위치 · D8.5.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">14</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>OWASP Top 10 / API Security Top 10</strong> — 흔한 위험 범주</li>
+<li><strong>OWASP ASVS</strong> — 검증 요구사항 수준</li>
+<li><strong>OWASP Cheat Sheet Series</strong> — 주제별 구체적 실천</li>
+<li><strong>CWE / CWE Top 25</strong> — 결함 유형 분류</li>
+<li><strong>NIST SP 800-218 (SSDF) PW 실천</strong> — 안전한 소프트웨어 생성</li>
+<li><strong>SEI CERT Secure Coding Standards</strong> — 언어별 코딩 규칙</li>
+<li><strong>ISO/IEC 27034</strong> — 애플리케이션 보안</li>
+<li><strong>PCI DSS</strong> — 결제 애플리케이션 코딩 요구</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D8.5.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">어떤 팀이 금지 문자 블랙리스트 필터로 SQL 주입에 대응했다. 공격자가 인코딩 변형과 유니코드 동등 문자로 우회했다. 올바른 주 통제는?</a></li>
+<li><a href="#question-2">어떤 애플리케이션이 사용자가 제공한 값을 처리 없이 페이지에 직접 포함시킨다. 어떤 약점이 생기는가?</a></li>
+<li><a href="#question-3">쿠폰 사용 처리가 쿠폰을 검증한 뒤 사용 처리했고 두 단계 사이에 간격이 있었다. 동시 요청으로 같은 쿠폰이 여러 번 적용되었다. 이는 어떤 결함 범주이며 어떻게 해소하는가?</a></li>
+<li><a href="#question-4">신뢰할 수 없는 데이터를 역직렬화하는 것이 위험한 이유는?</a></li>
+<li><a href="#question-5">주문 API 점검 결과다. ㉠ 주문 조회 시 토큰은 검증하지만 주문 소유자는 확인하지 않는다. ㉡ 인가 함수가 예외를 던지면 호출 측이 허용으로 처리한다. ㉢ v1 엔드포인트가 폐기 공지 후에도 응답한다. ㉣ 코딩 표준 문서에 “출력을 인코딩하라”는 문장만 있고 XSS가 반복된다. 가장 적절한 조치 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D8.4.html"><small>← 이전 단원</small>8.4 도입 소프트웨어 평가</a><span style="text-align:right"><small>다음 단원 →</small>—</span></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

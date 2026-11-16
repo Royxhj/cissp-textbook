@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D8.2 소프트웨어 개발 생태계 내 보안 통제의 식별과 적용 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D8.2">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 8 소프트웨어 개발 보안 › 8.2</div>
+<h1>소프트웨어 개발 생태계 내 보안 통제의 식별과 적용</h1>
+<div class="en">Identify and apply security controls in software development ecosystems · ISC2 CISSP Exam Outline(2024-04-15 발효) 8.2</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">원본의 첫 문장은 시야를 코드 밖으로 넓힙니다. <b>공격 표면은 코드가 아니라 생태계 전체다.</b> 개발자 단말, IDE 플러그인, 패키지 저장소, 빌드 서버, 코드 저장소, 배포 파이프라인, 런타임이 모두 공격 경로입니다. 코드만 안전하게 쓰고 생태계를 방치하면 공격자는 생태계를 노립니다. 공식 개요 8.2는 언어, 라이브러리, 도구, IDE, 런타임, CI/CD, 구성 관리, 코드 저장소, 애플리케이션 보안 테스트를 차례로 듭니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D8.1.html">D8.1 SDLC 보안</a></td><td>SDLC와 DevSecOps. 이 단원은 그 생태계의 통제 (6절, 8절)</td></tr>
+<tr><td><a class="xr" href="D7.3.html">D7.3 구성 관리</a> · <a class="xr" href="D7.9.html">D7.9 변경 관리</a></td><td>파이프라인을 티어 0으로, 파이프라인 변경 통제, 비밀 주입 (6절, 7절)</td></tr>
+<tr><td><a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a></td><td>SCA, SBOM, 영향 범위 산정 (3절, 9절)</td></tr>
+<tr><td><a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a></td><td>코드 검토와 테스트 기법의 한계 (8절)</td></tr>
+<tr><td><a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a></td><td>외부 소프트웨어 획득의 보안 영향 (3절, 9절)</td></tr>
+<tr><td><a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a> · <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a></td><td>메모리 보호 등 런타임 취약점 완화, 서명 (2절, 5절, 9절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>생태계 전체가 공격 표면이다</h2>
+<div class="flow">
+<div class="nd">개발자 단말·IDE</div><div class="ar">→</div>
+<div class="nd">코드 저장소</div><div class="ar">→</div>
+<div class="nd">CI 빌드<br/>(+ 빌드 도구·플러그인)</div><div class="ar">→</div>
+<div class="nd">아티팩트 저장소</div><div class="ar">→</div>
+<div class="nd">CD 배포</div><div class="ar">→</div>
+<div class="nd">런타임</div>
+</div>
+<p>여기에 외부 패키지 저장소가 의존성으로 들어옵니다. 원본은 <b>각 지점이 신뢰 사슬의 고리이며, 하나가 침해되면 그 아래 전부에 영향을 준다</b>고 설명합니다. 파이프라인 침해가 모든 배포물에 영향을 주는 이유입니다.</p>
+<div class="src">원문 위치: D8.2.md §2 · 공식 개요 8.2 “Identify and apply security controls in software development ecosystems”</div>
+<h2 id="s2"><span class="n">2</span>프로그래밍 언어</h2>
+<p>언어 선택이 <b>발생 가능한 결함 유형</b>을 결정합니다(메모리 안전성, 타입 안전성, 관리 런타임, 표준 라이브러리의 안전한 기본값).</p>
+<div class="tw"><table>
+<tr><th>언어 유형</th><th>특성</th></tr>
+<tr><td><b>메모리 비안전</b>(C/C++ 계열)</td><td>메모리 안전 결함(버퍼 오버플로, 해제 후 사용, 이중 해제)이 <b>구조적으로 가능</b>. 완화: 안전한 함수, 경계 검사, 정적 분석, 컴파일러 보호(스택 보호, ASLR, DEP), 퍼징</td></tr>
+<tr><td><b>메모리 안전</b></td><td>메모리 안전 결함 범주를 대부분 제거. <b>그러나 인가 결함, 입력 검증 미비, 비즈니스 논리 오류는 그대로</b></td></tr>
+<tr><td>인터프리터</td><td>동적 평가(eval 류)와 역직렬화가 코드 실행 경로</td></tr>
+</table></div>
+<p>원본의 현실적 접근: 신규 개발은 메모리 안전 언어를 선호하고, 기존 코드베이스는 <b>고위험 구성요소를 선별적으로 재작성</b>하며 나머지는 완화 수단으로 관리합니다.</p>
+<p><b>원문 사례 — 메모리 안전 언어 전환 후에도 남은 결함.</b> 핵심 서비스를 메모리 안전 언어로 재작성해 메모리 안전 결함은 사라졌지만, 인가 검증 누락, 입력 검증 미비, 비즈니스 논리 오류는 그대로 남아 침투 테스트에서 발견되었습니다. <b>언어 전환이 모든 문제를 해결하지 않습니다.</b></p>
+<div class="box link"><p><span class="tag">연결</span>메모리 보호와 시스템 취약점은 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>, 안전한 코딩은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D8.2.md §3 프로그래밍 언어, §7 사례 10 · 공식 개요 8.2 “Programming languages”</div>
+<h2 id="s3"><span class="n">3</span>라이브러리와 의존성</h2>
+<p>원본의 핵심: <b>보안 수준은 직접 작성한 코드가 아니라 전체 의존성 트리가 결정한다.</b></p>
+<div class="tw"><table>
+<tr><th>위험</th><th>내용</th></tr>
+<tr><td>알려진 취약점</td><td>의존성의 CVE</td></tr>
+<tr><td><b>전이 의존성</b></td><td>직접 선택하지 않은 간접 의존성. <b>대부분의 의존성이 전이적</b></td></tr>
+<tr><td>유지되지 않는 패키지</td><td>취약점이 공개되어도 수정 안 됨</td></tr>
+<tr><td>악성 패키지, <b>타이포스쿼팅</b></td><td>유사 이름으로 오타 설치 유도</td></tr>
+<tr><td><b>의존성 혼동</b></td><td>내부 전용 패키지 이름을 공개 저장소에 올려 빌드가 공개 패키지를 가져오게 함</td></tr>
+<tr><td>패키지 탈취</td><td>유지관리자 계정 침해로 악성 버전 게시</td></tr>
+<tr><td>빌드 시 스크립트 실행</td><td>설치 과정에서 임의 코드 실행</td></tr>
+</table></div>
+<p>통제: <b>SCA</b>, <b>SBOM</b>, <b>버전 고정과 잠금 파일</b>(고정하지 않으면 같은 코드가 다른 결과를 만듦), 해시·서명 무결성 검증, <b>내부 프록시 저장소</b>(검증·캐싱·가용성, 의존성 혼동 대응), 허용 목록, <b>최소 의존성 원칙</b>(추가하는 모든 의존성이 공격 표면), 유지 상태 평가, 갱신 자동화, 설치 스크립트 차단.</p>
+<p>원본의 핵심 질문 두 개: <b>“우리가 무엇을 쓰는지 아는가”</b>, <b>“새 취약점이 공개되면 몇 시간 안에 영향 범위를 답할 수 있는가”.</b></p>
+<p><b>원문 사례 — 전이 의존성의 취약점.</b> 직접 선언한 의존성은 12개였지만 SCA를 도입하자 전체 트리가 486개였고, 중대 취약점은 모두 전이 의존성에 있었습니다.</p>
+<p><b>원문 사례 — 의존성 혼동 공격.</b> 내부 전용 패키지 이름이 공개 저장소에 등록되어 있지 않았고, 공격자가 그 이름으로 더 높은 버전을 게시하자 빌드가 공개 패키지를 가져왔습니다. 내부 프록시 저장소 강제, 내부 이름 공간의 공개 저장소 선점 등록, 버전 고정으로 대응했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>잠금 파일이 있어도 공급망 검토는 남습니다. 직접 의존성은 승인했는데, 새 빌드에서 그 구성요소가 쓰는 다른 패키지가 추가되었고 팀은 몰랐다면, 잠금 파일은 “무엇이 들어갔는지”를 고정할 뿐 “그것이 괜찮은지”는 말해 주지 않습니다. 잠금 파일 변경을 검토 대상으로 삼고 SCA가 전이 의존성의 변화를 알려 주게 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>SCA·SBOM과 영향 범위 산정은 <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>의 10절, 외부 소프트웨어 획득은 <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D8.2-Q01</div>
+<p>어떤 조직이 공개 저장소에 등록되지 않은 내부 전용 패키지 이름을 사용했다. 공격자가 그 이름으로 더 높은 버전 번호의 패키지를 공개 저장소에 게시했고 빌드가 공개 패키지를 가져왔다. 이를 가장 직접적으로 막는 통제는?</p><ol type="A"><li>모든 빌드에서 소프트웨어 구성 분석을 수행하고, 패키지 게시자나 체크섬이 이전 실행과 다르면 빌드를 실패시킨다.</li><li>의존성 매니페스트의 모든 변경에 코드 검토 승인을 요구해, 설치 전에 다른 사람이 각 패키지 이름을 확인하게 한다.</li><li>의존성 갱신 빈도를 높여 빌드가 항상 최신 수정이 적용된 최신 게시 버전으로 해석되게 한다.</li><li>모든 패키지 설치를 내부 프록시 저장소를 통하게 하고 공개 저장소에 내부 이름 공간을 선점 등록하며 버전을 고정한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 의존성 혼동은 패키지 해석 경로를 악용한다. 내부 프록시 저장소를 통해서만 패키지를 받으면 외부 해석이 차단되고 공개 저장소에 내부 이름을 선점하면 공격자가 그 이름을 쓸 수 없으며 버전 고정은 더 높은 버전 자동 선택을 막는다.</p><ul><li>A · 탐지에는 도움이 되지만 해석 경로를 바꾸지 않는다. 악성 패키지가 이미 빌드에 들어온 뒤에 걸리고, 처음 설치되는 패키지는 비교할 이전 값이 없다.</li><li>B · 검토는 선언된 이름을 보지만 그 이름이 어느 레지스트리에서 해석되는지는 보지 않는다. 혼동 공격은 선언을 바꾸지 않고 해석 결과만 가로챈다.</li><li>C · 혼동 공격은 공격자가 더 높은 버전 번호로 게시하는 방식이다. 최신을 추구하면 오히려 공격자의 패키지를 더 빨리 가져온다.</li></ul><div class="src">원문 위치 · D8.2-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D8.2.md §3 라이브러리와 의존성, §7 사례 1, 사례 2 · 공식 개요 8.2 “Libraries” · 기존 문제 Q01 주제</div>
+<h2 id="s4"><span class="n">4</span>도구 집합과 IDE</h2>
+<div class="tw"><table>
+<tr><th>대상</th><th>위험</th><th>통제</th></tr>
+<tr><td><b>개발자 단말</b></td><td>소스 코드, 자격증명, 운영 접근 권한, 서명 키가 있는 <b>고가치 표적</b></td><td>엔드포인트 보호, 디스크 암호화, 패치, 최소권한(상시 관리자 대신 적시 상승). 일반 단말과 <b>같거나 더 강하게</b></td></tr>
+<tr><td><b>IDE와 플러그인</b></td><td><b>플러그인이 임의 코드를 실행</b>. IDE 설정에 저장된 토큰·비밀번호</td><td>신뢰 저장소에서만, 허용 목록, 자동 업데이트, 불필요 플러그인 제거, 금고 연동</td></tr>
+<tr><td>AI 코딩 도구</td><td>코드 전송 범위, <b>생성된 코드에 취약 패턴 포함 가능</b></td><td>전송 범위 통제, 생성 코드의 보안 검토</td></tr>
+<tr><td>빌드 도구·플러그인</td><td>빌드 스크립트가 임의 코드 실행, 공급망 위험</td><td>의존성과 동일하게 관리, <b>빌드 환경이 운영 자격증명에 접근하지 않게</b></td></tr>
+</table></div>
+<p><b>원문 사례 — IDE 플러그인을 통한 침해.</b> 개발자가 비공식 저장소에서 설치한 IDE 플러그인이 저장된 자격증명과 소스 코드를 외부로 전송했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>적시 권한 상승은 <a class="xr" href="D5.2.html">D5.2 식별·인증 전략</a>의 10절, 허용 목록은 <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a>의 4절에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D8.2-Q16</div>
+<p>개발자들이 공개 마켓플레이스에서 IDE 확장 기능을 자유롭게 설치한다. 어떤 위험이 생기는가?</p><ol type="A"><li>확장은 개발자 권한으로 실행되어 작업 공간의 소스 코드와 자격증명, 토큰을 읽을 수 있고 빌드 시점에 코드를 주입할 수 있다. 따라서 승인 목록과 배포자 검증, 사용 전 검토가 필요하다.</li><li>여러 확장을 동시에 돌려 IDE 성능과 안정성이 떨어지고, 팀이 느려지며 편집기가 죽을 때 작업을 잃는다.</li><li>확장의 라이선스 조건과 조직 정책이 충돌해 법무가 검토하지 않은 의무가 생길 수 있다.</li><li>마켓플레이스가 게시된 확장을 검토하고 악성으로 신고된 것을 제거하며 갱신에 게시자 서명이 붙으므로 위험이 거의 없다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 개발자 단말은 소스 코드와 배포 자격증명이 모이는 고가치 환경이다. 확장은 그 안에서 개발자 권한으로 돌기 때문에 침해된 확장 하나가 소스 유출과 공급망 주입으로 이어진다. 이름이 유사한 위장 확장이 실제로 배포된 사례가 있어 배포자 검증과 승인 목록이 필요하다. 마켓플레이스 검토는 완전하지 않다.</p><ul><li>B · 생산성 문제이고 보안 위험이 아니다. 확장이 개발자 권한으로 작업 공간의 자격증명을 읽고 빌드 시점에 코드를 주입할 수 있다는 점이 핵심이다.</li><li>C · 관리해야 할 쟁점이지만 일부다. 확장은 소스와 토큰을 읽을 수 있고 빌드에 개입할 수 있으므로 공급망 통제의 대상이다.</li><li>D · 검토는 완전하지 않고 제거는 신고 뒤에 일어난다. 서명은 게시자를 확인할 뿐이고 그 게시자 계정이 탈취되면 서명된 악성 갱신이 배포된다.</li></ul><div class="src">원문 위치 · D8.2-Q16</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D8.2.md §3 도구 집합과 IDE, §7 사례 9 · 공식 개요 8.2 “Tool sets”, “Integrated Development Environment” · 기존 문제 Q16 주제</div>
+<h2 id="s5"><span class="n">5</span>런타임</h2>
+<ul>
+<li><b>메모리 보호</b>: ASLR, DEP/NX, 스택 카나리, 제어 흐름 보호.</li>
+<li>샌드박싱과 격리: 컨테이너, 가상화, 언어 수준 샌드박스.</li>
+<li><b>최소권한 실행</b>: 서비스가 필요 이상의 권한으로 돌면 침해 시 그 권한이 공격자의 것이 됩니다.</li>
+<li>읽기 전용 파일 시스템, 불필요한 시스템 호출·능력 제거.</li>
+<li><b>RASP</b>: 앱 내부에서 공격을 탐지·차단. 맥락을 알지만 성능 영향과 오탐 관리 필요.</li>
+<li>런타임 버전 관리: 지원 종료 런타임은 패치되지 않습니다.</li>
+<li><b>설정 강화</b>: 디버그 모드와 상세 오류 메시지 비활성화. <b>스택 트레이스 노출이 정찰 정보를 줍니다.</b></li>
+<li>컨테이너: 최소 기본 이미지, <b>비 root 실행</b>, 이미지 서명과 검증, 특권 컨테이너 금지·호스트 마운트 제한, 이미지 취약점 지속 평가.</li>
+</ul>
+<p><b>원문 사례 — 상세 오류 메시지 노출.</b> 운영에 디버그 모드가 켜진 채 배포되어 예외 시 스택 트레이스, 프레임워크 버전, 파일 경로, SQL 질의가 노출되었고 침투 테스트 팀이 이를 정찰의 주 출처로 썼습니다. 배포 설정 검증 항목에 넣고 정책 코드로 사전 차단했습니다.</p>
+<div class="src">원문 위치: D8.2.md §3 런타임, §7 사례 8 · 공식 개요 8.2 “Runtime”</div>
+<h2 id="s6"><span class="n">6</span>CI/CD 파이프라인</h2>
+<div class="flow">
+<div class="nd">커밋</div><div class="ar">→</div>
+<div class="nd">비밀 스캐닝</div><div class="ar">→</div>
+<div class="nd">SAST·SCA</div><div class="ar">→</div>
+<div class="nd">빌드·이미지 스캔</div><div class="ar">→</div>
+<div class="nd">IaC·정책 코드</div><div class="ar">→</div>
+<div class="nd">테스트(DAST)</div><div class="ar">→</div>
+<div class="nd">서명 → 배포 → 사후 검증</div>
+</div>
+<p><b>비밀 스캐닝은 커밋 단계에서 차단하는 것이 최선</b>입니다(이력에 들어가면 영구히 남음). 빌드 산출물에는 <b>아티팩트 서명과 출처 증명(provenance)</b>을 붙여 무엇이 어떤 소스에서 어떤 빌드로 만들어졌는지 입증하며, SLSA 류 프레임워크가 이를 체계화합니다.</p>
+<h3 id="s6-protect">파이프라인 자체의 보호</h3>
+<p>원본의 경고: <b>파이프라인이 침해되면 모든 배포물이 영향을 받는다.</b> 티어 0 자산으로 취급합니다.</p>
+<div class="tw"><table>
+<tr><th>통제</th><th>내용</th></tr>
+<tr><td>파이프라인 정의를 코드로, 변경 통제 대상에</td><td>보안 단계 제거에 경보</td></tr>
+<tr><td><b>최소권한 자격증명</b></td><td>운영 전체 권한 금지, <b>단기 토큰과 작업 범위 한정</b></td></tr>
+<tr><td><b>비밀 관리</b></td><td>파이프라인 변수에 평문 비밀 금지, <b>런타임에 금고에서 주입</b>, 로그 마스킹</td></tr>
+<tr><td>빌드 환경 격리와 일회성</td><td>빌드마다 새 환경</td></tr>
+<tr><td>외부 의존성 통제</td><td>빌드 중 임의 외부 스크립트 내려받아 실행 금지</td></tr>
+<tr><td>승인 게이트, 직무 분리</td><td>운영 배포에 사람 승인, 작성자 혼자 배포 불가</td></tr>
+<tr><td><b>포크 PR 처리</b></td><td>외부 기여자 PR이 비밀에 접근하는 파이프라인을 실행하지 않게</td></tr>
+</table></div>
+<p><b>원문 사례 — 파이프라인 자격증명의 과도한 권한.</b> CI 파이프라인이 운영 전체에 대한 장기 자격증명을 갖고 있었고, 포크 PR도 파이프라인을 실행할 수 있어 외부 기여자의 PR이 그 자격증명을 유출했습니다. 작업 범위 단기 토큰, 포크 PR의 비밀 접근 차단, 운영 배포 별도 승인 게이트로 대응했습니다.</p>
+<p><b>원문 사례 — 파이프라인에서 제거된 보안 단계.</b> 파이프라인 설정이 변경 통제 대상이 아니어서 한 개발자가 보안 스캔 단계를 제거한 것을 3개월간 아무도 몰랐습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>파이프라인을 티어 0으로 다루는 이유와 비밀 주입은 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>의 4·6절, 파이프라인 변경 통제는 <a class="xr" href="D7.9.html">D7.9 변경 관리</a>의 7절에서 다룹니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D8.2-Q23</div>
+<p>API 키 같은 애플리케이션 비밀정보는 어디에 저장해야 하는가?</p><ol type="A"><li>런타임에 조회하는 비밀정보 관리 시스템에. 워크로드별로 접근을 통제하고 교체를 지원하며 버전 관리에는 절대 커밋하지 않는다.</li><li>팀 문서 저장소의 공유 스프레드시트에. 접근은 팀으로 제한하고 변경 이력을 시트 상단에 적어 둔다.</li><li>컴파일된 애플리케이션 바이너리에 하드코딩해서. 사람이 읽을 수 없고 조직이 통제하는 서버에만 배포된다.</li><li>소스 코드 저장소의 접근이 제한된 디렉터리에. 필요한 개발자가 해당 코드와 함께 받아 갈 수 있다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 저장소에 커밋한 비밀정보는 이력에 남아 사본과 포크, 빌드 로그로 퍼지므로 삭제해도 회수되지 않는다. 바이너리에 박아 두는 것은 역공학으로 추출되고 교체가 불가능하다. 비밀정보 관리 시스템은 접근을 통제하고 사용을 기록하며 교체를 가능하게 해 유출 시 대응 수단을 남긴다.</p><ul><li>B · 워크로드 단위 접근 통제와 자동 교체가 불가능하다. 사람이 복사해 쓰는 경로가 생기고, 누가 어떤 값을 언제 읽었는지도 알 수 없다.</li><li>C · 역공학으로 추출되므로 읽을 수 없다는 전제가 성립하지 않는다. 교체하려면 재빌드와 재배포가 필요해 유출 대응이 느려진다.</li><li>D · 이력에 영구히 남아 회수가 불가능해진다. 저장소가 복제되면 함께 퍼지고, 디렉터리 권한은 과거 커밋에 소급되지 않는다.</li></ul><div class="src">원문 위치 · D8.2-Q23</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D8.2.md §3 CI/CD 파이프라인, §7 사례 5, 사례 7 · 공식 개요 8.2 “Continuous Integration and Continuous Delivery (CI/CD)” · 기존 문제 Q23 주제</div>
+<h2 id="s7"><span class="n">7</span>코드 저장소와 소프트웨어 구성 관리</h2>
+<h3 id="s7-repo">코드 저장소 통제</h3>
+<ul>
+<li>저장소별 최소권한, <b>MFA 필수</b>(피싱 저항성 선호).</li>
+<li><b>브랜치 보호</b>: 주 브랜치 직접 푸시 금지, PR 필수, 승인자 수, 상태 검사 통과.</li>
+<li>서명 커밋: 작성자 위조 방지.</li>
+<li><b>비밀 스캐닝과 이력</b>: 이미 커밋된 비밀은 삭제해도 이력에 남으므로 <b>노출된 자격증명은 반드시 교체</b>.</li>
+<li>공개 설정 관리(실수 공개가 흔한 유출 경로), 개인 포크 통제.</li>
+<li><b>웹훅과 통합 앱</b>: 과도한 권한의 통합 앱이 침해 경로.</li>
+<li>퇴사자 접근 회수: 외부 호스팅 서비스는 조직 디렉터리와 별개일 수 있음.</li>
+</ul>
+<p><b>원문 사례 — 커밋 이력에 남은 비밀.</b> 개발자가 API 키를 커밋한 뒤 다음 커밋에서 지웠지만 git 이력에 남아 있었고, 저장소가 실수로 공개 전환되었을 때 노출되었습니다. 원본은 <b>삭제만으로 안전해지지 않는다</b>고 강조합니다.</p>
+<p><b>원문 사례 — 과도한 권한의 통합 앱.</b> 외부 분석 서비스가 모든 저장소에 읽기와 PR 쓰기 권한을 갖고 있었는데, 그 서비스가 침해되자 공격자가 조직 전체 소스 코드에 접근했습니다.</p>
+<h3 id="s7-scm">소프트웨어 구성 관리</h3>
+<p>버전 관리와 추적성, <b>아티팩트 저장소</b>(운영에 배포된 것이 어떤 커밋인지 추적 가능), <b>환경 간 승격</b>(개발 → 검증 → 운영에서 <b>같은 아티팩트를 승격</b>, 환경마다 다시 빌드하면 검증한 것과 배포한 것이 달라짐), 재현 가능한 빌드, 구성과 코드 분리.</p>
+<p><b>원문 사례 — 환경별 재빌드가 만든 불일치.</b> 검증 환경에서 보안 테스트를 통과한 뒤 운영 배포 때 다시 빌드했는데, 그 사이 의존성 버전이 갱신되어 검증한 것과 다른 바이너리가 운영에 나갔습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>브랜치 보호는 승인된 변경이 저장소에 들어오게 돕지만, 배포물이 정말 그 커밋에서 만들어졌는지는 별개의 질문입니다. 이를 확인하려면 빌드 실행 기록과 결과물의 식별 정보(해시)를 따로 보존해야 합니다. 의료기기 소프트웨어의 “릴리스 빌드와 출하 바이너리의 동일성” 확인과 같은 생각입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>변경 관리와 코드 검토는 <a class="xr" href="D8.1.html">D8.1 SDLC 보안</a>의 6절, 계정 생애주기는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D8.2.md §3 소프트웨어 구성 관리와 코드 저장소, §7 사례 3, 사례 4, 사례 6 · 공식 개요 8.2 “Software configuration management (CM)”, “Code repositories”</div>
+<h2 id="s8"><span class="n">8</span>애플리케이션 보안 테스트</h2>
+<div class="tw"><table>
+<tr><th>기법</th><th>대상</th><th>강점 / 한계</th></tr>
+<tr><td><b>SAST</b></td><td>소스·바이트코드</td><td>조기·전체 경로 / 거짓 양성, 맥락 없음(도달 불가 경로도 보고)</td></tr>
+<tr><td><b>DAST</b></td><td>실행 중 앱</td><td>실제 동작 / 커버리지 제한(인증 영역, 상태 흐름), 늦은 단계</td></tr>
+<tr><td><b>IAST</b></td><td>실행 중 계측</td><td>맥락과 코드 위치 / 성능·언어 제약</td></tr>
+<tr><td><b>SCA</b></td><td>의존성</td><td>외부 구성요소 / 자체 코드는 못 봄. <b>현대 환경에서 중요도가 가장 높음</b></td></tr>
+</table></div>
+<p>원본의 경고: <b>네 기법 모두 인가 설계 결함과 비즈니스 논리 오류에 약합니다.</b> 수동 코드 검토와 오용 사례 테스트가 필요합니다.</p>
+<p>운영 원칙: 파이프라인 통합과 작성 시점 피드백, <b>기준선 방식</b>(기존 부채는 별도, 신규 결함만 차단), 도달 가능성·악용 가능성을 반영한 우선순위, 거짓 양성 처리 경로(예외 등록과 근거 기록, 누적되면 재검토).</p>
+<div class="box link"><p><span class="tag">연결</span>테스트 기법 전반과 오용 사례는 <a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a>의 5·6절, DevSecOps의 기준선 방식은 <a class="xr" href="D8.1.html">D8.1 SDLC 보안</a>의 4절, 예외 관리는 <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>의 4절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D8.2.md §3 애플리케이션 보안 테스트 · 공식 개요 8.2 “Application security testing (e.g., SAST, DAST, software composition analysis, IAST)”</div>
+<h2 id="s9"><span class="n">9</span>소프트웨어 공급망 위험</h2>
+<div class="tw"><table>
+<tr><th>위험</th><th>내용</th></tr>
+<tr><td>의존성 침해</td><td>3절의 패키지 위험</td></tr>
+<tr><td><b>빌드 시스템 침해</b></td><td>소스는 정상이나 빌드 결과물에 악성 코드 삽입. <b>소스 코드 검토로는 탐지되지 않음</b></td></tr>
+<tr><td>서명 키 유출</td><td>악성 코드가 정당한 서명을 받음</td></tr>
+<tr><td>배포 채널 침해</td><td>업데이트 서버가 악성 업데이트 배포</td></tr>
+<tr><td>개발 도구 침해</td><td>컴파일러와 빌드 도구 자체</td></tr>
+</table></div>
+<p>대응: <b>출처 증명</b>, <b>재현 가능한 빌드</b>(독립적으로 같은 결과 확인), 아티팩트 서명과 검증, 빌드 환경 격리와 최소권한, SBOM, 공급자 평가.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>공급망 증거는 서로 다른 질문에 답합니다. ① <b>SBOM</b>: 이 산출물에 무엇이 들어 있는가 ② <b>출처 증명</b>: 이 산출물이 어떤 소스와 빌드 경로로 만들어졌는가 ③ <b>서명 검증</b>: 받은 파일이 신뢰한 서명 주체의 것이고 바뀌지 않았는가. 한 가지 증거가 맞다고 다른 질문의 답이 되지는 않습니다. 빌드 시스템이 침해되면 서명은 유효하게 붙지만 출처 증명과 재현 빌드가 불일치를 드러냅니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>디지털 서명은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 공급망 위험 관리는 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, 외부 소프트웨어 획득은 <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D8.2-Q08</div>
+<p>침해된 빌드 시스템이 침해된 소스 저장소보다 더 위험할 수 있는 이유는?</p><ol type="A"><li>저장소 침해는 서명 커밋으로 자동 탐지되는데 빌드 시스템에는 그에 상당하는 통제가 없다.</li><li>빌드 시스템은 저장소보다 내부 시스템에 더 넓은 네트워크 접근을 가지므로 거기서 횡적 이동이 더 쉽다.</li><li>소스는 깨끗한 상태로 유지되면서 아티팩트에 악성 코드가 삽입될 수 있어 소스 코드 검토로는 탐지되지 않는다.</li><li>빌드 시스템은 인프라로 취급되어 접근 통제와 자산 목록에서 통상 제외된다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 빌드 시스템 침해는 소스를 변경하지 않고 빌드 결과물에 악성 코드를 넣으므로 코드 검토와 소스 기반 분석으로 탐지되지 않는다. 대응은 아티팩트 서명과 출처 증명, 독립적으로 같은 결과를 확인하는 재현 가능한 빌드, 일회성 격리 빌드 환경과 최소권한이다.</p><ul><li>A · 서명 커밋은 작성자 위조를 어렵게 하지만 침해를 자동 탐지하지 않는다. 빌드 쪽에도 산출물 서명이라는 대응 통제가 있다.</li><li>B · 사실인 경우가 많지만 핵심이 아니다. 더 위험한 이유는 소스가 깨끗한 채로 산출물에 코드를 심을 수 있어 코드 검토가 무력해진다는 점이다.</li><li>D · 실무에서 소홀히 다뤄지는 경우는 있지만 제외해야 하는 것이 아니다. 오히려 운영 환경과 같은 티어 0 으로 다뤄야 한다.</li></ul><div class="src">원문 위치 · D8.2-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D8.2.md §3 소프트웨어 공급망 위험 · 기존 문제 Q08 주제</div>
+<h2 id="s10"><span class="n">10</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>개발 생태계 점검 결과다. ㉠ 빌드가 공개 저장소에서 내부 패키지와 같은 이름의 더 높은 버전을 가져왔다. ㉡ CI가 운영 전체 장기 자격증명을 갖고 있고 포크 PR도 실행한다. ㉢ 검증 통과 뒤 운영 배포 때 다시 빌드한다. ㉣ 커밋 후 지운 API 키가 저장소 이력에 남아 있다. 가장 적절한 대책 묶음은?</p>
+<ol type="A">
+<li>㉠ 내부 프록시 저장소 강제·이름 선점·버전 고정 / ㉡ 작업 범위 단기 토큰, 포크 PR 비밀 접근 차단, 운영 배포 승인 게이트 / ㉢ 한 번 빌드한 서명 아티팩트를 승격 / ㉣ 키 교체와 이력 정리, 커밋 단계 비밀 스캐닝</li>
+<li>㉠ 공개 저장소 사용 금지 / ㉡ 자격증명 암호화만 / ㉢ 재빌드 후 다시 테스트 / ㉣ 키가 있는 파일 삭제로 충분</li>
+<li>㉠ SAST 추가 / ㉡ 포크 PR 금지만 / ㉢ 운영에서 직접 빌드 / ㉣ 저장소 비공개 전환만</li>
+<li>㉠ 그대로 / ㉡ 그대로 / ㉢ 그대로 / ㉣ 다음 감사 때</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 3절(의존성 혼동), ㉡ 6절(파이프라인 자격증명 최소권한·단기, 포크 PR), ㉢ 7절(같은 아티팩트 승격), ㉣ 7절(삭제만으로 안전해지지 않음 — 교체가 필수).</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">11</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>승인된 소스와 실제 배포물이 같은 변경에서 만들어졌다고 어떻게 판단하나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>저장소의 승인 근거, 빌드 기록, 산출물 식별 정보를 비교합니다. 서명은 받은 결과 검증에 쓰이고, SBOM은 구성 요소를 확인하는 데 쓰입니다.</p></div></details></div>
+<h2 id="summary"><span class="n">12</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>공격 표면은 코드가 아니라 생태계 전체.</b> 단말·IDE → 저장소 → 빌드 → 아티팩트 → 배포 → 런타임, 각 지점이 신뢰 사슬의 고리.</li>
+<li>언어: 메모리 비안전은 메모리 결함이 구조적으로 가능(ASLR·DEP·퍼징으로 완화). <b>메모리 안전 언어도 인가·입력 검증·논리 결함은 그대로.</b></li>
+<li>의존성: <b>전체 트리가 보안 수준을 결정</b>, 대부분 전이적. 타이포스쿼팅, <b>의존성 혼동</b>, 패키지 탈취. SCA, SBOM, <b>버전 고정·잠금 파일</b>, <b>내부 프록시 저장소</b>, 최소 의존성.</li>
+<li>도구: 개발자 단말은 고가치 표적, <b>IDE 플러그인은 임의 코드 실행</b>, AI 생성 코드 검토, 빌드 환경은 운영 자격증명 접근 금지.</li>
+<li>런타임: ASLR·DEP·카나리, 최소권한 실행, RASP, <b>디버그 모드·스택 트레이스 노출 금지</b>, 컨테이너 비 root·서명.</li>
+<li>CI/CD: 비밀 스캐닝(커밋 단계) → SAST·SCA → 이미지·IaC → DAST → <b>서명·출처 증명</b>. 파이프라인 = <b>티어 0</b>: 최소권한 <b>단기 토큰</b>, 금고 주입, 일회성 빌드, 승인 게이트, <b>포크 PR</b>.</li>
+<li>저장소: MFA, 브랜치 보호, 서명 커밋, <b>이력의 비밀은 교체</b>, 통합 앱 권한. SCM: <b>같은 아티팩트 승격</b>, 재현 가능한 빌드.</li>
+<li>AST: SAST(조기·거짓 양성) / DAST(실동작·커버리지) / IAST(중간) / <b>SCA(가장 중요)</b>. 넷 다 인가·논리 결함엔 약함. 기준선 방식.</li>
+<li>공급망: <b>빌드 시스템 침해는 소스 검토로 못 찾음</b>, 서명 키 유출, 배포 채널. <b>SBOM(무엇) · 출처 증명(어떻게) · 서명(누가·무결성)</b>은 다른 질문.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D8.2.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">13</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Memory Safety</span> <span class="term-ko">· 메모리 안전성</span></h3>
+<p>버퍼 오버플로와 해제 후 사용 같은 메모리 결함이 구조적으로 방지되는 성질.</p>
+<h3 id="glossary-2"><span lang="en">Transitive Dependency</span> <span class="term-ko">· 전이 의존성</span></h3>
+<p>직접 선택하지 않았으나 의존성의 의존성으로 포함되는 구성요소.</p>
+<h3 id="glossary-3"><span lang="en">Typosquatting</span> <span class="term-ko">· 타이포스쿼팅</span></h3>
+<p>유명 패키지와 유사한 이름으로 오타 설치를 유도하는 공격.</p>
+<h3 id="glossary-4"><span lang="en">Dependency Confusion</span> <span class="term-ko">· 의존성 혼동</span></h3>
+<p>내부 전용 패키지 이름을 공개 저장소에 올려 빌드가 공개 패키지를 가져오게 만드는 공격.</p>
+<h3 id="glossary-5"><span lang="en">Pinning / Lockfile</span> <span class="term-ko">· 버전 고정 / 잠금 파일</span></h3>
+<p>의존성 버전을 고정해 빌드 재현성을 확보하는 수단.</p>
+<h3 id="glossary-6"><span lang="en">Internal Proxy Repository</span> <span class="term-ko">· 내부 프록시 저장소</span></h3>
+<p>외부 패키지를 내부 미러로 받아 검증과 캐싱, 가용성을 제공하는 저장소.</p>
+<h3 id="glossary-7"><span lang="en">SBOM (Software Bill of Materials)</span> <span class="term-ko">· 소프트웨어 구성 명세서</span></h3>
+<p>소프트웨어 구성요소 목록. 영향 범위 산정 속도를 결정한다.</p>
+<h3 id="glossary-8"><span lang="en">RASP (Runtime Application Self-Protection)</span> <span class="term-ko">· 실행 중 애플리케이션 자체 보호</span></h3>
+<p>애플리케이션 내부에서 공격을 탐지·차단하는 런타임 보호.</p>
+<h3 id="glossary-9"><span lang="en">Provenance</span> <span class="term-ko">· 출처 증명</span></h3>
+<p>아티팩트가 어떤 소스와 빌드 과정으로 만들어졌는지 입증하는 증거.</p>
+<h3 id="glossary-10"><span lang="en">Reproducible Build</span> <span class="term-ko">· 재현 가능한 빌드</span></h3>
+<p>같은 소스에서 항상 같은 결과물이 나오는 빌드.</p>
+<h3 id="glossary-11"><span lang="en">Promotion</span> <span class="term-ko">· 환경 승격</span></h3>
+<p>개발에서 검증, 운영으로 같은 아티팩트를 이동시키는 방식.</p>
+<h3 id="glossary-12"><span lang="en">Branch Protection</span> <span class="term-ko">· 브랜치 보호</span></h3>
+<p>주 브랜치 직접 푸시 금지와 PR·승인 요구 설정.</p>
+<h3 id="glossary-13"><span lang="en">Signed Commit</span> <span class="term-ko">· 서명 커밋</span></h3>
+<p>작성자 위조를 방지하는 커밋 서명.</p>
+<h3 id="glossary-14"><span lang="en">SAST / DAST / IAST / SCA — Static / Dynamic / Interactive Application Security Testing / Software Composition Analysis</span> <span class="term-ko">· 정적 / 동적 / 상호작용형 보안 시험 / 소프트웨어 구성 분석</span></h3>
+<p>정적 분석, 동적 분석, 계측 기반 분석, 구성요소 분석.</p>
+<h3 id="glossary-15"><span lang="en">SLSA — Supply-chain Levels for Software Artifacts</span> <span class="term-ko">· 소프트웨어 산출물 공급망 보증 수준</span></h3>
+<p>소프트웨어 아티팩트의 공급망 보증 수준을 정의한 프레임워크 개념.</p>
+<div class="src">원문 위치 · D8.2.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">14</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-218 (SSDF)</strong> — 안전한 개발 실천(PO, PS, PW, RV)</li>
+<li><strong>NIST SP 800-161</strong> — 공급망 위험 관리</li>
+<li><strong>NIST SP 800-204 시리즈</strong> — 마이크로서비스와 서비스 메시 보안</li>
+<li><strong>SLSA</strong> — 소프트웨어 아티팩트 공급망 보증 수준</li>
+<li><strong>OWASP Top 10 / API Security Top 10 / CWE</strong> — 취약점 분류</li>
+<li><strong>OWASP Dependency-Check / CycloneDX / SPDX</strong> — 의존성과 SBOM</li>
+<li><strong>CIS Software Supply Chain Security Guide</strong></li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D8.2.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">어떤 조직이 공개 저장소에 등록되지 않은 내부 전용 패키지 이름을 사용했다. 공격자가 그 이름으로 더 높은 버전 번호의 패키지를 공개 저장소에 게시했고 빌드가 공개 패키지를 가져왔다. 이를 가장 직접적으로 막는 통제는?</a></li>
+<li><a href="#question-2">개발자들이 공개 마켓플레이스에서 IDE 확장 기능을 자유롭게 설치한다. 어떤 위험이 생기는가?</a></li>
+<li><a href="#question-3">API 키 같은 애플리케이션 비밀정보는 어디에 저장해야 하는가?</a></li>
+<li><a href="#question-4">침해된 빌드 시스템이 침해된 소스 저장소보다 더 위험할 수 있는 이유는?</a></li>
+<li><a href="#question-5">개발 생태계 점검 결과다. ㉠ 빌드가 공개 저장소에서 내부 패키지와 같은 이름의 더 높은 버전을 가져왔다. ㉡ CI가 운영 전체 장기 자격증명을 갖고 있고 포크 PR도 실행한다. ㉢ 검증 통과 뒤 운영 배포 때 다시 빌드한다. ㉣ 커밋 후 지운 API 키가 저장소 이력에 남아 있다. 가장 적절한 대책 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D8.1.html"><small>← 이전 단원</small>8.1 SDLC 보안</a><a href="D8.3.html" style="text-align:right"><small>다음 단원 →</small>8.3 소프트웨어 보안 효과성</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

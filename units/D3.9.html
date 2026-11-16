@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D3.9 사이트 및 설비 보안 통제 설계 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D3.9">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 3 보안 아키텍처 및 엔지니어링 › 3.9</div>
+<h1>사이트 및 설비 보안 통제 설계</h1>
+<div class="en">Design site and facility security controls · ISC2 CISSP Exam Outline(2024-04-15 발효) 3.9</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">서버를 멈추게 하는 것은 침입자보다 화재, 정전, 과열, 누수인 경우가 훨씬 많습니다. 원본은 이 점을 분명히 합니다. <b>물리 보안은 침입 대응만이 아니라 환경 통제를 포함한다.</b> 앞 단원 <a class="xr" href="D3.8.html">D3.8 사이트·설비 설계 원칙</a>이 건물과 부지 설계의 원칙이었다면, 이 단원은 구역별 설비 통제와 전원·공조·화재라는 환경 요소를 다룹니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D3.8.html">D3.8 사이트·설비 설계 원칙</a></td><td>계층적 방어와 구역 등급, slab-to-slab 벽, 인명 안전 우선 (1~5절, 10절)</td></tr>
+<tr><td><a class="xr" href="D1.5.html">D1.5 조사 유형</a> · <a class="xr" href="D7.1.html">D7.1 조사</a></td><td>관리 연속성. 증거 보관소의 보관 방식이 증거 능력을 좌우한다 (4절)</td></tr>
+<tr><td><a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a></td><td>매체 반출입 기록, 클린 데스크 (3절, 5절)</td></tr>
+<tr><td><a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a> · <a class="xr" href="D7.10.html">D7.10 복구 전략</a></td><td>외부 의존성(연료 공급), 전원 이중화와 복구 전략 (14절)</td></tr>
+<tr><td><a class="xr" href="D7.14.html">D7.14 물리적 보안</a></td><td>운영 단계의 물리 보안과 설비 점검 (6절)</td></tr>
+</table></div>
+<p>원본은 설비 통제를 <b>구역의 중요도에 따라 차등 적용</b>한다고 정리합니다. 공식 개요 3.9가 나열하는 구역(배선실, 서버실·데이터센터, 매체 보관소, 증거 보관소, 제한·업무 구역)과 환경 요소(유틸리티·HVAC, 환경 이슈, 화재 예방·감지·진압, 전원)를 차례로 봅니다.</p>
+<h2 id="s1"><span class="n">1</span>배선실 / 중간 배선반 (IDF)</h2>
+<p>원본은 배선실을 <b>가장 간과되기 쉬운 고위험 구역</b>이라고 부릅니다. 여기서 네트워크 전체에 접근할 수 있기 때문입니다.</p>
+<p><b>위험</b>: 무단 장비 설치(탭, 키 로거, 무선 AP), 케이블 도청, 서비스 중단.</p>
+<ul>
+<li><b>잠금</b>과 출입 기록 — 열쇠 관리 포함</li>
+<li><b>다용도 창고로 겸용 금지</b> — 청소 용품 보관소와 함께 쓰는 경우가 흔한 문제다</li>
+<li>환경 관리(환기·온도)</li>
+<li>쓰지 않는 포트 비활성화</li>
+<li>정기 점검으로 <b>미승인 장비</b> 확인</li>
+</ul>
+<p><b>원문 사례 — 청소 용품과 함께 쓰던 배선실.</b> 층별 배선실이 청소 용품 보관소를 겸하고 있어 청소 직원이 늘 드나들 수 있었고, 점검해 보니 미승인 무선 AP가 스위치에 연결되어 있었습니다. 원본은 배선실이 네트워크 전체에 접근할 수 있는 지점이므로 서버실에 준하는 통제가 필요하다고 정리합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>배선실이 간과되는 이유는 “서버가 없는 방”이기 때문입니다. 하지만 공격자에게는 서버실보다 나은 곳일 수 있습니다. 덜 지켜지고, 층마다 있고, 그 층의 모든 단말 트래픽이 지나갑니다. 미승인 무선 AP 하나를 꽂으면 건물 밖 주차장에서 내부망에 접속할 수 있습니다. 그래서 배선실은 방의 크기가 아니라 <b>그 방에서 닿을 수 있는 범위</b>로 등급을 정합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>미승인 기기의 네트워크 접속을 막는 NAC와 포트 보안은 <a class="xr" href="D4.2.html">D4.2 네트워크 구성요소</a>, 탐지 수단의 운영은 <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 배선실 / 중간 배선반, §7 사례 1 · 공식 개요 3.9 “Wiring closets / intermediate distribution facilities”</div>
+<h2 id="s2"><span class="n">2</span>서버실 / 데이터센터</h2>
+<div class="tw"><table>
+<tr><th>통제</th><th>내용</th></tr>
+<tr><td>위치</td><td><b>지하·최상층 회피</b>(침수·누수·지붕 손상), 건물 중앙부 선호. 상수도·배수 배관 아래도 피한다</td></tr>
+<tr><td>창문</td><td><b>두지 않음</b></td></tr>
+<tr><td>출입</td><td>단일 통제 출입구, 맨트랩, 생체 인증, 기록</td></tr>
+<tr><td>벽</td><td><b>slab-to-slab</b></td></tr>
+<tr><td>랙</td><td>개별 잠금, 콘솔 접근 제한</td></tr>
+<tr><td>감시</td><td>CCTV, 출입 이력과 영상 연계</td></tr>
+<tr><td>환경</td><td>전용 HVAC, 누수 감지, 화재 감지·진압</td></tr>
+</table></div>
+<p>원본의 설명으로 <b>지하는 침수 위험, 최상층은 지붕 누수와 열 부하 위험</b>이 있습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>slab-to-slab 벽, 맨트랩, 창문 금지의 이유는 <a class="xr" href="D3.8.html">D3.8 사이트·설비 설계 원칙</a>의 5절에서 다뤘습니다. 이 단원의 6~14절이 표의 마지막 줄 “환경”을 자세히 봅니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 서버룸 / 데이터센터 · 공식 개요 3.9 “Server rooms / data centers”</div>
+<h2 id="s3"><span class="n">3</span>매체 보관소</h2>
+<div class="tw"><table>
+<tr><th>통제</th><th>내용</th></tr>
+<tr><td>접근</td><td>잠금, 출납 기록, 소수 인가자</td></tr>
+<tr><td>환경</td><td>온습도 관리, 자기장 차단</td></tr>
+<tr><td>화재</td><td>매체는 <b>낮은 온도에서도 손상</b>된다</td></tr>
+<tr><td>목록</td><td>재고 관리와 정기 대조</td></tr>
+<tr><td>반출입</td><td>승인 절차와 기록</td></tr>
+</table></div>
+<p>원본의 핵심 문장은 <b>매체는 사람보다 먼저 손상된다</b>입니다. 일반 사무실의 화재 등급 기준으로는 부족하고, 매체 전용 보관고가 필요합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>종이 문서를 지키는 금고는 종이가 타는 온도보다 내부 온도를 낮게 유지하도록 만들어지지만, 자기 테이프나 광 디스크는 그보다 훨씬 낮은 온도와 습도 변화에서도 데이터를 잃습니다. 그래서 “내화 금고에 넣었으니 안전하다”는 판단은 그 금고가 어떤 매체용 등급인지 확인한 뒤에 해야 합니다(일반 지식에 근거한 보충).</p></div>
+<div class="box link"><p><span class="tag">연결</span>매체의 표시·운송·재사용 규칙은 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>, 장기 보존 매체의 열화와 주기적 재기록은 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>, 운영 중 매체 관리는 <a class="xr" href="D7.5.html">D7.5 자원 보호</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 매체 보관소 · 공식 개요 3.9 “Media storage facilities”</div>
+<h2 id="s4"><span class="n">4</span>증거 보관소</h2>
+<p>원본은 증거 보관소의 핵심을 <b>관리 연속성(chain of custody)</b>으로 꼽습니다.</p>
+<ul>
+<li>전용 잠금 공간, <b>개별 봉인 보관</b></li>
+<li><b>모든 반출입 기록</b> — 누가, 언제, 왜</li>
+<li>접근 인원 최소화, 이중 통제 고려</li>
+<li>CCTV와 연계</li>
+<li>환경 통제 — 매체 손상 방지</li>
+</ul>
+<p>원본의 문장은 <b>보관 자체가 증거 능력을 좌우한다</b>입니다. 관리 연속성이 깨지면 증거가 법정에서 배척될 수 있습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>증거 보관소가 매체 보관소와 다른 점은 “지켜야 하는 것”입니다. 매체 보관소는 데이터를 잃지 않는 것이 목적이지만, 증거 보관소는 <b>아무도 손대지 않았음을 증명할 수 있는 것</b>이 목적입니다. 그래서 봉인, 모든 출입 기록, 소수 인원, 영상 기록이 핵심이 됩니다. 증거가 진짜여도 그 기간 동안 누가 접근할 수 있었는지 설명하지 못하면 상대방은 조작 가능성을 주장할 수 있습니다.</p></div>
+<div class="box warn"><p><span class="tag">용어 주의</span>chain of custody는 이 교재에서 <b>관리 연속성</b>으로 통일합니다(원본 D7.1은 ‘보관 연속성’). Dual control은 <b>이중 통제</b>(원본은 ‘2인 통제’).</p></div>
+<div class="box link"><p><span class="tag">연결</span>증거 규칙과 관리 연속성은 <a class="xr" href="D1.5.html">D1.5 조사 유형</a>, 디지털 포렌식과 증거 처리는 <a class="xr" href="D7.1.html">D7.1 조사</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 증거 보관소 · 공식 개요 3.9 “Evidence storage”</div>
+<h2 id="s5"><span class="n">5</span>제한 구역과 업무 구역</h2>
+<ul>
+<li><b>구역 등급화</b> — 공개·통제·제한·보안</li>
+<li>등급 간 이동에 <b>명시적 인가</b></li>
+<li><b>가시선 관리</b> — 화면이 밖에서 보이지 않게</li>
+<li>방문자 동행과 식별(배지 색상 구분)</li>
+<li><b>클린 데스크</b></li>
+<li>회의실 보안 — 화이트보드 정리, 도청 대비</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>업무 구역 통제의 핵심은 “모든 곳을 최고 수준으로”가 아니라 <b>활동의 민감도에 맞춘 단계</b>입니다. 원본 문제가 짚듯, 민감한 업무를 하나의 큰 개방 공간에 모아 두거나 모든 구역에 같은 통제를 거는 것은 둘 다 맞지 않습니다. <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>에서 정보 등급에 따라 통제를 차등 적용한 것을 공간에 적용한 것입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>구역 등급과 계층적 방어는 <a class="xr" href="D3.8.html">D3.8 사이트·설비 설계 원칙</a>, 클린 데스크와 출력물 관리는 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>, 방문자 관리는 <a class="xr" href="D7.14.html">D7.14 물리적 보안</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D3.9-Q13</div>
+<p>효과적인 제한 구역·작업 구역 보안을 특징짓는 것은?</p><ol type="A"><li>물리적 경계 없이 직원 인식에 의존한다.</li><li>모든 구역에 최대 수준의 통제를 균일하게 설치한다.</li><li>감독을 쉽게 하기 위해 모든 민감 업무를 하나의 큰 열린 공간에 배치한다.</li><li>활동의 민감도에 통제 수준을 맞춘 단계적 구역. 명확한 경계와 식별 표시, 방문객 동행, 민감 업무에 대한 시선 차단과 화면 사생활 고려를 포함한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 균일한 최대 통제는 비용이 과도하고 업무를 방해해 우회를 낳는다. 민감도에 따라 구역을 나누고 경계를 분명히 하면 누가 어디까지 들어올 수 있는지가 명확해진다. 열린 공간은 감독에는 유리하지만 화면과 통화 내용이 노출되어 민감 업무에 부적합하다. 물리 경계 없이 인식만으로는 유지되지 않는다.</p><ul><li>A · 경계 없는 인식은 유지되지 않는다.</li><li>B · 과잉 통제로 우회를 유발한다.</li><li>C · 민감 정보 노출을 키운다.</li></ul><div class="src">원문 위치 · D3.9-Q13</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.9.md §3 제한 구역과 업무 구역 · 공식 개요 3.9 “Restricted and work area security” · 기존 문제 Q13 주제</div>
+<h2 id="s6"><span class="n">6</span>유틸리티와 HVAC</h2>
+<h3 id="s6-press">양압</h3>
+<p><b>양압(Positive Pressure)</b>은 실내 기압을 외부보다 높게 유지하는 것입니다. 원본의 설명으로 <b>문이 열렸을 때 공기가 밖으로 나가게</b> 해 먼지·연기·오염 물질이 들어오지 못하게 하고, 화재 시 연기 유입을 막는 효과도 있습니다. 원본은 이것을 <b>데이터센터 HVAC의 핵심 요구사항</b>으로 듭니다.</p>
+<h3 id="s6-th">온도와 습도</h3>
+<div class="tw"><table>
+<tr><th>항목</th><th>권장</th></tr>
+<tr><td>온도</td><td>ASHRAE 권장 범위 안에서 유지(약 18~27°C)</td></tr>
+<tr><td><b>습도</b></td><td><b>약 40~60%</b></td></tr>
+</table></div>
+<p>원본은 <b>습도가 양쪽으로 위험하다</b>고 강조합니다. <b>너무 낮으면 정전기(ESD)</b>로 장비가 손상되고, <b>너무 높으면 응결과 부식</b>이 생깁니다.</p>
+<p><b>원문 사례 — 습도가 낮아 생긴 장애.</b> 겨울철 건조로 데이터센터 습도가 25%까지 떨어지자 정전기로 인한 장비 오동작과 부품 손상이 반복되었습니다.</p>
+<h3 id="s6-dedicated">전용 HVAC과 누수 감지</h3>
+<p><b>전용 HVAC</b>이 원칙입니다. 사무실 공조와 함께 쓰면 덕트가 침입 경로가 되고, 사무실 운영 시간에 맞춰 꺼질 수 있습니다. <b>누수 감지</b> 센서는 배관과 이중 바닥 아래에 둡니다. 공조 응결수도 누수 원인입니다.</p>
+<p><b>원문 사례 — 사무실 공조를 공유한 서버실.</b> 서버실이 사무실 공조를 함께 썼는데, 주말에 공조가 자동으로 꺼지자 온도가 급상승해 장비가 꺼졌습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>양압은 “공기가 새는 방향을 정한다”는 생각입니다. 어딘가에는 틈이 있기 마련이므로, 그 틈으로 더러운 공기가 들어오느냐 깨끗한 공기가 나가느냐를 정하는 것입니다. 병원의 수술실이 양압, 감염병 격리실이 음압인 것과 같은 원리이며, 데이터센터는 바깥의 먼지와 연기를 막아야 하므로 양압입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>운영 단계의 설비 점검과 환경 모니터링은 <a class="xr" href="D7.14.html">D7.14 물리적 보안</a>에서 다룹니다. 원본은 온도 범위의 근거로 ASHRAE(미국 냉난방공조학회) 지침을 듭니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 유틸리티와 HVAC, §7 사례 2, 사례 5 · 공식 개요 3.9 “Utilities and Heating, Ventilation, and Air Conditioning (HVAC)”</div>
+<h2 id="s7"><span class="n">7</span>환경 이슈</h2>
+<ul>
+<li>자연재해 — 홍수, 지진, 태풍</li>
+<li>인적 재해 — 인접 시설 사고, 시위, 테러</li>
+<li><b>먼지와 오염</b> — 공기 질 관리</li>
+<li><b>진동</b> — 회전 디스크에 영향</li>
+<li><b>전자기 간섭(EMI/RFI)</b> — 차폐와 이격</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>설비를 두 벌 두어도 같은 원인에 함께 멈출 수 있습니다. 두 대의 UPS가 같은 층에 있으면 같은 침수에, 두 전원 경로가 같은 변전소에서 오면 같은 정전에 함께 멈춥니다. 그래서 이중화 설비를 검토할 때 “공통 원인 장애”(같은 재해, 같은 공급원)를 따로 확인하고, 센서와 알림만 두지 말고 장애 때 쓸 별도 경로와 담당자를 정한 뒤, 점검에서는 경보가 울리는지와 사람이 제대로 조치하는지를 각각 시험합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>입지 단계의 재해 평가는 <a class="xr" href="D3.8.html">D3.8 사이트·설비 설계 원칙</a>, 사업 영향과 복구 전략은 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>·<a class="xr" href="D7.10.html">D7.10 복구 전략</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 환경 이슈 · 공식 개요 3.9 “Environmental issues (e.g., natural disasters, man-made)”</div>
+<h2 id="s8"><span class="n">8</span>화재의 원리: 화재 4면체</h2>
+<div class="flow">
+<div class="nd"><b>연료</b> Fuel</div><div class="ar">+</div>
+<div class="nd"><b>산소</b> Oxygen</div><div class="ar">+</div>
+<div class="nd"><b>열</b> Heat</div><div class="ar">+</div>
+<div class="nd"><b>화학적 연쇄반응</b> Chain Reaction</div>
+</div>
+<p><b>하나만 없애도 불은 꺼집니다.</b> 소화 약제는 각각 다른 요소를 공격합니다.</p>
+<div class="tw"><table>
+<tr><th>약제</th><th>제거하는 요소</th></tr>
+<tr><td><b>물</b></td><td><b>열</b>(냉각)</td></tr>
+<tr><td><b>CO<sub>2</sub></b></td><td><b>산소</b>(질식)</td></tr>
+<tr><td>포말 Foam</td><td>산소 차단 + 냉각</td></tr>
+<tr><td><b>건조 화학·할론 계열</b></td><td><b>화학적 연쇄반응</b></td></tr>
+<tr><td>차단·배출</td><td>연료</td></tr>
+</table></div>
+<div class="src">원문 위치: D3.9.md §3 화재 — 4요소와 소화 원리 · 공식 개요 3.9 “Fire prevention, detection, and suppression”</div>
+<h2 id="s9"><span class="n">9</span>화재 등급 (미국 NFPA 기준)</h2>
+<div class="tw"><table>
+<tr><th>등급</th><th>가연물</th><th>적합 소화</th></tr>
+<tr><td><b>A</b></td><td>일반 가연물(목재·종이·천)</td><td>물, 포말</td></tr>
+<tr><td><b>B</b></td><td>가연성 액체·가스</td><td>CO<sub>2</sub>, 포말, 건조 화학</td></tr>
+<tr><td><b>C</b></td><td><b>전기 설비</b></td><td><b>비전도성 약제</b>(CO<sub>2</sub>, 청정 약제)</td></tr>
+<tr><td><b>D</b></td><td>가연성 금속</td><td>건조 분말(특수)</td></tr>
+<tr><td><b>K</b></td><td>주방 유지·기름</td><td>습식 화학</td></tr>
+</table></div>
+<p>원본은 <b>데이터센터 화재는 통상 Class C</b>라고 설명합니다. 전기가 살아 있는 상태에서 물이나 전도성 약제를 쓰면 감전 위험이 있습니다. 단 <b>전원을 차단하면 Class A로 바뀌어</b> 물을 쓸 수 있습니다.</p>
+<div class="box warn"><p><span class="tag">확인 필요</span>화재 등급의 문자는 나라마다 다릅니다. 원본은 미국 NFPA 기준이며, 유럽 등에서는 전기 화재를 별도 등급으로 두지 않는 등 체계가 다릅니다. 한국의 소방 기준 분류는 이 교재에서 확인하지 않았습니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 화재 등급</div>
+<h2 id="s10"><span class="n">10</span>소화 약제</h2>
+<p><b>할론(Halon)</b>은 연쇄반응을 끊는 우수한 약제였지만 <b>오존층 파괴 때문에 몬트리올 의정서로 생산이 금지</b>되었습니다. 기존 설비는 남아 있을 수 있습니다.</p>
+<div class="tw"><table>
+<tr><th>청정 약제(Clean Agent)</th><th>특징</th></tr>
+<tr><td><b>FM-200</b> (HFC-227ea)</td><td>할론 대체 표준</td></tr>
+<tr><td><b>Novec 1230</b> (FK-5-1-12)</td><td>낮은 지구온난화지수</td></tr>
+<tr><td><b>Inergen / Argonite</b></td><td>불활성 기체 혼합. 산소 농도를 연소 불가 수준까지만 낮춘다</td></tr>
+</table></div>
+<p>청정 약제는 <b>잔류물이 없어 장비를 손상시키지 않고, 적정 농도에서 사람이 대피할 수 있습니다.</b></p>
+<p><b>CO<sub>2</sub>는 주의가 필요합니다.</b> 효과적이지만 <b>산소를 없애므로 사람이 있는 공간에서는 치명적</b>입니다. 무인 구역으로 한정하거나 지연 방출과 경보를 반드시 둡니다. 원본은 인명 안전이 우선이므로 상주 구역에는 인체에 안전한 약제를 쓴다고 정리합니다.</p>
+<div class="box warn"><p><span class="tag">확인 필요</span>Novec 1230은 3M의 상표명입니다. 3M은 2022년 PFAS 생산 중단 방침을 발표했고, 같은 FK-5-1-12 약제는 다른 제조사 제품으로 공급되는 것으로 알려져 있습니다. 또 HFC 계열(FM-200)은 여러 나라에서 온실가스 감축 규제 대상입니다. 이 내용은 일반 지식에 근거한 보충이며, 현재 규제·공급 상황은 이 교재에서 확인하지 않았습니다. 시험 관점에서는 원본의 “할론 금지 → 청정 약제 대체” 구조가 핵심입니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 소화 약제</div>
+<h2 id="s11"><span class="n">11</span>화재 감지</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>감지 대상</th></tr>
+<tr><td><b>이온화식</b></td><td><b>빠른 화염</b> 연소</td></tr>
+<tr><td><b>광전식</b></td><td><b>연기 입자</b>(훈소, 느린 연소)</td></tr>
+<tr><td>열감지식</td><td>고정 온도 / 온도 상승률(차동식)</td></tr>
+<tr><td>불꽃감지식</td><td>적외선·자외선</td></tr>
+<tr><td><b>공기 흡입식(VESDA)</b></td><td><b>초기 미세 연기 — 가장 높은 감도</b></td></tr>
+</table></div>
+<p>원본은 <b>데이터센터에 공기 흡입식(VESDA)</b>이 쓰인다고 설명합니다. 공기를 상시 샘플링해 <b>불꽃이 생기기 전 단계에서 감지</b>하며, 조기 감지가 피해를 결정적으로 줄입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>데이터센터의 화재는 대개 과열된 전선이나 부품이 오래 그을리는 훈소에서 시작합니다. 이때는 불꽃도 큰 열도 없고 미세한 연기만 나옵니다. 열감지식은 너무 늦고, 강한 공조 바람 때문에 천장의 일반 연기 감지기에 연기가 잘 닿지 않습니다. 그래서 공기를 직접 빨아들여 검사하는 방식이 쓰입니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 화재 감지</div>
+<h2 id="s12"><span class="n">12</span>스프링클러 4종</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>배관 상태</th><th>특징</th></tr>
+<tr><td><b>습식</b> Wet Pipe</td><td>물이 차 있음</td><td>가장 일반적이고 빠르다. <b>누수·동결 위험</b></td></tr>
+<tr><td><b>건식</b> Dry Pipe</td><td>압축 공기</td><td>동결 지역에 적합. 방수까지 <b>지연</b></td></tr>
+<tr><td><b>준비작동식</b> Preaction</td><td>압축 공기 + <b>2단계 작동</b></td><td><b>감지기 작동 + 헤드 개방</b> 둘 다 필요. <b>데이터센터 권장</b></td></tr>
+<tr><td><b>일제살수식</b> Deluge</td><td>헤드가 열려 있음</td><td>전 구역 대량 방수. <b>데이터센터에 부적합</b></td></tr>
+</table></div>
+<p>원본은 <b>준비작동식이 데이터센터에 맞는 이유</b>를 <b>오작동으로 인한 방수를 막기 때문</b>이라고 설명합니다. 감지기가 먼저 작동하고, 그다음 열로 헤드가 터져야 물이 나갑니다. 두 조건이 모두 맞아야 하므로 실수로 헤드가 깨져도 물이 쏟아지지 않습니다.</p>
+<p><b>원문 사례 — 일제살수식이 만든 피해.</b> 구형 설비의 일제살수식 스프링클러가 작동해 서버실 전체에 물이 쏟아졌습니다. 화재는 작았지만 장비 피해가 훨씬 컸습니다. 준비작동식으로 바꾼 뒤로는 오작동이나 헤드 파손만으로는 물이 나가지 않게 되었습니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>스프링클러 방식을 고를 때 ① 오작동으로 물이 나왔을 때의 피해가 큰가(전산 장비라면 크다) ② 동결 위험이 있는가 ③ 화재가 확인되면 정해진 시간 안에 물이 나와야 하는가를 봅니다. 전산실이라면 오작동 방수를 막는 준비작동식, 동결 지역의 일반 공간이라면 건식, 일반 사무실이라면 습식, 대량 방수가 필요한 위험물 공간이라면 일제살수식입니다. “물이 없는 배관”이라고 건식과 준비작동식을 같은 것으로 보면 안 됩니다. 건식은 헤드가 열리면 바로 물이 오고, 준비작동식은 감지기 작동까지 필요합니다.</p></div>
+<div class="src">원문 위치: D3.9.md §3 스프링클러 4종, §7 사례 3</div>
+<h2 id="s13"><span class="n">13</span>전력 이상 현상</h2>
+<p>원본은 이 표를 <b>지속 시간(순간/지속)과 방향(손실/저하/상승)</b>의 두 축으로 외우라고 합니다.</p>
+<div class="tw"><table>
+<tr><th>구분</th><th><b>순간적</b></th><th><b>지속적</b></th></tr>
+<tr><td><b>전력 손실</b></td><td><b>Fault</b></td><td><b>Blackout</b></td></tr>
+<tr><td><b>전압 저하</b></td><td><b>Sag / Dip</b></td><td><b>Brownout</b></td></tr>
+<tr><td><b>전압 상승</b></td><td><b>Spike</b></td><td><b>Surge</b></td></tr>
+</table></div>
+<ul>
+<li><b>Inrush</b> — 장비 기동 시 초기 돌입 전류</li>
+<li><b>Noise</b> — EMI/RFI 등 전기적 잡음</li>
+<li><b>Transient</b> — 짧고 불규칙한 교란</li>
+<li><b>접지(Ground)</b> — 안전과 잡음 대응의 기본</li>
+</ul>
+<p>원본은 <b>전압 저하(brownout)가 전원 차단보다 장비에 더 해로울 수 있다</b>고 지적합니다. 전압이 부족한 채로 계속 동작하면 부품이 손상됩니다.</p>
+<div class="box add"><p><span class="tag">보충</span>표를 외울 때 각 줄의 “지속” 쪽 이름이 일상어라는 점을 이용하면 쉽습니다. 오래 꺼지면 Blackout(완전히 깜깜), 오래 약하면 Brownout(갈색으로 어두워짐), 오래 세면 Surge(밀려옴). 순간 쪽은 Fault(고장 한 번), Sag(살짝 처짐), Spike(뾰족 튐)입니다. 운전 기록을 볼 때도 지속 시간과 영향 받은 장비부터 확인하면, 전원 품질 문제(순간 이상 → 완충 장치)와 장기 공급 중단(지속 손실 → 대체 전력)을 나눠 대응할 수 있습니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D3.9-Q01</div>
+<p>어떤 시설에서 순간적인 저하가 아니라 수 분간 지속되는 전압 저하가 발생했다. 이 현상의 명칭은?</p><ol type="A"><li>Sag</li><li>Brownout</li><li>Spike</li><li>Fault</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 전력 이상은 지속 시간과 방향 두 축으로 구분한다. 전압 저하는 순간적이면 Sag, 지속적이면 Brownout 이다. 전력 손실은 Fault(순간)와 Blackout(지속), 전압 상승은 Spike(순간)와 Surge(지속)다. 지속 저전압은 부품을 서서히 손상시켜 차단보다 해로울 수 있다.</p><ul><li>A · Sag 는 순간적인 전압 저하다.</li><li>C · Spike 는 순간적인 전압 상승이다.</li><li>D · Fault 는 순간적인 전력 손실이다.</li></ul><div class="src">원문 위치 · D3.9-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D3.9-Q19</div>
+<p>장시간 지속되는 완전한 전력 상실을 부르는 용어는?</p><ol type="A"><li>새그(sag).</li><li>블랙아웃(blackout).</li><li>서지(surge).</li><li>브라운아웃(brownout).</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 전력 이상은 지속 시간과 방향으로 구분된다. 순간적 전압 강하는 새그, 장시간 전압 저하는 브라운아웃, 순간적 전압 상승은 스파이크, 장시간 상승은 서지다. 완전 상실은 순간이면 폴트(fault), 장시간이면 블랙아웃이다. 지속 시간(순간/장시간)과 방향(상승/저하/상실)의 조합으로 구분해 판단한다.</p><ul><li>A · 새그는 순간적 전압 강하다.</li><li>C · 서지는 장시간 전압 상승이다.</li><li>D · 브라운아웃은 장시간 전압 저하다.</li></ul><div class="src">원문 위치 · D3.9-Q19</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.9.md §3 전력 — 이상 현상 용어 · 공식 개요 3.9 “Power (e.g., redundant, backup)” · 기존 문제 Q01, Q19 주제</div>
+<h2 id="s14"><span class="n">14</span>전력 보호와 이중화</h2>
+<div class="flow">
+<div class="nd"><b>상용 전원</b></div><div class="ar">→</div>
+<div class="nd"><b>UPS</b>즉시 전환, 단시간</div><div class="ar">→</div>
+<div class="nd"><b>발전기</b>장시간</div>
+</div>
+<div class="tw"><table>
+<tr><th>수단</th><th>역할</th></tr>
+<tr><td><b>서지 보호기</b></td><td>과전압 차단</td></tr>
+<tr><td><b>UPS</b></td><td>즉시 전환, 수 분~수십 분</td></tr>
+<tr><td><b>발전기</b></td><td>장시간 공급. <b>연료 보급 계약</b> 필수</td></tr>
+<tr><td><b>이중 전원 경로</b></td><td>서로 다른 변전소, PDU 이중화</td></tr>
+<tr><td><b>정기 시험</b></td><td><b>부하 시험(load test)</b> 없이는 실제 동작을 보장할 수 없다</td></tr>
+</table></div>
+<p>원본은 <b>UPS는 단시간만 버틴다</b>고 강조합니다. 역할은 <b>발전기가 기동해 안정될 때까지의 공백을 메우는 것</b>과 <b>안전한 종료 시간 확보</b>입니다. 또 <b>발전기는 연료가 있어야 돌아가므로</b> 비축량과 재보급 계약이 함께 있어야 하며, 장기 재해 때는 연료 공급망 자체가 끊길 수 있습니다.</p>
+<p><b>원문 사례 — 시동되지 않은 발전기.</b> 정전이 났는데 비상 발전기가 시동되지 않았습니다. 3년간 부하 시험을 하지 않았고 연료가 변질되어 있었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>전원 체계는 사슬이라 가장 약한 고리에서 끊어집니다. UPS가 10분을 버텨도 발전기가 시동하지 못하면 10분 뒤에 꺼지고, 발전기가 돌아도 연료가 하루치뿐이면 장기 재해에서 하루 뒤에 꺼집니다. 그래서 “설비가 있다”가 아니라 “부하를 걸고 시험했다”, “연료 재보급 계약과 우선순위가 있다”가 확인 항목입니다. <a class="xr" href="D3.8.html">D3.8 사이트·설비 설계 원칙</a>의 관로 사례처럼, 전원 경로 이중화도 실제로 다른 변전소에서 오는지 확인해야 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>외부 의존성과 공급망 위험은 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>, 복구 전략과 대체 사이트는 <a class="xr" href="D7.10.html">D7.10 복구 전략</a>, 복구 계획의 시험은 <a class="xr" href="D7.12.html">D7.12 DRP 테스트</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D3.9-Q07</div>
+<p>시설 전원 보호 설계에서 UPS 의 1차 역할은?</p><ol type="A"><li>장기 정전 기간 동안 며칠간 전력을 공급하는 것.</li><li>발전기가 기동해 안정화될 때까지의 공백을 메우고 안전한 종료 시간을 확보하는 것.</li><li>비상 발전기의 필요성을 완전히 대체하는 것.</li><li>전원 교란 중에 네트워크 트래픽을 필터링하는 것.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> UPS 는 수 분에서 수십 분 정도만 버티는 단시간 장치다. 즉시 전환으로 순간 단절을 막고, 발전기가 기동해 안정화될 때까지의 공백을 메우며, 발전기가 없다면 안전하게 시스템을 종료할 시간을 확보한다. 장시간 공급은 발전기의 역할이다.</p><ul><li>A · 며칠간 공급은 발전기와 연료 보급의 영역이다.</li><li>C · UPS 는 발전기를 대체하지 못한다.</li><li>D · 네트워크 필터링은 UPS 의 기능이 아니다.</li></ul><div class="src">원문 위치 · D3.9-Q07</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.9.md §3 전력 보호와 이중화, §7 사례 4 · 공식 개요 3.9 “Power (e.g., redundant, backup)” · 기존 문제 Q07 주제</div>
+<h2 id="s15"><span class="n">15</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>신규 서버실 설계안이다. ㉠ 사무실 공조를 함께 쓴다. ㉡ 일제살수식 스프링클러를 단다. ㉢ 상주 운영자가 있는 공간에 CO<sub>2</sub> 소화 설비를 지연 경보 없이 둔다. ㉣ 겨울에 습도를 20%로 유지해 응결을 막는다. 바르게 고친 것은?</p>
+<ol type="A">
+<li>㉠ 전용 HVAC(양압) / ㉡ 준비작동식 / ㉢ 사람에게 안전한 청정 약제, 또는 무인 구역 한정과 지연 방출·경보 / ㉣ 습도 40~60%</li>
+<li>㉠ 그대로 / ㉡ 습식 / ㉢ 그대로 / ㉣ 10%로 더 낮춘다</li>
+<li>㉠ 음압으로 바꾼다 / ㉡ 건식 / ㉢ 할론으로 교체 / ㉣ 80%로 올린다</li>
+<li>㉠ 창문을 단다 / ㉡ 그대로 / ㉢ 물로 교체 / ㉣ 그대로</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 6절(공조가 꺼지는 문제와 덕트 침입 경로, 양압), ㉡ 12절(오작동 방수 방지), ㉢ 10절(CO<sub>2</sub>는 사람에게 치명적, 인명 안전 우선), ㉣ 6절(습도가 낮으면 정전기). C의 할론은 생산이 금지되었습니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">16</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>정전 때 UPS와 발전기가 함께 필요한 까닭은 무엇인가요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>UPS는 순간 이상과 전환 간격을 견디게 하고 발전기는 보다 긴 외부 전원 상실을 보완합니다. 실제 부하, 전환 시간과 연료 공급을 검증해야 설계가 운영에서 작동합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">17</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>설비 통제는 <b>구역 중요도에 따라 차등</b>. 화재·정전·과열·누수가 침입보다 더 자주 시스템을 멈춘다.</li>
+<li><b>배선실(IDF)은 전용 공간</b>, 다용도 창고 겸용 금지. 미승인 장비 점검.</li>
+<li><b>서버실은 지하·최상층 회피</b>, 창문 없음, slab-to-slab, 전용 HVAC·누수 감지·화재 설비.</li>
+<li>매체 보관소: <b>매체는 사람보다 먼저 손상</b>된다 → 매체 전용 보관고. 증거 보관소: <b>관리 연속성</b>, 개별 봉인, 모든 반출입 기록.</li>
+<li>업무 구역: 등급화, 명시적 인가, 가시선 관리, 방문자 식별, 클린 데스크.</li>
+<li><b>HVAC 양압</b> — 먼지·연기 유입 방지. <b>습도 40~60%</b>: 낮으면 정전기, 높으면 응결·부식. 전용 HVAC.</li>
+<li><b>화재 4면체: 연료·산소·열·연쇄반응.</b> 물=열, CO<sub>2</sub>=산소, 건조 화학·할론=연쇄반응.</li>
+<li>등급(NFPA): <b>A 일반 / B 액체·가스 / C 전기 / D 금속 / K 주방 유지.</b> 데이터센터는 Class C, 전원 차단 시 A.</li>
+<li><b>할론 금지(몬트리올 의정서)</b> → FM-200, Novec 1230, Inergen. <b>CO<sub>2</sub>는 인명 위험</b> → 상주 구역은 청정 약제.</li>
+<li>감지: 이온화식(화염) / 광전식(연기·훈소) / 열 / 불꽃 / <b>VESDA(초고감도)</b>.</li>
+<li>스프링클러: 습식(누수) / 건식(지연) / <b>준비작동식(감지기 + 헤드 2단계, 데이터센터 권장)</b> / 일제살수식(부적합).</li>
+<li>전력: 손실 <b>Fault/Blackout</b>, 저하 <b>Sag/Brownout</b>, 상승 <b>Spike/Surge</b>(순간/지속). Brownout이 더 해로울 수 있다.</li>
+<li><b>서지 보호기 → UPS(단시간, 발전기 기동까지) → 발전기(장시간)</b>. 연료 재보급 계약, <b>정기 부하 시험</b>, 이중 전원 경로.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D3.9.md §8 CISSP 시험 관점, §9 핵심 암기 요약(18항목). 원본의 “시험 단골”, “가장 자주 나오는 암기 항목” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">18</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">IDF — Intermediate Distribution Frame</span> <span class="term-ko">· 중간 배선반</span></h3>
+<p>층별 네트워크 배선이 모이는 지점. 접근 시 네트워크 전체에 영향을 줄 수 있어 통제가 필요하다.</p>
+<h3 id="glossary-2"><span lang="en">Positive Pressure</span> <span class="term-ko">· 양압</span></h3>
+<p>실내 기압을 외부보다 높게 유지해 오염물질과 연기 유입을 막는 방식.</p>
+<h3 id="glossary-3"><span lang="en">Fire Tetrahedron</span> <span class="term-ko">· 화재 4면체</span></h3>
+<p>연료, 산소, 열, 화학적 연쇄반응. 하나만 제거해도 연소가 중단된다.</p>
+<h3 id="glossary-4"><span lang="en">Class A~K Fire</span> <span class="term-ko">· 화재 등급</span></h3>
+<p>일반 가연물, 가연성 액체·가스, 전기, 가연성 금속, 주방 유지로 구분한 화재 분류.</p>
+<h3 id="glossary-5"><span lang="en">Clean Agent</span> <span class="term-ko">· 청정 약제</span></h3>
+<p>잔류물 없이 소화하는 가스계 약제. FM-200, Novec 1230, Inergen 이 대표적이다.</p>
+<h3 id="glossary-6"><span lang="en">Halon</span> <span class="term-ko">· 할론</span></h3>
+<p>연쇄반응을 차단하는 소화 약제. 오존층 파괴로 몬트리올 의정서에 따라 생산이 금지되었다.</p>
+<h3 id="glossary-7"><span lang="en">VESDA — Very Early Smoke Detection Apparatus</span> <span class="term-ko">· 초기 연기 감지 장치</span></h3>
+<p>공기를 상시 흡입해 초기 미세 연기를 감지하는 초고감도 장치.</p>
+<h3 id="glossary-8"><span lang="en">Wet / Dry / Preaction / Deluge</span> <span class="term-ko">· 습식 / 건식 / 준비작동식 / 일제살수식</span></h3>
+<p>스프링클러 4종. 준비작동식은 2단계 작동으로 오방수를 막아 데이터센터에 적합하다.</p>
+<h3 id="glossary-9"><span lang="en">Fault / Blackout</span> <span class="term-ko">· 순간 전력 상실 / 정전</span></h3>
+<p>순간적 전력 손실과 지속적 전력 손실.</p>
+<h3 id="glossary-10"><span lang="en">Sag (Dip) / Brownout</span> <span class="term-ko">· 순간 전압 강하 / 지속 저전압</span></h3>
+<p>순간적 전압 저하와 지속적 전압 저하.</p>
+<h3 id="glossary-11"><span lang="en">Spike / Surge</span> <span class="term-ko">· 매우 짧은 전압 급등 / 상대적으로 오래가는 과전압</span></h3>
+<p>순간적 전압 상승과 지속적 전압 상승.</p>
+<h3 id="glossary-12"><span lang="en">Inrush Current</span> <span class="term-ko">· 돌입 전류</span></h3>
+<p>장비 기동 시 순간적으로 흐르는 큰 전류.</p>
+<h3 id="glossary-13"><span lang="en">UPS — Uninterruptible Power Supply</span> <span class="term-ko">· 무정전 전원 장치</span></h3>
+<p>정전 시 즉시 전환되는 무정전 전원 장치. 단시간 공급이 목적이다.</p>
+<h3 id="glossary-14"><span lang="en">Load Test</span> <span class="term-ko">· 부하 시험</span></h3>
+<p>실제 부하를 걸어 전원 설비의 동작을 검증하는 시험.</p>
+<div class="src">원문 위치 · D3.9.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">19</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NFPA 10</strong> — 휴대용 소화기. 화재 등급 분류</li>
+<li><strong>NFPA 75 / 76</strong> — 정보기술 장비 시설의 화재 보호</li>
+<li><strong>NFPA 2001</strong> — 청정 약제 소화 시스템</li>
+<li><strong>ASHRAE TC 9.9</strong> — 데이터 처리 환경의 온습도 지침</li>
+<li><strong>NIST SP 800-53 PE 통제군</strong> — 물리·환경 보호</li>
+<li><strong>TIA-942</strong> — 데이터센터 인프라 표준</li>
+<li><strong>Uptime Institute Tier</strong> — 데이터센터 가용성 등급</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D3.9.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">효과적인 제한 구역·작업 구역 보안을 특징짓는 것은?</a></li>
+<li><a href="#question-2">어떤 시설에서 순간적인 저하가 아니라 수 분간 지속되는 전압 저하가 발생했다. 이 현상의 명칭은?</a></li>
+<li><a href="#question-3">장시간 지속되는 완전한 전력 상실을 부르는 용어는?</a></li>
+<li><a href="#question-4">시설 전원 보호 설계에서 UPS 의 1차 역할은?</a></li>
+<li><a href="#question-5">신규 서버실 설계안이다. ㉠ 사무실 공조를 함께 쓴다. ㉡ 일제살수식 스프링클러를 단다. ㉢ 상주 운영자가 있는 공간에 CO 2 소화 설비를 지연 경보 없이 둔다. ㉣ 겨울에 습도를 20%로 유지해 응결을 막는다. 바르게 고친 것은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D3.8.html"><small>← 이전 단원</small>3.8 사이트·설비 설계 원칙</a><a href="D3.10.html" style="text-align:right"><small>다음 단원 →</small>3.10 정보시스템 생애주기</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

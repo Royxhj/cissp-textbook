@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D3.8 사이트 및 설비 설계에 대한 보안 원칙 적용 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D3.8">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 3 보안 아키텍처 및 엔지니어링 › 3.8</div>
+<h1>사이트 및 설비 설계에 대한 보안 원칙 적용</h1>
+<div class="en">Apply security principles to site and facility design · ISC2 CISSP Exam Outline(2024-04-15 발효) 3.8</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">아무리 좋은 방화벽과 암호화가 있어도, 누군가 서버실에 걸어 들어와 디스크를 뽑아 가면 소용이 없습니다. 원본은 이것을 “물리적 접근을 허용하면 그것은 더 이상 당신의 컴퓨터가 아니다”라고 표현합니다. 이 단원은 건물과 부지를 설계하는 단계에서 보안을 넣는 원칙을 다룹니다. 그리고 그 모든 결정 위에 놓이는 원칙 하나가 있습니다. <b>사람의 안전이 자산 보호보다 먼저다.</b></p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a></td><td>심층 방어와 안전한 실패(fail-safe)를 물리 공간에 적용 (3절, 7절)</td></tr>
+<tr><td><a class="xr" href="D1.9.html">D1.9 위험 관리</a></td><td>통제의 기능 분류(억제·지연·탐지·대응), 경고 표지의 억제 효과 (1절, 6절)</td></tr>
+<tr><td><a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a></td><td>입지와 유틸리티 이중화, 집중 위험 (4절)</td></tr>
+<tr><td><a class="xr" href="D3.9.html">D3.9 사이트·설비 보안 통제</a></td><td>이 단원이 설계 원칙이라면 다음 단원은 구체적 설비 통제(배선실, 서버실, 전원, HVAC, 화재) </td></tr>
+<tr><td><a class="xr" href="D7.14.html">D7.14 물리적 보안</a></td><td>운영 단계의 물리 보안: 출입 통제, 경비, 방문자 관리 (3절)</td></tr>
+<tr><td><a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a></td><td>테일게이팅 같은 사회공학 (5절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>물리 보안의 전제와 네 가지 기능</h2>
+<h3 id="s1-why">왜 필요한가</h3>
+<p>원본은 물리 보안을 <b>모든 보안의 기반</b>이라고 부릅니다. 공격자가 장비에 물리적으로 접근하면 논리적 통제의 상당 부분이 무력화됩니다. 디스크를 떼어 가거나, 콘솔에 직접 연결하거나, 장비에 도청 장치를 붙일 수 있기 때문입니다.</p>
+<p>그리고 <b>가장 중요한 전제: 인명 안전이 자산 보호보다 언제나 우선한다.</b> 화재 시 출입문은 열려야 하고 비상구를 잠글 수 없습니다. 원본은 이 원칙이 다른 모든 설계 결정을 제약한다고 설명합니다.</p>
+<h3 id="s1-four">네 가지 기능</h3>
+<div class="flow">
+<div class="nd"><b>억제</b> Deter<br/>시도를 단념시킨다</div><div class="ar">→</div>
+<div class="nd"><b>지연</b> Delay<br/>시간을 번다</div><div class="ar">→</div>
+<div class="nd"><b>탐지</b> Detect<br/>알아챈다</div><div class="ar">→</div>
+<div class="nd"><b>대응</b> Respond<br/>막고 붙잡는다</div>
+</div>
+<p>원본의 핵심 문장은 <b>지연은 대응을 위한 시간을 벌기 위해 존재한다</b>입니다. 아무리 두꺼운 문도 결국 뚫리지만, 대응 인력이 도착할 때까지 버티면 목적을 이룬 것입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>이 관점으로 보면 물리 보안 설계는 시간 계산이 됩니다. “침입자가 담장부터 서버실까지 오는 데 걸리는 시간”이 “탐지 후 경비가 도착하는 시간”보다 길어야 합니다. 탐지가 없는 지연은 의미가 없고(아무도 오지 않으면 결국 뚫린다), 대응이 없는 탐지도 의미가 없습니다(경보가 울려도 아무도 오지 않는다). 그래서 네 기능은 하나씩 따로가 아니라 함께 설계합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>통제의 기능 분류(지시·억제·예방·탐지·교정·복구·보완)는 <a class="xr" href="D1.9.html">D1.9 위험 관리</a>, 물리 보안에서도 사람의 안전이 우선이라는 원칙은 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>과 <a class="xr" href="D7.15.html">D7.15 인원 안전</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D3.8-Q04</div>
+<p>물리 보안에서 보강된 문과 장벽 같은 지연 수단의 1차 목적은?</p><ol type="A"><li>침입을 영구적으로 불가능하게 만드는 것.</li><li>탐지와 대응이 이루어질 충분한 시간을 버는 것.</li><li>시설의 보험료를 낮추는 것.</li><li>건물 설계의 미적 요구사항을 충족하는 것.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 물리 보안은 억제, 지연, 탐지, 대응으로 구성된다. 아무리 두꺼운 문도 결국 뚫리지만 대응 인력이 도착할 때까지 버티면 목적을 달성한 것이다. 지연은 그 자체로 완결되는 통제가 아니라 탐지·대응과 함께 작동해야 한다.</p><ul><li>A · 영구적 차단은 현실적으로 불가능하다.</li><li>C · 보험료는 부수 효과다.</li><li>D · 미적 요소는 보안 목적이 아니다.</li></ul><div class="src">원문 위치 · D3.8-Q04</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.8.md §2 · 공식 개요 3.8 “Apply security principles to site and facility design” · 기존 문제 Q04 주제</div>
+<h2 id="s2"><span class="n">2</span>CPTED — 환경 설계를 통한 범죄 예방</h2>
+<h3 id="s2-easy">쉬운 설명</h3>
+<p><b>CPTED(Crime Prevention Through Environmental Design)</b>는 물리적 환경을 설계해 범죄 기회를 줄이는, 원본이 <b>물리 보안 설계의 핵심 프레임워크</b>로 꼽는 방법입니다.</p>
+<div class="tw"><table>
+<tr><th>전략</th><th>의미</th><th>예시</th></tr>
+<tr><td><b>자연적 접근 통제</b> Natural Access Control</td><td>동선을 설계해 출입을 유도·제한</td><td>조경, 보도 배치, 단일 주출입구</td></tr>
+<tr><td><b>자연적 감시</b> Natural Surveillance</td><td>보이게 만들어 범죄를 억제</td><td>창문 배치, 조명, 낮은 관목</td></tr>
+<tr><td><b>영역성 강화</b> Territorial Reinforcement</td><td>공간의 소유와 경계를 명확히</td><td>울타리, 표지, 포장 변화, 조경 경계</td></tr>
+</table></div>
+<p>원본은 CPTED의 핵심 통찰을 <b>“기계적 통제보다 환경 설계가 먼저”</b>로 정리합니다. 카메라와 경비원을 늘리기 전에, 애초에 접근하기 어렵고 눈에 띄는 환경을 만듭니다.</p>
+<h3 id="s2-land">조경과 유지관리</h3>
+<p>조경의 역할이 특히 중요합니다. 원본은 <b>관목은 1미터 이하, 나무 가지는 2.5미터 이상 높이</b>로 유지해 시야를 가리지 않게 하라고 합니다. 울창한 식재는 침입자에게 은신처가 됩니다. <b>유지관리(maintenance)</b>를 네 번째 요소로 드는 해석도 있습니다. 깨진 창이나 낙서처럼 관리되지 않은 환경은 <b>감시가 없다는 신호</b>를 보냅니다(깨진 유리창 이론).</p>
+<p><b>원문 사례 — 조경이 만든 은신처.</b> 건물 주변 관목이 1.5미터 넘게 자라 창문과 비상구를 가렸고, 침입자가 그 뒤에 숨어 작업할 수 있었으며 CCTV 사각도 생겼습니다. 원본은 이것을 자연적 감시가 무너진 사례로 보고, <b>조경 관리가 보안 활동</b>이라고 정리합니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>방문자가 업무동 정문 접수처를 찾기 어렵고, 어두운 보행로에서 측면 출입문으로 바로 갈 수 있으며, 직원 출입과 방문자 대기 동선이 겹친다고 합시다. CPTED로 고치면 ① 누구나 알아볼 수 있는 하나의 주출입구와 접수처로 동선을 모으고(자연적 접근 통제) ② 보행로와 출입구 주변에 조명을 두고 시야를 가리는 식재를 정리하며(자연적 감시) ③ 직원 구역과 방문자 구역의 경계를 포장·표지·출입문으로 분명히 합니다(영역성 강화). 카메라를 추가하기 전에 이것부터 합니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D3.8-Q11</div>
+<p>환경 설계를 통한 범죄 예방(CPTED)의 핵심 발상은?</p><ol type="A"><li>예산이 허용하는 만큼 많은 카메라와 경비를 배치한다.</li><li>시설 위치를 대중에게 비밀로 유지한다.</li><li>물리적 환경을 설계해 자연적 감시와 명확한 영역 경계, 통제된 접근 경로를 만들어 정당한 이용은 쉽고 부당한 행동은 눈에 띄고 위험하게 느껴지도록 한다.</li><li>향후 범죄를 억제하기 위해 가해자를 더 강하게 기소한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> CPTED 는 장비를 더 설치하는 접근이 아니라 공간 설계로 행동을 유도한다. 시야가 트여 있으면 누가 보고 있다는 느낌을 주고, 경계가 분명하면 들어온 사람이 자기 위치를 알게 되며, 동선이 통제되면 우회 접근이 어렵다. 장비는 이 설계를 보강하는 수단이다.</p><ul><li>A · 장비 수량이 핵심이 아니다.</li><li>B · 위치 은닉은 CPTED 의 발상이 아니다.</li><li>D · 사법 절차는 설계 개념이 아니다.</li></ul><div class="src">원문 위치 · D3.8-Q11</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.8.md §3 CPTED, §7 사례 2 · 기존 문제 Q11 주제</div>
+<h2 id="s3"><span class="n">3</span>계층적 방어</h2>
+<p>물리 보안에도 <b>심층 방어</b>를 적용합니다. 바깥에서 안쪽으로 겹겹이 통제를 둡니다.</p>
+<ol class="steps">
+<li><b>부지 경계</b> — 울타리, 게이트, 차량 차단</li>
+<li><b>건물 외부</b> — 조명, CCTV, 순찰</li>
+<li><b>건물 출입</b> — 접수, 출입 통제, 맨트랩</li>
+<li><b>내부 구역</b> — 구역별 접근 권한</li>
+<li><b>중요 실</b> — 서버실, 금고실</li>
+<li><b>캐비닛·랙</b> — 랙 잠금, 금고</li>
+</ol>
+<p>원본은 <b>각 계층마다 억제·지연·탐지가 조합되어야 한다</b>고 강조합니다. 하나의 계층만 강화하면 그 계층이 뚫렸을 때 안쪽이 무방비가 됩니다.</p>
+<p><b>구역 분류</b>는 공개(public), 통제(controlled), 제한(restricted), 보안(secure) 등으로 나누고 등급이 높아질수록 통제를 강화합니다. 등급 사이를 이동하려면 <b>명시적 인가</b>가 필요합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>계층을 추가할 때는 정상 이용자의 동선과 비상 대피 동선을 함께 그려 봐야 합니다. 안쪽으로 들어오는 사람을 확인하는 장치가 밖으로 대피하는 사람을 막으면 7절의 인명 안전과 충돌합니다. 또 구역 등급은 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>의 정보 분류와 같은 발상입니다. 가장 민감한 자산이 있는 곳이 가장 높은 등급이고, 그 등급에 맞는 통제가 붙습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>심층 방어 원칙은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 출입 통제 기술(카드, 생체, 경비)과 운영은 <a class="xr" href="D7.14.html">D7.14 물리적 보안</a>, 서버실·배선실 같은 구역별 설비 통제는 <a class="xr" href="D3.9.html">D3.9 사이트·설비 보안 통제</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.8.md §3 계층적 방어</div>
+<h2 id="s4"><span class="n">4</span>입지 선정</h2>
+<p>원본은 설비를 <b>어디에 둘 것인가</b>를 첫 번째 보안 결정이라고 부릅니다. 나중에 바꾸기가 가장 어렵기 때문입니다.</p>
+<div class="tw"><table>
+<tr><th>평가 요소</th><th>확인할 것</th></tr>
+<tr><td><b>자연재해</b></td><td>홍수·지진·태풍·산사태 위험 지역 여부</td></tr>
+<tr><td><b>인접 시설</b></td><td>공항, 화학공장, 발전소, 고속도로 — 이웃의 위험이 옮겨 온다</td></tr>
+<tr><td>범죄율</td><td>지역 치안 수준</td></tr>
+<tr><td><b>긴급 대응</b></td><td>소방·경찰·의료까지의 거리와 도달 시간</td></tr>
+<tr><td><b>유틸리티</b></td><td>전력·통신의 안정성과 <b>이중 경로</b> 가능성</td></tr>
+<tr><td>접근성</td><td>직원 출퇴근, 물류 — 보안과 충돌할 수 있다</td></tr>
+<tr><td><b>가시성</b></td><td><b>눈에 띄지 않는 것이 유리</b>하다</td></tr>
+</table></div>
+<p>원본은 <b>가시성은 직관과 반대</b>라고 지적합니다. 데이터센터는 눈에 띄지 않아야 합니다. 간판·로고를 달지 않고 건물 용도를 밖에서 알 수 없게 합니다.</p>
+<p><b>유틸리티 이중화</b>도 입지 단계에서 정해집니다. 서로 다른 변전소에서 전력을 받고, <b>물리적으로 다른 경로</b>로 통신 회선을 끌어와야 합니다. 원본은 사업자만 다르고 같은 관로를 쓰면 이중화가 아니라고 강조합니다.</p>
+<p><b>원문 사례 — 이중화가 아니었던 통신 회선.</b> 데이터센터가 두 통신사와 계약해 회선을 이중화했지만, 두 회선이 같은 관로로 건물에 들어왔고, 도로 공사로 관로가 끊기자 두 회선이 동시에 끊겼습니다.</p>
+<p><b>원문 사례 — 간판이 만든 표적.</b> 데이터센터 외벽에 회사 로고와 “Data Center” 표지를 크게 달았는데, 이는 공격자에게 목표를 알려 주는 것과 같았습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>관로 사례는 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>의 집중 위험과 같은 구조입니다. 서류상 둘이지만 실제로는 한 점에서 함께 실패합니다. 이중화를 확인할 때는 계약서가 아니라 <b>물리 경로</b>(관로, 건물 진입 지점, 상위 변전소)를 그려 봐야 합니다. 클라우드의 “두 개의 가용 영역”도 같은 질문을 받아야 합니다. 정말 독립적으로 실패하는가.</p></div>
+<div class="box link"><p><span class="tag">연결</span>연속성 관점의 집중 위험과 대체 사이트는 <a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a>·<a class="xr" href="D7.10.html">D7.10 복구 전략</a>, 전력·통신 설비의 이중화는 <a class="xr" href="D3.9.html">D3.9 사이트·설비 보안 통제</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D3.8-Q08</div>
+<p>신규 데이터센터 입지 선정 시 평가해야 할 가장 중요한 요소는?</p><ol type="A"><li>인근 직원용 상업 편의시설의 이용 가능성.</li><li>인접 건물의 건축 양식.</li><li>부지 내 이용 가능한 주차 공간 수.</li><li>자연재해 노출, 인접 위험 시설, 긴급 대응 거리, 유틸리티 경로 다양성.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 입지는 나중에 바꾸기가 가장 어려운 결정이다. 홍수·지진 위험, 공항이나 화학공장 같은 인접 위험의 전이, 소방·경찰 도달 시간, 전력과 통신의 물리적 이중 경로 확보 가능성이 핵심 평가 요소다.</p><ul><li>A · 편의시설은 부차적 고려사항이다.</li><li>B · 건축 양식은 보안 요소가 아니다.</li><li>C · 주차 공간은 운영 편의 사항이다.</li></ul><div class="src">원문 위치 · D3.8-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.8.md §3 입지 선정, §7 사례 3, 사례 4 · 기존 문제 Q08 주제</div>
+<h2 id="s5"><span class="n">5</span>건물 구조 요소</h2>
+<h3 id="s5-wall">벽</h3>
+<ul>
+<li>중요 구역의 벽은 <b>바닥 슬래브에서 천장 슬래브까지(slab-to-slab)</b> 올라가야 한다</li>
+<li>가짜 천장(suspended ceiling) 위로 벽이 끊기면 <b>천장 위를 넘어</b> 침입할 수 있다. 전형적인 취약점이다</li>
+<li>화재 등급을 갖춘 자재</li>
+</ul>
+<p><b>원문 사례 — 천장 위로 넘어간 침입.</b> 서버실 출입문에 생체 인증과 맨트랩을 설치했지만, 벽이 가짜 천장까지만 올라가 있었습니다. 침입자는 옆 사무실 천장 패널을 열고 서버실로 넘어 들어왔습니다. 원본의 결론은 <b>물리 보안은 가장 약한 경로로 뚫린다</b>입니다.</p>
+<h3 id="s5-win">창문과 출입구</h3>
+<ul>
+<li>중요 구역에는 <b>창문을 두지 않는 것</b>이 원칙. 불가피하면 강화유리·접합유리, 침입 감지 센서, 필름</li>
+<li><b>문보다 프레임과 경첩이 약한 경우가 많다.</b> 문만 강화하는 것은 의미가 없다</li>
+<li>경첩은 <b>안쪽</b>에 두거나 분리 방지 핀 적용</li>
+<li><b>비상구는 밖으로만 열리고</b> 밖에서 열 수 없으며, 열리면 <b>경보</b>가 울려야 한다</li>
+</ul>
+<h3 id="s5-mantrap">맨트랩</h3>
+<p><b>맨트랩(Mantrap, Access Control Vestibule)</b>은 두 문 사이의 공간으로, <b>한 문이 닫혀야 다른 문이 열립니다.</b> 원본은 이것을 <b>테일게이팅(tailgating) 방지의 핵심 수단</b>으로 꼽습니다. 무게 센서나 인원 감지로 한 사람씩만 통과하게 하기도 합니다. <b>턴스타일(Turnstile)</b>은 더 가볍고 빠른 대안이지만 통제력은 약합니다.</p>
+<h3 id="s5-floor">천장과 바닥</h3>
+<p>가짜 천장 위 공간과 <b>이중 바닥(raised floor)</b> 아래 공간도 침입 경로가 됩니다. 이중 바닥은 접지와 정전기 대책도 함께 필요합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>이 절 전체가 하나의 문장으로 요약됩니다. 공격자는 정문을 돌파하지 않고 <b>옆으로 돌아간다.</b> 천장 위, 바닥 아래, 경첩 쪽, 창문, 옆방 벽. 그래서 중요 구역을 검토할 때는 문의 강도를 보기 전에 그 구역을 둘러싼 여섯 면(벽 네 개, 천장, 바닥)이 모두 같은 수준인지 확인합니다. <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>의 참조 모니터가 “우회 경로가 하나라도 있으면 무의미하다”는 것과 같은 원리입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>테일게이팅과 피기배킹은 <a class="xr" href="D1.12.html">D1.12 인식·교육·훈련</a>의 사회공학, 출입 통제 장치의 운영은 <a class="xr" href="D7.14.html">D7.14 물리적 보안</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D3.8-Q01</div>
+<p>서버룸에 생체 인증과 맨트랩이 있었으나 침입자가 인접 사무실에서 가짜 천장 위 벽을 넘어 들어왔다. 충족되지 않은 설계 요구사항은?</p><ol type="A"><li>맨트랩은 안쪽이 아니라 바깥쪽으로 열려야 한다.</li><li>벽은 바닥 슬래브에서 천장 슬래브까지 이어져야 한다.</li><li>생체 인식기를 스마트카드 리더로 교체해야 한다.</li><li>서버룸에 감시를 위한 창문을 추가해야 한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 벽이 가짜 천장까지만 올라가면 천장 패널을 열고 넘어갈 수 있다. 중요 구역의 벽은 바닥 구조체에서 천장 구조체까지(slab-to-slab) 이어져야 한다. 물리 보안은 가장 강력한 통제가 아니라 가장 약한 경로로 뚫린다.</p><ul><li>A · 개폐 방향은 본 침입 경로와 무관하다.</li><li>C · 인증 방식의 문제가 아니라 구조적 우회 경로의 문제다.</li><li>D · 서버룸에는 창문을 두지 않는 것이 원칙이다.</li></ul><div class="src">원문 위치 · D3.8-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.8.md §3 건물 구조 요소, §7 사례 1 · 기존 문제 Q01 주제</div>
+<h2 id="s6"><span class="n">6</span>조명과 표지</h2>
+<h3 id="s6-light">조명</h3>
+<p>원본은 조명을 <b>가장 비용 효율이 높은 억제 통제</b> 중 하나로 꼽습니다.</p>
+<ul>
+<li>중요 구역 경계와 출입구를 비춘다</li>
+<li>조도와 <b>균일도</b>를 확보한다 — 밝은 곳과 어두운 곳의 대비가 크면 오히려 사각이 생긴다</li>
+<li>CCTV와 연계한다 — 카메라가 볼 수 있는 조도여야 한다</li>
+<li>비상 전원에 연결한다</li>
+</ul>
+<h3 id="s6-sign">표지와 정보 노출</h3>
+<ul>
+<li>중요 시설의 <b>용도를 드러내는 표지</b>는 달지 않는다</li>
+<li>반대로 <b>경고 표지는 필요하다</b> — “무단 출입 금지”, “CCTV 작동 중”은 억제 효과와 법적 근거를 준다</li>
+<li>도면, 네트워크 구성도, 비상 계획 같은 문서가 밖에 노출되지 않게 관리한다</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>“표지를 줄인다”를 지나치게 적용하면 안 됩니다. 찾기 쉬운 접수처와 비상구 표시는 정상 동선을 돕고, 방문자가 헤매며 아무 문이나 열어 보는 상황을 줄여 줍니다. 숨겨야 하는 것은 외부인이 알 필요가 없는 정보(서버실 위치, 장비 종류, 건물의 실제 용도)이고, 드러내야 하는 것은 안전과 정상 이용에 필요한 정보(비상구, 접수처, 경고)입니다.</p></div>
+<div class="src">원문 위치: D3.8.md §3 조명, 표지와 정보 노출, §7 사례 4</div>
+<h2 id="s7"><span class="n">7</span>인명 안전과의 균형</h2>
+<p>원본은 이 지점을 물리 보안 설계에서 <b>가장 자주 충돌하는 곳</b>으로 꼽습니다.</p>
+<div class="tw"><table>
+<tr><th>상황</th><th>인명 안전 우선의 결과</th></tr>
+<tr><td>화재 시 전자 잠금</td><td><b>fail-open</b>(열림)</td></tr>
+<tr><td>비상구</td><td>항상 탈출 가능</td></tr>
+<tr><td>소화 약제</td><td><b>사람에게 안전한 약제</b> 우선</td></tr>
+<tr><td>대피 경로</td><td>보안 구역이라도 확보</td></tr>
+</table></div>
+<p>원본의 해법은 <b>잠금으로 해결할 수 없다면 경보와 감시로 통제한다</b>입니다. 비상구를 잠그는 대신, 열리면 경보가 울리고 CCTV가 기록하게 합니다.</p>
+<p><b>원문 사례 — 비상구를 잠근 결과.</b> 보안 강화를 이유로 비상구를 체인으로 잠갔습니다. 화재 훈련에서 대피가 지연되는 것이 확인되었고, 소방 점검에서 법규 위반으로 적발되었습니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>보안과 안전이 부딪히는 상황에서는 ① 사람의 생명·신체가 걸려 있는지 먼저 보고 ② 걸려 있다면 그 요구가 무조건 우선이며(비상구, fail-open, 안전한 소화 약제) ③ 그 대신 잃은 보안을 다른 기능으로 메웁니다. 예방(잠금)을 못 쓰면 탐지(경보, CCTV)와 대응(경비 출동)으로 바꿉니다. 선택지 중 “비상구를 잠근다”, “화재 시에도 잠금을 유지한다”는 이 원칙과 충돌합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>fail-safe와 fail-secure의 구분은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>의 5절, 소화 설비와 약제는 <a class="xr" href="D3.9.html">D3.9 사이트·설비 보안 통제</a>, 인원 안전과 비상 대응은 <a class="xr" href="D7.15.html">D7.15 인원 안전</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.8.md §3 인명 안전과의 균형, §7 사례 5</div>
+<h2 id="s8"><span class="n">8</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>새 데이터센터 설계안이다. ㉠ 건물 외벽에 회사 로고와 “데이터센터” 간판을 단다. ㉡ 서버실 벽은 가짜 천장 높이까지만 세운다. ㉢ 두 통신사 회선을 같은 관로로 끌어온다. ㉣ 보안을 위해 비상구를 평소 잠가 둔다. 바르게 고친 것은?</p>
+<ol type="A">
+<li>㉠ 용도를 드러내는 표지는 없애고 경고 표지만 둔다 / ㉡ slab-to-slab 벽 / ㉢ 물리적으로 다른 경로 / ㉣ 비상구는 잠그지 않고 열리면 경보·CCTV</li>
+<li>㉠ 간판을 더 크게 단다 / ㉡ 천장에 카메라를 단다 / ㉢ 세 번째 통신사를 추가한다 / ㉣ 체인으로 잠근다</li>
+<li>㉠ 그대로 / ㉡ 문을 강화한다 / ㉢ 그대로 / ㉣ 경비원이 열쇠를 갖는다</li>
+<li>㉠ 로고만 뗀다 / ㉡ 맨트랩을 추가한다 / ㉢ 사업자 계약서를 확인한다 / ㉣ 야간에만 잠근다</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 4·6절, ㉡ 5절(문을 강화해도 벽이 끊기면 소용없다), ㉢ 4절(사업자가 아니라 경로가 달라야 한다), ㉣ 7절(인명 안전 우선, 잠금 대신 경보와 감시). D의 “야간에만 잠근다”도 그 시간에 화재가 나면 같은 문제가 생깁니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">9</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>멀리 떨어진 두 시설을 골랐어도 동시에 장애가 날 수 있는 이유는 무엇인가요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>같은 발전·회선·홍수 위험이나 동일 운영 인력에 의존할 수 있습니다. 발생 가능한 사건과 공통 공급 경로를 지도에 배치해 실제로 분리된 자원이 무엇인지 확인합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">10</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>인명 안전 &gt; 자산 보호.</b> 물리 보안의 최우선 원칙.</li>
+<li>물리적 접근을 허용하면 논리 통제 상당수가 무력화된다.</li>
+<li>네 기능: <b>억제 → 지연 → 탐지 → 대응</b>. 지연의 목적은 <b>대응 시간 확보</b>.</li>
+<li><b>CPTED 3전략: 자연적 접근 통제 / 자연적 감시 / 영역성 강화</b>. 기계적 통제보다 환경 설계가 먼저. 유지관리 부실은 감시 부재의 신호.</li>
+<li>조경: <b>관목 1m 이하, 나무 가지 2.5m 이상</b>.</li>
+<li>계층: <b>부지 경계 → 건물 외부 → 출입 → 내부 구역 → 중요 실 → 랙</b>. 각 계층에 억제·지연·탐지.</li>
+<li>입지: 자연재해, 인접 위험, 범죄율, 긴급 대응 거리, <b>유틸리티 이중 경로</b>, <b>가시성(눈에 띄지 않게)</b>.</li>
+<li><b>이중화는 물리 경로 분리가 전제.</b> 같은 관로면 이중화가 아니다.</li>
+<li><b>벽은 slab-to-slab.</b> 문보다 프레임·경첩이 약하다(경첩은 안쪽). 중요 구역에 창문 없음.</li>
+<li><b>맨트랩 = 테일게이팅 방지.</b> 한 문이 닫혀야 다른 문이 열린다.</li>
+<li><b>조명은 비용 효율 높은 억제 통제.</b> 대비가 크면 사각이 생긴다. 용도 표지 금지, 경고 표지 유지.</li>
+<li><b>비상구는 잠글 수 없다</b> → 경보 + CCTV. 화재 시 전자 잠금은 fail-open.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D3.8.md §8 CISSP 시험 관점, §9 핵심 암기 요약(15항목). 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다. 공식 개요 3.8에는 세부 항목이 없습니다.</div>
+<h2 id="glossary"><span class="n">11</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">CPTED — Crime Prevention Through Environmental Design</span> <span class="term-ko">· 환경 설계를 통한 범죄 예방</span></h3>
+<p>환경 설계로 범죄 기회를 줄이는 접근법. 자연적 접근 통제, 자연적 감시, 영역성 강화가 세 전략이다.</p>
+<h3 id="glossary-2"><span lang="en">Natural Access Control</span> <span class="term-ko">· 자연적 접근 통제</span></h3>
+<p>동선과 구조물 배치로 출입을 유도하고 제한하는 것.</p>
+<h3 id="glossary-3"><span lang="en">Natural Surveillance</span> <span class="term-ko">· 자연적 감시</span></h3>
+<p>시야를 확보해 행위가 보이게 만들어 범죄를 억제하는 것.</p>
+<h3 id="glossary-4"><span lang="en">Territorial Reinforcement</span> <span class="term-ko">· 영역성 강화</span></h3>
+<p>공간의 소유와 경계를 명확히 해 침입자가 이질감을 느끼게 하는 것.</p>
+<h3 id="glossary-5"><span lang="en">Layered Defense</span> <span class="term-ko">· 계층적 방어</span></h3>
+<p>부지 경계부터 캐비닛까지 여러 계층에 통제를 중첩하는 물리 보안 설계.</p>
+<h3 id="glossary-6"><span lang="en">Slab-to-Slab Wall</span> <span class="term-ko">· 슬래브 투 슬래브 벽</span></h3>
+<p>바닥 구조체에서 천장 구조체까지 이어진 벽. 가짜 천장 위를 통한 침입을 막는다.</p>
+<h3 id="glossary-7"><span lang="en">Mantrap / Access Control Vestibule</span> <span class="term-ko">· 맨트랩</span></h3>
+<p>두 문 사이 공간으로 한 문이 닫혀야 다른 문이 열리는 구조. 테일게이팅을 막는다.</p>
+<h3 id="glossary-8"><span lang="en">Tailgating / Piggybacking</span> <span class="term-ko">· 테일게이팅</span></h3>
+<p>인가된 출입자를 따라 물리 통제를 통과하는 행위.</p>
+<h3 id="glossary-9"><span lang="en">Fail-Open / Fail-Secure</span> <span class="term-ko">· 물리 보안 맥락</span></h3>
+<p>전원 상실 시 잠금이 해제되는 방식과 잠긴 상태를 유지하는 방식. 인명이 걸린 곳은 fail-open 이다.</p>
+<h3 id="glossary-10"><span lang="en">Bollard</span> <span class="term-ko">· 볼라드</span></h3>
+<p>차량 진입을 막는 기둥형 구조물.</p>
+<h3 id="glossary-11"><span lang="en">Site Selection</span> <span class="term-ko">· 입지 선정</span></h3>
+<p>설비 위치를 정하는 과정. 자연재해, 인접 위험, 긴급 대응 거리, 유틸리티 이중화를 평가한다.</p>
+<div class="src">원문 위치 · D3.8.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">12</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-53 PE 통제군</strong> — 물리·환경 보호 통제</li>
+<li><strong>ISO/IEC 27002:2022</strong> — 물리적 보안 통제(보안 구역, 장비 보안)</li>
+<li><strong>CPTED</strong> — 환경 설계 기반 범죄 예방</li>
+<li><strong>ASIS International 지침</strong> — 물리 보안 실무 기준</li>
+<li><strong>TIA-942</strong> — 데이터센터 설비 기준</li>
+<li><strong>Uptime Institute Tier 분류</strong> — 데이터센터 가용성 등급</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D3.8.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">물리 보안에서 보강된 문과 장벽 같은 지연 수단의 1차 목적은?</a></li>
+<li><a href="#question-2">환경 설계를 통한 범죄 예방(CPTED)의 핵심 발상은?</a></li>
+<li><a href="#question-3">신규 데이터센터 입지 선정 시 평가해야 할 가장 중요한 요소는?</a></li>
+<li><a href="#question-4">서버룸에 생체 인증과 맨트랩이 있었으나 침입자가 인접 사무실에서 가짜 천장 위 벽을 넘어 들어왔다. 충족되지 않은 설계 요구사항은?</a></li>
+<li><a href="#question-5">새 데이터센터 설계안이다. ㉠ 건물 외벽에 회사 로고와 “데이터센터” 간판을 단다. ㉡ 서버실 벽은 가짜 천장 높이까지만 세운다. ㉢ 두 통신사 회선을 같은 관로로 끌어온다. ㉣ 보안을 위해 비상구를 평소 잠가 둔다. 바르게 고친 것은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D3.7.html"><small>← 이전 단원</small>3.7 암호 분석 공격</a><a href="D3.9.html" style="text-align:right"><small>다음 단원 →</small>3.9 사이트·설비 보안 통제</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

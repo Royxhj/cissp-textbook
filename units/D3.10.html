@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D3.10 정보시스템 생애주기 관리 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D3.10">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 3 보안 아키텍처 및 엔지니어링 › 3.10</div>
+<h1>정보시스템 생애주기 관리</h1>
+<div class="en">Manage the information system lifecycle · ISC2 CISSP Exam Outline(2024-04-15 발효) 3.10</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">정보시스템은 누군가의 요구에서 시작해 만들어지고, 운영되다가 언젠가 폐기됩니다. 이 단원은 그 일생 전체에서 보안이 각 단계에 무엇을 넣어야 하는지를 다룹니다. 원본이 가장 강조하는 원칙은 하나입니다. <b>보안은 앞단에 있을수록 저렴하다.</b></p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a> · <a class="xr" href="D1.10.html">D1.10 위협 모델링</a></td><td>설계 단계에 넣는 설계 원칙과 위협 모델링 (3절)</td></tr>
+<tr><td><a class="xr" href="D3.3.html">D3.3 통제 선택 (RMF·CC)</a></td><td>요구사항에서 통제로, RMF의 평가와 인가(ATO) (2절, 6~7절)</td></tr>
+<tr><td><a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a> · <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a></td><td>골든 이미지·기준선·인벤토리 등록, EOL 추적과 폐기 (7~9절)</td></tr>
+<tr><td><a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a></td><td>폐기 시 데이터 처리와 매체 정화 (9절)</td></tr>
+<tr><td><a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a></td><td>검증·확인 단계에서 수행하는 보안 테스트 (6절)</td></tr>
+<tr><td><a class="xr" href="D7.3.html">D7.3 구성 관리</a> · <a class="xr" href="D7.9.html">D7.9 변경 관리</a></td><td>형상 관리와 변경 관리의 운영 (8절, 10절)</td></tr>
+<tr><td><a class="xr" href="D8.1.html">D8.1 SDLC 보안</a></td><td>소프트웨어 개발 생애주기와 방법론별 보안 통합 (4절, 11절)</td></tr>
+</table></div>
+<p>공식 개요 3.10이 제시하는 단계는 아홉 개입니다.</p>
+<div class="tw"><table>
+<tr><th>단계</th><th>공식 개요 표기</th></tr>
+<tr><td>1. 이해관계자 요구 정의</td><td>Stakeholders needs and requirements</td></tr>
+<tr><td>2. 요구사항 분석</td><td>Requirements analysis</td></tr>
+<tr><td>3. 아키텍처 설계</td><td>Architectural design</td></tr>
+<tr><td>4. 개발·구현</td><td>Development / implementation</td></tr>
+<tr><td>5. 통합</td><td>Integration</td></tr>
+<tr><td>6. 검증과 확인</td><td>Verification and validation</td></tr>
+<tr><td>7. 전환·배포</td><td>Transition / deployment</td></tr>
+<tr><td>8. 운영·유지</td><td>Operations and maintenance / sustainment</td></tr>
+<tr><td>9. 폐기·처분</td><td>Retirement / disposal</td></tr>
+</table></div>
+<p>원본은 결함 수정 비용을 요구사항 단계 1로 놓고 설계 수 배, 구현 수십 배, 운영 수백 배로 설명합니다. 그리고 <b>설계 결함은 운영 단계에서 코드 수정으로 해결되지 않는 경우가 많다</b>고 덧붙입니다. 아키텍처를 다시 그려야 하기 때문입니다.</p>
+<div class="box warn"><p><span class="tag">확인 필요</span>위 비용 배수는 원본이 제시한 대략적인 크기입니다. 이런 배수는 오래된 연구들에서 인용되어 왔지만 근거와 수치에 대한 논쟁이 있습니다(일반 지식에 근거한 주의). 이 교재는 “늦게 고칠수록 비싸고, 설계 결함은 코드로 못 고칠 수 있다”는 방향만 받아들이고 수치는 외울 대상으로 다루지 않습니다.</p></div>
+<h2 id="s1"><span class="n">1</span>이해관계자 요구 정의</h2>
+<p>원본은 <b>누구의 요구인지 식별하는 것이 먼저</b>라고 합니다.</p>
+<div class="tw"><table>
+<tr><th>이해관계자</th><th>관심사</th></tr>
+<tr><td>사업 부서</td><td>기능, 일정, 비용</td></tr>
+<tr><td>최종 사용자</td><td>사용성, 성능</td></tr>
+<tr><td><b>보안</b></td><td>기밀성·무결성·가용성 요구</td></tr>
+<tr><td>법무·컴플라이언스</td><td>규제 충족</td></tr>
+<tr><td>운영</td><td>유지보수성, 모니터링</td></tr>
+<tr><td><b>데이터 소유자</b></td><td>분류와 접근 권한</td></tr>
+</table></div>
+<p>원본의 경고는 이것입니다. <b>보안이 이 단계에 참여하지 못하면 이후 모든 단계에서 뒤따라가게 된다.</b> 요구사항으로 명시되지 않은 보안은 “추가 요청”이 되어 일정과 비용 협상의 대상이 됩니다. 상충하는 요구(사용성과 보안, 성능과 암호화)를 조정하는 것도 이 단계의 일입니다.</p>
+<p><b>원문 사례 — 요구사항에 없던 보안.</b> 보안팀이 요구사항 정의에 참여하지 못한 채 구현이 끝났고, 보안 검토에서 암호화와 감사 로깅이 전혀 없다는 것이 확인되었습니다. 사업 부서는 “요구사항에 없던 것”이라며 추가 일정과 예산을 거부했고, 결국 위험 수용 문서를 쓰고 그대로 출시했습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>의료기기 소프트웨어라면 이 단계의 이해관계자에 규제 당국의 요구(시판 전 사이버보안 문서, SBOM, 위협 모델), 병원 IT 부서(네트워크 분리, 계정 연동), 임상 사용자(응급 시 빠른 접근)가 더해집니다. 이들의 요구가 처음부터 목록에 있으면 “응급 시 빠른 접근”과 “강한 인증”의 충돌을 설계 단계에서 조정(예: 비상 접근 + 강한 감사)할 수 있습니다. 출시 직전에 발견하면 이 단원의 원문 사례처럼 위험 수용으로 넘기게 됩니다.</p></div>
+<div class="src">원문 위치: D3.10.md §2, §3 1) 이해관계자 요구 정의, §7 사례 1 · 공식 개요 3.10 “Stakeholders needs and requirements”</div>
+<h2 id="s2"><span class="n">2</span>요구사항 분석</h2>
+<p>도출된 요구를 <b>검증 가능한 명세로 바꾸는</b> 단계입니다.</p>
+<ul>
+<li><b>구체적</b> — “안전해야 한다”가 아니라 “저장 데이터는 승인된 알고리즘으로 암호화한다”</li>
+<li><b>검증 가능</b> — 충족 여부를 시험할 수 있어야 한다</li>
+<li><b>추적 가능</b> — 어떤 위험이나 규제에서 나왔는지 연결된다</li>
+</ul>
+<p>요구사항의 출처는 법규·규제, 계약, 조직 정책·표준, 위험 평가 결과, 위협 모델링 결과입니다.</p>
+<p><b>요구사항 추적 매트릭스(RTM, Requirements Traceability Matrix)</b>로 요구사항-설계-구현-시험을 연결하면, 나중에 <b>“이 통제가 왜 있는가”와 “이 요구가 구현되었는가”</b>를 양쪽 방향으로 확인할 수 있습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>RTM이 양방향이어야 하는 이유는 두 가지 실패가 반대 방향이기 때문입니다. 위에서 아래로(요구 → 시험) 따라가면 “구현되지 않은 요구”가 보이고, 아래에서 위로(통제 → 요구) 따라가면 “아무 요구에도 연결되지 않은 통제”가 보입니다. 앞의 것은 보안 공백, 뒤의 것은 왜 있는지 모르는 통제라서 나중에 누군가 지워도 아무도 반대하지 못합니다. <a class="xr" href="D3.3.html">D3.3 통제 선택 (RMF·CC)</a>의 “이 통제가 어떤 요구사항을 충족하는가에 답할 수 없다면 재검토 대상”과 같은 생각입니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D3.10-Q07</div>
+<p>설계와 시험에 가장 유용한 보안 요구사항 기술은?</p><ol type="A"><li>시스템은 가능한 경우 업계 모범 사례를 따라야 한다.</li><li>프로젝트 전반에 걸쳐 보안이 고려되어야 한다.</li><li>저장된 고객 기록은 조직 승인 알고리즘으로 암호화하고 키는 전사 키 관리 시스템에서 관리한다.</li><li>시스템은 알려진 모든 위협과 알려지지 않은 위협에 안전해야 한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 좋은 보안 요구사항은 구체적이고 검증 가능하며 추적 가능해야 한다. 무엇을 어떤 방식으로 보호하는지 명시되어야 설계로 번역되고 시험으로 확인된다. 안전해야 한다는 표현은 요구사항이 아니라 구호이며 충족 여부를 판단할 수 없다.</p><ul><li>A · 가능한 경우라는 표현이 모호해 집행할 수 없다.</li><li>B · 선언적 문장으로 시험 기준이 되지 못한다.</li><li>D · 알려지지 않은 위협까지 보장한다는 것은 검증 불가능하다.</li></ul><div class="src">원문 위치 · D3.10-Q07</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.10.md §3 2) 요구사항 분석, §4 RTM · 공식 개요 3.10 “Requirements analysis” · 기존 문제 Q07 주제</div>
+<h2 id="s3"><span class="n">3</span>아키텍처 설계</h2>
+<p>보안이 <b>구조로 들어가는 단계</b>입니다.</p>
+<ul>
+<li>안전 설계 원칙 적용 — 최소권한, 심층 방어, 안전한 기본값, 제로 트러스트</li>
+<li>위협 모델링 — 데이터 흐름도와 신뢰 경계 식별</li>
+<li>통제 선택 — 베이스라인 선정과 조정</li>
+<li>데이터 흐름과 분류 매핑</li>
+<li>장애 모드 설계 — 안전한 실패</li>
+</ul>
+<p>원본은 <b>이 단계의 결정이 이후를 구속한다</b>고 말합니다. 신뢰 경계를 잘못 그으면 구현을 아무리 잘해도 구조적 취약점이 남습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>설계 원칙은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 위협 모델링은 <a class="xr" href="D1.10.html">D1.10 위협 모델링</a>, 통제 선택은 <a class="xr" href="D3.3.html">D3.3 통제 선택 (RMF·CC)</a>, 데이터 분류는 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>에서 다뤘습니다.</p></div>
+<div class="src">원문 위치: D3.10.md §3 3) 아키텍처 설계 · 공식 개요 3.10 “Architectural design”</div>
+<h2 id="s4"><span class="n">4</span>개발·구현</h2>
+<ul>
+<li><b>안전한 코딩 표준</b>과 교육</li>
+<li><b>SAST</b> — 정적 분석으로 코드 수준 결함 탐지</li>
+<li>의존성 관리와 <b>SBOM</b></li>
+<li><b>비밀 정보 관리</b> — 코드에 자격증명 하드코딩 금지</li>
+<li>코드 리뷰 — 동료 검토와 보안 관점 검토</li>
+<li>개발 환경 보호 — 빌드 파이프라인 무결성</li>
+</ul>
+<p>원본은 <b>개발 환경에 운영 데이터를 쓰지 않는다</b>는 원칙도 다시 강조합니다. 마스킹 데이터나 합성 데이터를 씁니다.</p>
+<div class="box link"><p><span class="tag">연결</span>안전한 코딩은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>, SAST 같은 소프트웨어 보안 시험은 <a class="xr" href="D8.3.html">D8.3 소프트웨어 보안 효과성</a>, 파이프라인과 의존성 보안은 <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>, SBOM은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, 운영 데이터의 개발 환경 사용 금지는 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.10.md §3 4) 개발·구현 · 공식 개요 3.10 “Development / implementation”</div>
+<h2 id="s5"><span class="n">5</span>통합</h2>
+<p>구성 요소를 결합하는 단계이며 <b>새로운 신뢰 경계가 생깁니다.</b></p>
+<ul>
+<li>인터페이스 보안 — API 인증·인가</li>
+<li>구성 요소 간 <b>상호 인증</b></li>
+<li>제3자 구성 요소의 보안 평가</li>
+<li>통합 환경의 접근 통제</li>
+<li><b>구성 관리</b> — 어떤 버전이 결합되었는지 추적</li>
+</ul>
+<p>원본은 <b>통합 지점이 가장 자주 간과된다</b>고 말합니다. 개별 구성 요소는 안전해도 그 사이의 연결이 평문이거나 인증되지 않는 경우가 많습니다.</p>
+<p><b>원문 사례 — 통합 지점의 평문 통신.</b> 각 마이크로서비스는 자체 보안 검토를 통과했지만, 서비스 간 통신이 인증 없는 평문 HTTP였습니다. 구성 요소별 검토에서는 드러나지 않았습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>통합 시험은 “정상일 때”만 보면 부족합니다. 예를 들어 인사 시스템과 계정 시스템이 각각 정상이어도 전보 이벤트가 전달되지 않으면 이전 부서 권한이 남습니다. 정상 이벤트, 누락·지연된 이벤트, 재시도 상황 각각에서 최종 권한 상태를 확인해야 하고, 두 시스템 사이의 연계에 책임자를 정해 두어야 “상대 팀이 처리할 줄 알았다”는 공백이 줄어듭니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>API와 마이크로서비스의 취약점은 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>, 서비스 간에도 위치를 믿지 않는 제로 트러스트는 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 계정 생애주기와 전보 처리는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.10.md §3 5) 통합, §7 사례 3 · 공식 개요 3.10 “Integration”</div>
+<h2 id="s6"><span class="n">6</span>검증과 확인</h2>
+<h3 id="s6-easy">쉬운 설명</h3>
+<p>원본이 이 단원에서 <b>가장 중요한 구분</b>으로 꼽는 부분입니다.</p>
+<div class="tw"><table>
+<tr><th>구분</th><th>묻는 질문</th><th>기준</th></tr>
+<tr><td><b>검증</b> Verification</td><td><b>“제대로 만들고 있는가?”</b><br/>Are we building the product right?</td><td><b>명세</b> 충족 여부</td></tr>
+<tr><td><b>확인</b> Validation</td><td><b>“올바른 것을 만들고 있는가?”</b><br/>Are we building the right product?</td><td><b>실제 요구·목적</b> 충족 여부</td></tr>
+</table></div>
+<p>원본의 요약은 <b>명세대로 완벽히 만들었어도(검증 통과) 명세 자체가 틀렸다면(확인 실패) 쓸모가 없다</b>입니다.</p>
+<div class="tw"><table>
+<tr><th>활동</th><th>분류</th></tr>
+<tr><td>코드 리뷰, 단위 시험, 명세 대비 시험</td><td>검증</td></tr>
+<tr><td>보안 테스트, 침투 테스트, 사용자 수용 시험</td><td>확인</td></tr>
+<tr><td>통제 평가(RMF Assess)</td><td>검증 중심</td></tr>
+<tr><td>인가(RMF Authorize)</td><td>위험 수용 결정</td></tr>
+</table></div>
+<p><b>원문 사례 — 검증은 통과하고 확인은 실패한 시스템.</b> 접근 통제 모듈이 명세대로 정확히 구현되어 모든 단위 시험과 코드 리뷰를 통과했습니다. 그런데 명세가 역할 기반 권한만 고려하고 데이터 소유권을 반영하지 않아, 같은 역할이면 다른 부서 데이터도 볼 수 있었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>두 활동의 기록을 따로 남기면 문제가 생겼을 때 어디로 돌아가야 할지 알 수 있습니다. 검증 실패는 구현(4단계)으로, 확인 실패는 요구사항(1~2단계)으로 돌아갑니다. 설계 문서가 “세션 30분 제한”을 정했고 정확히 구현했는데(검증 성공), 사용자가 30분 안에 핵심 업무를 끝낼 수 없다면(확인 실패), 고칠 것은 코드가 아니라 요구사항입니다. 의료기기 분야에서는 설계 검증(design verification)과 설계 확인(design validation)을 규제 요구로 구분하는 것도 같은 생각입니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>지문이 “명세대로 구현되었다”, “시험을 모두 통과했다”라고 하면서 문제가 남아 있다고 하면 확인(validation)의 실패를 의심합니다. 반대로 “명세와 구현이 다르다”면 검증(verification)의 실패입니다. 기준이 명세인지 실제 요구인지를 먼저 가립니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>이 단계에서 수행하는 취약점 평가·침투 테스트는 <a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a>, 통제 평가와 인가는 <a class="xr" href="D3.3.html">D3.3 통제 선택 (RMF·CC)</a>, 소프트웨어 개발 생애주기에서의 검증·확인은 <a class="xr" href="D8.1.html">D8.1 SDLC 보안</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D3.10-Q01</div>
+<p>접근 통제 모듈이 명세대로 정확히 구현되어 모든 단위 시험을 통과했으나, 명세 자체가 데이터 소유권을 누락해 사용자가 다른 부서 기록을 볼 수 있다. 실패한 활동은?</p><ol type="A"><li>검증. 구현이 명세와 일치하지 않았기 때문.</li><li>확인. 명세와 일치함에도 실제 요구를 충족하지 못했기 때문.</li><li>통합. 구성요소가 잘못 결합되었기 때문.</li><li>형상 관리. 기준선이 기록되지 않았기 때문.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 검증(Verification)은 명세대로 만들었는지를 묻고 확인(Validation)은 올바른 것을 만들었는지를 묻는다. 이 사례는 구현이 명세와 일치해 검증은 통과했지만 명세 자체가 실제 요구를 반영하지 못해 확인에 실패한 경우다. 명세가 틀리면 완벽한 구현도 틀린 결과를 낳는다.</p><ul><li>A · 구현은 명세와 일치했으므로 검증은 통과했다.</li><li>C · 구성요소 결합의 문제가 아니다.</li><li>D · 기준선 기록과 무관한 요구 정의의 결함이다.</li></ul><div class="src">원문 위치 · D3.10-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.10.md §3 6) 검증과 확인, §4 Verification·Validation, §7 사례 2 · 공식 개요 3.10 “Verification and validation” · 기존 문제 Q01 주제</div>
+<h2 id="s7"><span class="n">7</span>전환·배포</h2>
+<ul>
+<li><b>보안 기준선 적용</b>과 골든 이미지</li>
+<li>운영 환경 <b>강화(hardening)</b></li>
+<li>배포 전 최종 검증 — 설정 점검</li>
+<li><b>인가(ATO)</b> 획득</li>
+<li>롤백 계획</li>
+<li>운영 인계 — 문서, 절차, 담당자 지정</li>
+<li><b>인벤토리 등록</b>과 소유자 지정</li>
+</ul>
+<p>원본은 <b>배포 시점이 보안 설정의 기준선</b>이 된다고 말합니다. 이때 누락된 설정은 이후 드리프트의 출발점이 됩니다.</p>
+<p><b>원문 사례 — 배포 시점의 설정 누락.</b> 운영 배포 때 개발 환경의 디버그 모드와 상세 오류 메시지 설정이 그대로 넘어가 스택 트레이스와 내부 경로가 사용자에게 노출되었습니다. 원본은 배포 전 설정 점검 항목에 환경별 차이를 반드시 넣으라고 정리합니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>운영 전환의 순서는 ① 수락 기준을 충족했는지 확인하고 ② 운영 환경 설정을 강화·검증하며(환경별 차이 포함) ③ 인가(ATO)를 받고 ④ 롤백 계획을 갖춘 채 영향이 적은 시간에 전환하고 ⑤ 운영자에게 문서와 절차를 인계합니다. “먼저 배포하고 문제가 생기면 고친다”, “피크 시간에 전환해 문제를 빨리 찾는다”는 이 순서를 거스릅니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>골든 이미지·기준선·인벤토리 등록은 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, 안전한 실패와 오류 메시지는 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 배포와 롤백을 포함한 변경 관리는 <a class="xr" href="D7.9.html">D7.9 변경 관리</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D3.10-Q13</div>
+<p>시스템을 운영 환경으로 전환하는 올바른 순서는?</p><ol type="A"><li>먼저 운영자를 교육하고 그들이 배운 것을 근거로 수락 기준을 작성한다.</li><li>문제가 즉시 눈에 띄도록 피크 시간대에 전환한다.</li><li>운영 환경에 배포한 뒤 문제가 생기는 대로 설정을 검증하고 운영자를 교육한다.</li><li>수락 기준 충족을 확인하고 운영 환경 설정을 강화·검증한 뒤 문서를 인계하고 운영자를 교육하고 모니터링과 백업이 갖춰졌는지 확인한 다음 복구 계획을 준비한 상태로 전환한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 전환은 시스템이 보안 책임과 함께 운영 조직으로 넘어가는 시점이다. 모니터링과 백업이 없는 상태로 운영에 들어가면 장애를 알지 못하고 복구할 수단도 없다. 수락 기준은 설계·개발 단계에서 정의된 것이고 전환 단계에서는 그 충족을 확인한다. 복구 계획 없이 전환하면 실패 시 되돌릴 수 없다.</p><ul><li>A · 수락 기준은 앞 단계 산출물이다.</li><li>B · 피크 시간 전환은 영향을 최대화한다.</li><li>C · 검증 없는 배포는 사고로 이어진다.</li></ul><div class="src">원문 위치 · D3.10-Q13</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.10.md §3 7) 전환·배포, §7 사례 5 · 공식 개요 3.10 “Transition / deployment” · 기존 문제 Q13 주제</div>
+<h2 id="s8"><span class="n">8</span>운영·유지</h2>
+<p>시스템 수명의 <b>대부분을 차지하는 단계</b>입니다.</p>
+<ul>
+<li><b>패치와 취약점 관리</b></li>
+<li><b>구성 드리프트 점검</b></li>
+<li>접근 권한 주기 검토</li>
+<li>로깅과 모니터링</li>
+<li>변경 관리 — 승인된 변경만 반영</li>
+<li><b>정기 재평가</b> — 위험 환경 변화 반영</li>
+<li>EOL/EOS 추적</li>
+</ul>
+<p>원본은 <b>변경이 생기면 생애주기가 되돌아간다</b>고 설명합니다. 중대한 변경은 요구사항 분석부터 다시 거치며, 이것이 RMF의 Monitor 단계가 순환인 이유입니다.</p>
+<div class="box link"><p><span class="tag">연결</span>패치와 취약점 관리는 <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>, 드리프트는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>·<a class="xr" href="D7.3.html">D7.3 구성 관리</a>, 접근 검토는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>, 로깅과 모니터링은 <a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>, EOL/EOS는 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>, RMF의 순환은 <a class="xr" href="D3.3.html">D3.3 통제 선택 (RMF·CC)</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.10.md §3 8) 운영·유지 · 공식 개요 3.10 “Operations and maintenance / sustainment”</div>
+<h2 id="s9"><span class="n">9</span>폐기·처분</h2>
+<p>원본은 이 단계를 <b>가장 자주 생략되는 단계</b>라고 부릅니다.</p>
+<div class="tw"><table>
+<tr><th>활동</th><th>내용</th></tr>
+<tr><td><b>의존성 확인</b></td><td>다른 시스템이 이 시스템을 참조하는가</td></tr>
+<tr><td>데이터 <b>마이그레이션 또는 파기 결정</b></td><td>보존 의무 확인</td></tr>
+<tr><td><b>매체 정화</b></td><td>Clear / Purge / Destroy 선택</td></tr>
+<tr><td>라이선스 해지와 회수</td><td></td></tr>
+<tr><td><b>접근 권한 회수</b></td><td>계정, 인증서, 키</td></tr>
+<tr><td><b>인벤토리 제거</b></td><td>실체 없는 항목 방지</td></tr>
+<tr><td>처분과 <b>증빙</b></td><td>파기 증명서</td></tr>
+</table></div>
+<p>원본은 <b>의존성 확인이 특히 중요하다</b>고 강조합니다.</p>
+<p><b>원문 사례 — 폐기하지 못한 의존성.</b> 레거시 시스템을 폐기하고 서버를 회수한 다음 날 업무 시스템 3개가 장애를 일으켰습니다. 야간 배치가 그 시스템의 데이터를 참조하고 있었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>새 시스템으로 옮긴 뒤에도 폐기 검증이 남습니다. 새 시스템의 데이터 수량이 맞더라도, 이전 시스템의 서비스 계정, 외부 연계, 백업은 그대로 남아 있을 수 있습니다. 이관 결과(수량·무결성·읽기 가능성)를 확인하고, 이전 환경을 언제까지 보존할지와 되돌아갈 조건을 정한 뒤, 계정·인증서·연계·백업을 하나씩 닫아야 폐기가 끝납니다. 이 중 서비스 계정과 인증서가 남으면 아무도 감시하지 않는 접근 경로가 됩니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>데이터 파기와 매체 정화는 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>, 자산 보존 종료 시의 처리 순서는 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>, 인벤토리와 의존 관계는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>에서 다뤘습니다.</p></div>
+<div class="src">원문 위치: D3.10.md §3 9) 폐기·처분, §7 사례 4 · 공식 개요 3.10 “Retirement / disposal”</div>
+<h2 id="s10"><span class="n">10</span>형상 관리와 변경 관리</h2>
+<p>생애주기 전체를 가로지르는 두 축입니다.</p>
+<div class="tw"><table>
+<tr><th>구분</th><th>역할</th></tr>
+<tr><td><b>형상 관리</b> Configuration Management</td><td><b>무엇이 어떤 상태인지</b> 기록하고 통제</td></tr>
+<tr><td><b>변경 관리</b> Change Management</td><td><b>변경을 승인하고 추적</b>하는 절차</td></tr>
+</table></div>
+<p><b>형상 기준선(baseline)</b>을 정하고, 모든 변경은 <b>승인 → 시험 → 적용 → 기록</b>을 거칩니다. 원본은 승인되지 않은 변경이 구성 드리프트의 주원인이라고 다시 짚습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>형상 관리가 추적하는 것은 소스 코드만도, 하드웨어 목록만도 아닙니다. 시스템을 이루는 구성 요소(하드웨어, 소프트웨어, 펌웨어, 설정, 문서)와 그 버전의 <b>승인된 상태</b>입니다. 그래야 “지금 무엇이 배포되어 있는가”와 “승인된 상태와 다른가”를 답할 수 있습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>구성 드리프트와 불변 인프라는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>, 운영 단계의 구성 관리는 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>, 변경 관리 절차와 긴급 변경은 <a class="xr" href="D7.9.html">D7.9 변경 관리</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D3.10-Q19</div>
+<p>형상 관리가 추적하는 것은?</p><ol type="A"><li>애플리케이션의 소스 코드만.</li><li>각 시스템에 대한 사용자 접근 권한만.</li><li>데이터센터의 하드웨어 인벤토리만.</li><li>시스템 구성요소와 그 버전의 승인된 상태. 그래서 무엇이 배포되어 있는지 알 수 있고 그에 대한 변경을 식별할 수 있다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 형상 관리의 핵심 질문은 "지금 무엇이 어떤 버전으로 돌고 있는가" 다. 이것이 확정되어야 변경을 식별할 수 있고 취약점 공개 시 영향 범위를 판단할 수 있으며 문제 발생 시 알려진 상태로 되돌릴 수 있다. 소스 코드와 하드웨어, 설정이 모두 대상이며 접근 권한 관리는 별개 영역이다.</p><ul><li>A · 소스 코드만이 아니다.</li><li>B · 접근 권한은 별개 영역이다.</li><li>C · 하드웨어만이 아니다.</li></ul><div class="src">원문 위치 · D3.10-Q19</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.10.md §3 형상 관리와 변경 관리 · 기존 문제 Q19 주제</div>
+<h2 id="s11"><span class="n">11</span>개발 방법론과 보안</h2>
+<div class="tw"><table>
+<tr><th>방법론</th><th>보안 통합 방식</th></tr>
+<tr><td>폭포수 Waterfall</td><td>단계별 게이트에 보안 검토 삽입</td></tr>
+<tr><td>애자일 Agile</td><td>스프린트마다 보안 활동 분산, 보안 사용자 스토리</td></tr>
+<tr><td><b>DevSecOps</b></td><td>파이프라인에 보안 자동화 내장</td></tr>
+</table></div>
+<p>원본은 <b>애자일에서도 보안 요구사항은 백로그에 명시되어야 한다</b>고 강조합니다. “나중에”는 영영 오지 않습니다. 자세한 내용은 <a class="xr" href="D8.1.html">D8.1 SDLC 보안</a>에서 다룹니다.</p>
+<div class="src">원문 위치: D3.10.md §3 개발 방법론과 보안</div>
+<h2 id="s12"><span class="n">12</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>한 프로젝트에서 다음이 일어났다. ㉠ 보안팀은 구현이 끝난 뒤에 처음 참여했다. ㉡ 모든 단위 시험을 통과했지만 실제 업무에서 다른 부서 데이터가 보였다. ㉢ 서비스 간 연동이 평문이었다. ㉣ 구 시스템을 폐기한 다음 날 야간 배치가 실패했다. 각 항목이 빠뜨린 단계로 바르게 짝지은 것은?</p>
+<ol type="A">
+<li>㉠ 이해관계자 요구 정의 / ㉡ 확인(validation) / ㉢ 통합 / ㉣ 폐기 전 의존성 확인</li>
+<li>㉠ 운영·유지 / ㉡ 검증(verification) / ㉢ 개발 / ㉣ 전환</li>
+<li>㉠ 통합 / ㉡ 통합 / ㉢ 검증 / ㉣ 운영</li>
+<li>㉠ 폐기 / ㉡ 요구사항 분석 / ㉢ 아키텍처 / ㉣ 확인</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 1절(원문 사례 1), ㉡ 6절(명세대로 만들었는데 실제 요구를 못 맞춤 — 확인 실패), ㉢ 5절(통합이 새 신뢰 경계를 만든다), ㉣ 9절(원문 사례 4).</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">13</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>문서대로 만들었어도 현업이 쓸 수 없다면 어느 단계의 확인이 부족했나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>명세 충족을 보는 검증에 성공했더라도 업무 요구를 충족하는지 보는 확인에는 실패할 수 있습니다. 요구사항을 실제 사용자 작업과 테스트의 기대 결과로 연결합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">14</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>9단계: <b>이해관계자 요구 → 요구사항 분석 → 아키텍처 설계 → 개발·구현 → 통합 → 검증·확인 → 전환·배포 → 운영·유지 → 폐기·처분</b>.</li>
+<li><b>보안은 앞단일수록 저렴하다.</b> 설계 결함은 코드 수정으로 못 고칠 수 있다.</li>
+<li>보안은 <b>요구사항 정의 단계에서</b> 확보한다. 명시되지 않은 보안은 협상 대상이 된다.</li>
+<li>좋은 요구사항: <b>구체적 · 검증 가능 · 추적 가능</b>. <b>RTM으로 양방향 추적</b>.</li>
+<li>설계에 위협 모델링과 설계 원칙. 설계 결정이 이후를 구속한다.</li>
+<li>개발: 안전한 코딩, SAST, SBOM, 비밀 정보 관리, 코드 리뷰. 개발 환경에 운영 데이터 금지.</li>
+<li><b>통합은 새 신뢰 경계</b>를 만든다. 인터페이스 인증이 흔한 공백.</li>
+<li><b>검증 = 명세 충족(“제대로 만드는가”), 확인 = 실제 요구 충족(“올바른 것을 만드는가”).</b> 명세가 틀리면 완벽한 구현도 무의미.</li>
+<li><b>배포 시점이 보안 기준선.</b> 골든 이미지, 설정 점검(환경별 차이), ATO, 인벤토리 등록과 소유자 지정, 롤백 계획.</li>
+<li>운영: 패치, 드리프트 점검, 권한 검토, 모니터링, 재평가, EOL 추적. <b>중대 변경은 생애주기를 되돌린다.</b></li>
+<li>폐기: <b>의존성 확인</b> → 데이터 처리 → 정화 → 라이선스 해지 → 권한 회수 → 인벤토리 제거 → 증빙.</li>
+<li><b>형상 관리 = 상태 기록·통제, 변경 관리 = 승인·추적.</b> 애자일에서도 보안 요구는 백로그에.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D3.10.md §8 CISSP 시험 관점, §9 핵심 암기 요약(15항목). 원본의 “시험에 자주 나온다” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">15</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">SDLC / SELC — Software Development Life Cycle / Systems Engineering Life Cycle</span> <span class="term-ko">· 소프트웨어 개발 생애주기 / 시스템 엔지니어링 생애주기</span></h3>
+<p>소프트웨어 개발 생애주기와 시스템 엔지니어링 생애주기. 착안부터 폐기까지의 전 과정을 다룬다.</p>
+<h3 id="glossary-2"><span lang="en">Stakeholder</span> <span class="term-ko">· 이해관계자</span></h3>
+<p>시스템에 이해를 갖는 모든 주체. 사업, 사용자, 보안, 법무, 운영, 데이터 소유자를 포함한다.</p>
+<h3 id="glossary-3"><span lang="en">RTM — Requirements Traceability Matrix</span> <span class="term-ko">· 요구사항 추적 매트릭스</span></h3>
+<p>요구사항-설계-구현-시험을 연결해 양방향 추적을 가능하게 하는 도구.</p>
+<h3 id="glossary-4"><span lang="en">Verification</span> <span class="term-ko">· 검증</span></h3>
+<p>명세대로 만들었는지 확인하는 활동. "제대로 만들고 있는가"를 묻는다.</p>
+<h3 id="glossary-5"><span lang="en">Validation</span> <span class="term-ko">· 확인</span></h3>
+<p>실제 요구와 목적을 충족하는지 확인하는 활동. "올바른 것을 만들고 있는가"를 묻는다.</p>
+<h3 id="glossary-6"><span lang="en">Integration</span> <span class="term-ko">· 통합</span></h3>
+<p>구성요소를 결합하는 단계. 새로운 신뢰 경계와 인터페이스 보안 요구가 생긴다.</p>
+<h3 id="glossary-7"><span lang="en">Transition / Deployment</span> <span class="term-ko">· 전환·배포</span></h3>
+<p>운영 환경으로 이전하는 단계. 기준선 적용, 인가 획득, 인벤토리 등록이 수반된다.</p>
+<h3 id="glossary-8"><span lang="en">Sustainment</span> <span class="term-ko">· 유지</span></h3>
+<p>운영 중 시스템의 성능과 보안 상태를 지속 유지하는 활동.</p>
+<h3 id="glossary-9"><span lang="en">Configuration Management</span> <span class="term-ko">· 형상 관리</span></h3>
+<p>시스템 구성요소와 그 상태를 기록하고 통제하는 활동.</p>
+<h3 id="glossary-10"><span lang="en">Change Management</span> <span class="term-ko">· 변경 관리</span></h3>
+<p>변경을 승인하고 추적하는 절차. 승인되지 않은 변경이 드리프트의 주원인이다.</p>
+<h3 id="glossary-11"><span lang="en">Baseline</span> <span class="term-ko">· 기준선</span></h3>
+<p>형상 관리에서 승인된 기준 상태. 이후 변경은 이 기준에서 추적된다.</p>
+<h3 id="glossary-12"><span lang="en">Retirement / Disposal</span> <span class="term-ko">· 폐기·처분</span></h3>
+<p>시스템 운영을 종료하고 데이터·매체·권한·인벤토리를 정리하는 단계.</p>
+<div class="src">원문 위치 · D3.10.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">16</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-160 Vol.1</strong> — 시스템 보안 엔지니어링. 생애주기 전반의 보안 통합</li>
+<li><strong>ISO/IEC/IEEE 15288</strong> — 시스템 생애주기 프로세스</li>
+<li><strong>ISO/IEC/IEEE 12207</strong> — 소프트웨어 생애주기 프로세스</li>
+<li><strong>NIST SP 800-37 (RMF)</strong> — 생애주기와 연계된 위험관리(D3.3 참조)</li>
+<li><strong>NIST SP 800-64</strong> — 시스템 개발 생애주기의 보안 고려사항</li>
+<li><strong>NIST SP 800-128</strong> — 보안 중심 형상 관리</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D3.10.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">설계와 시험에 가장 유용한 보안 요구사항 기술은?</a></li>
+<li><a href="#question-2">접근 통제 모듈이 명세대로 정확히 구현되어 모든 단위 시험을 통과했으나, 명세 자체가 데이터 소유권을 누락해 사용자가 다른 부서 기록을 볼 수 있다. 실패한 활동은?</a></li>
+<li><a href="#question-3">시스템을 운영 환경으로 전환하는 올바른 순서는?</a></li>
+<li><a href="#question-4">형상 관리가 추적하는 것은?</a></li>
+<li><a href="#question-5">한 프로젝트에서 다음이 일어났다. ㉠ 보안팀은 구현이 끝난 뒤에 처음 참여했다. ㉡ 모든 단위 시험을 통과했지만 실제 업무에서 다른 부서 데이터가 보였다. ㉢ 서비스 간 연동이 평문이었다. ㉣ 구 시스템을 폐기한 다음 날 야간 배치가 실패했다. 각 항목이 빠뜨린 단계로 바르게 짝지은 것은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D3.9.html"><small>← 이전 단원</small>3.9 사이트·설비 보안 통제</a><a href="D4.1.html" style="text-align:right"><small>다음 단원 →</small>4.1 네트워크 아키텍처</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

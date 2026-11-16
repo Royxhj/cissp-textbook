@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D3.2 보안 모델의 기본 개념 이해 (Biba, Star Model, Bell-LaPadula) — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D3.2">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 6개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 3 보안 아키텍처 및 엔지니어링 › 3.2</div>
+<h1>보안 모델의 기본 개념 이해 (Biba, Star Model, Bell-LaPadula)</h1>
+<div class="en">Understand the fundamental concepts of security models (e.g., Biba, Star Model, Bell-LaPadula) · ISC2 CISSP Exam Outline(2024-04-15 발효) 3.2</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 6개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">“기밀 정보가 새지 않게 하라”는 정책은 좋은 말이지만, 그대로는 시스템이 지켰는지 검사할 수 없습니다. 보안 모델은 이런 정책을 “이 등급의 사용자는 저 등급의 자료를 읽을 수 없다” 같은 검증 가능한 규칙으로 바꾼 것입니다. 이 단원은 대표적인 모델들이 각각 무엇을 지키려고 만들어졌는지를 다룹니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a></td><td>모델마다 지키는 속성이 다르다. BLP는 기밀성, Biba와 Clark-Wilson은 무결성 (1절)</td></tr>
+<tr><td><a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a></td><td>등급과 구획. 격자 기반 접근 통제가 이 구조를 수학으로 만든다 (2절)</td></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a></td><td>최소권한, 직무 분리, 단순성 같은 설계 원칙을 형식 규칙으로 만든 것 (6절)</td></tr>
+<tr><td><a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a></td><td>강제적 접근 통제(MAC)와 역할·속성 기반 접근 통제의 실제 구현 (2~3절)</td></tr>
+<tr><td><a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a></td><td>Clark-Wilson의 직무 분리가 운영 절차로 내려간 모습 (6절)</td></tr>
+<tr><td><a class="xr" href="D3.3.html">D3.3 통제 선택 (RMF·CC)</a></td><td>BLP를 바탕으로 한 TCSEC과 그 뒤를 이은 Common Criteria (3절)</td></tr>
+<tr><td><a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a> · <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a></td><td>은닉 채널과 부채널 (9절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>보안 모델이란, 그리고 상태 기계</h2>
+<h3 id="s1-why">왜 필요한가</h3>
+<div class="flow">
+<div class="nd"><b>보안 정책</b>무엇을 지킬 것인가</div><div class="ar">→</div>
+<div class="nd"><b>보안 모델</b>형식 규칙으로 표현</div><div class="ar">→</div>
+<div class="nd"><b>실제 시스템</b>규칙을 강제하는 메커니즘</div>
+</div>
+<p><b>보안 모델(Security Model)</b>은 보안 정책을 수학적·형식적으로 표현한 것입니다. 원본은 모델이 필요한 이유를 <b>검증 가능성</b>으로 설명합니다. “기밀 정보가 새지 않는다”는 검증할 수 없지만, “낮은 등급 주체는 높은 등급 객체를 읽을 수 없다”는 검증할 수 있습니다.</p>
+<p>원본이 가장 먼저 외우라고 하는 대응입니다.</p>
+<div class="tw"><table>
+<tr><th>모델</th><th>보호 목표</th></tr>
+<tr><td><b>Bell-LaPadula</b></td><td><b>기밀성</b></td></tr>
+<tr><td><b>Biba</b></td><td><b>무결성</b></td></tr>
+<tr><td><b>Clark-Wilson</b></td><td>무결성(상용 환경)</td></tr>
+<tr><td><b>Brewer-Nash</b></td><td>이해충돌 방지</td></tr>
+</table></div>
+<h3 id="s1-state">상태 기계 모델</h3>
+<p>많은 모델의 바탕에 <b>상태 기계 모델(State Machine Model)</b>이 있습니다. 시스템은 언제나 어떤 <b>상태</b>에 있고, 모든 상태 전이가 <b>안전한 상태에서 안전한 상태로</b> 이루어지면 그 시스템은 안전하다고 봅니다. 안전한 상태에서 출발해 어떤 입력을 받아도 안전한 상태를 유지한다는 것을 <b>기본 보안 정리(Basic Security Theorem)</b>라고 합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>상태 기계라는 말이 어렵게 들리지만 생각은 단순합니다. 출입증 시스템을 예로 들면, “지금 누가 어느 방에 들어갈 수 있는가”의 표가 상태입니다. 입사, 퇴사, 권한 변경 같은 사건이 상태를 바꿉니다. 각 사건이 규칙을 어기는 상태(예: 퇴사자가 출입 가능)를 만들지 않는다는 것을 보이면, 처음 상태가 안전했던 한 시스템은 계속 안전합니다. 보안 모델들은 “안전한 상태”가 무엇인지를 각자 다르게 정의합니다.</p></div>
+<div class="src">원문 위치: D3.2.md §2, §3 상태 기계 모델, §4 Security Model·State Machine Model · 공식 개요 3.2 “Understand the fundamental concepts of security models”</div>
+<h2 id="s2"><span class="n">2</span>격자 기반 접근 통제</h2>
+<p>주체와 객체에 <b>등급(label)</b>을 붙이고, 등급 사이의 <b>순서 관계</b>로 접근을 결정합니다.</p>
+<div class="flow">
+<div class="nd"><b>Unclassified</b></div><div class="ar">&lt;</div>
+<div class="nd"><b>Confidential</b></div><div class="ar">&lt;</div>
+<div class="nd"><b>Secret</b></div><div class="ar">&lt;</div>
+<div class="nd"><b>Top Secret</b></div>
+</div>
+<p>각 주체는 접근할 수 있는 범위의 <b>최소 상한(least upper bound)과 최대 하한(greatest lower bound)</b>을 가집니다. 원본은 이것이 <b>강제적 접근 통제(MAC)의 수학적 기반</b>이며 BLP와 Biba가 모두 이 구조 위에 있다고 설명합니다. 구획(compartment)이 더해지면 단순한 한 줄 순서가 아니라 <b>격자</b>가 됩니다.</p>
+<div class="box add"><p><span class="tag">보충</span>왜 “격자”인가. 등급만 있으면 높낮이가 한 줄로 정해지지만, 구획이 더해지면 비교할 수 없는 쌍이 생깁니다. (Secret, {작전 A})와 (Secret, {작전 B})는 어느 쪽이 높다고 할 수 없습니다. 둘 다를 볼 수 있으려면 (Secret, {A, B})가 필요하고, 둘 모두에게 허용되는 것은 (Secret, { })입니다. 이 “둘 다 덮는 가장 작은 것”이 최소 상한, “둘 모두 아래에 있는 가장 큰 것”이 최대 하한입니다. <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>에서 본 “등급은 위아래, 구획은 옆”을 수학으로 표현한 것입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>등급과 구획, 알 필요성은 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>, MAC를 포함한 접근 통제 모델(DAC, RBAC, ABAC 등)의 구현은 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D3.2-Q08</div>
+<p>라벨을 부여하고 라벨 간 순서 관계를 정의함으로써 강제적 접근통제의 수학적 기반을 제공하는 접근 통제 방식은?</p><ol type="A"><li>격자 기반 접근통제</li><li>속성 기반 접근통제</li><li>역할 기반 접근통제</li><li>임의적 접근통제</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 격자 기반 접근통제는 주체와 객체에 등급 라벨을 부여하고 등급 간 순서 관계에 따라 접근을 결정한다. MAC 의 수학적 기반이며 Bell-LaPadula 와 Biba 가 모두 이 구조 위에 있다. 구획이 더해지면 단순 수직 관계가 아니라 격자 구조가 된다.</p><ul><li>B · ABAC 는 속성 조합으로 정책을 평가한다.</li><li>C · RBAC 는 역할에 권한을 부여하는 방식이다.</li><li>D · DAC 는 소유자가 재량으로 권한을 부여하는 방식이다.</li></ul><div class="src">원문 위치 · D3.2-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.2.md §3 격자 기반 접근통제, §4 Lattice-Based Access Control · 기존 문제 Q08 주제</div>
+<h2 id="s3"><span class="n">3</span>Bell-LaPadula — 기밀성</h2>
+<h3 id="s3-easy">쉬운 설명</h3>
+<p>미 국방부 환경을 위해 만들어진 최초의 수학적 보안 모델이며 <b>기밀성만</b> 다룹니다.</p>
+<div class="tw"><table>
+<tr><th>속성</th><th>규칙</th><th>뜻</th></tr>
+<tr><td><b>Simple Security Property</b> 단순 보안 속성</td><td><b>No Read Up</b></td><td>자기 등급보다 높은 것을 읽을 수 없다</td></tr>
+<tr><td><b>*-Property</b> 스타 속성</td><td><b>No Write Down</b></td><td>자기 등급보다 낮은 곳에 쓸 수 없다</td></tr>
+<tr><td>Strong Star Property</td><td>같은 등급에서만 읽고 쓴다</td><td>더 엄격한 변형</td></tr>
+<tr><td>Discretionary Security Property</td><td>접근 매트릭스</td><td>임의적 통제를 추가로 둔다</td></tr>
+</table></div>
+<h3 id="s3-why">왜 “아래로 쓰기 금지”가 기밀성 보호인가</h3>
+<p>Top Secret 사용자가 Unclassified 파일에 쓸 수 있다면, 기밀 내용을 낮은 등급 영역에 옮겨 적을 수 있습니다. 사용자가 실수하든, 사용자 권한으로 실행된 악성 프로그램이 하든 결과는 같습니다. 이것을 막는 것이 스타 속성입니다.</p>
+<p><b>원문 사례 — BLP가 적용된 군사 시스템.</b> Secret 인가를 가진 분석관이 Top Secret 보고서를 열려 하자 거부되었습니다(No Read Up). 자신이 작성한 Secret 분석 자료를 Unclassified 공유 폴더에 복사하려 하자 그것도 거부되었습니다(No Write Down). 두 번째가 직관에 어긋나 보이지만, 기밀 정보가 낮은 등급으로 흘러나가는 것을 막는 것이 스타 속성의 목적입니다.</p>
+<h3 id="s3-limit">BLP의 한계</h3>
+<ul>
+<li><b>무결성을 전혀 다루지 않는다.</b> 낮은 등급 주체가 높은 등급에 쓰는 것(write up)은 허용되므로 데이터 오염이 가능하다</li>
+<li>가용성을 다루지 않는다</li>
+<li><b>은닉 채널을 막지 못한다</b></li>
+<li>등급 변경, 객체 생성·삭제를 다루지 않는다</li>
+</ul>
+<div class="box warn"><p><span class="tag">용어 주의</span>원본은 공식 개요의 “Star Model”이 BLP의 *-property를 가리킨다고 해석합니다. 이 교재는 그 해석을 따르되, ISC2가 이 표현으로 무엇을 의도했는지 공식 설명을 확인하지는 못했습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>등급 체계 자체는 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>의 정부·군 분류, BLP를 바탕으로 만든 평가 기준 TCSEC(Orange Book)과 그것을 대체한 Common Criteria는 <a class="xr" href="D3.3.html">D3.3 통제 선택 (RMF·CC)</a>, BLP 규칙을 시스템이 강제하는 MAC은 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D3.2-Q01</div>
+<p>Bell-LaPadula 모델에서 스타 속성(*-property)이 금지하는 것은?</p><ol type="A"><li>더 낮은 무결성 수준의 정보를 읽는 것.</li><li>더 높은 무결성 수준으로 정보를 쓰는 것.</li><li>더 높은 분류 등급의 정보를 읽는 것.</li><li>더 낮은 분류 등급으로 정보를 쓰는 것.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> BLP 의 *-property 는 no write down 으로 자기 등급보다 낮은 곳에 쓰는 것을 금지한다. Top Secret 사용자가 Unclassified 파일에 쓸 수 있다면 기밀 내용을 낮은 등급 영역으로 옮길 수 있기 때문이다. Simple Security Property 가 no read up 에 해당한다.</p><ul><li>A · 그것은 Biba 의 Simple Integrity Property 다.</li><li>B · 그것은 Biba 의 *-Integrity Property 다.</li><li>C · 그것은 Simple Security Property(no read up)다.</li></ul><div class="src">원문 위치 · D3.2-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D3.2-Q05</div>
+<p>Bell-LaPadula 모델이 다루지 않는 보안 관심사는?</p><ol type="A"><li>낮은 인가 등급 주체가 높은 분류 등급 데이터를 오염시키는 것을 막는 것.</li><li>분류 등급에 근거해 읽기 접근을 제한하는 것.</li><li>하향 정보 흐름을 막기 위해 쓰기 작업을 제한하는 것.</li><li>낮은 인가 등급에게 기밀 정보가 노출되는 것을 막는 것.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> BLP 는 기밀성만 다루며 무결성을 전혀 다루지 않는다. 낮은 등급 주체가 높은 등급에 쓰는 write up 은 BLP 규칙상 허용되므로 데이터 오염이 가능하다. 이 문제를 다루는 것이 Biba 모델이다.</p><ul><li>B · Simple Security Property 가 이를 수행한다.</li><li>C · 스타 속성(*-property)이 이를 수행한다.</li><li>D · BLP 의 핵심 목적이다.</li></ul><div class="src">원문 위치 · D3.2-Q05</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.2.md §3 Bell-LaPadula, §4 Simple Security Property·*-Property, §7 사례 1, §6 TCSEC · 공식 개요 3.2 “Bell-LaPadula”, “Star Model” · 기존 문제 Q01, Q05 주제</div>
+<h2 id="s4"><span class="n">4</span>Biba — 무결성</h2>
+<p>BLP와 <b>대칭 구조</b>로 설계되었고 <b>무결성만</b> 다룹니다.</p>
+<div class="tw"><table>
+<tr><th>속성</th><th>규칙</th><th>뜻</th></tr>
+<tr><td><b>Simple Integrity Property</b> 단순 무결성 속성</td><td><b>No Read Down</b></td><td>자기보다 낮은 무결성 수준을 읽을 수 없다</td></tr>
+<tr><td><b>*-Integrity Property</b> 스타 무결성 속성</td><td><b>No Write Up</b></td><td>자기보다 높은 무결성 수준에 쓸 수 없다</td></tr>
+<tr><td>Invocation Property</td><td>—</td><td>낮은 무결성 주체가 높은 무결성 주체의 서비스를 호출할 수 없다</td></tr>
+</table></div>
+<p><b>왜 아래를 읽지 않는가.</b> 신뢰할 수 없는 저품질 데이터를 읽어 들이면 그것에 기반한 판단과 산출물이 오염됩니다. 원본의 표현으로 무결성 관점에서 <b>오염은 아래에서 위로 전파</b>됩니다.</p>
+<p><b>원문 사례 — Biba가 필요한 상황.</b> 생산 제어 시스템이 외부 공개 피드에서 설정값을 읽어 들이고 있었습니다. 공격자가 피드를 오염시키자 잘못된 설정이 생산 라인에 반영되었습니다. No Read Down 원칙은 신뢰도가 낮은 출처의 데이터를 높은 무결성 영역이 직접 읽지 못하게 합니다. 원본은 중간에 <b>검증 게이트</b>를 두어 데이터를 승격시키는 구조가 필요했다고 정리합니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>장비가 사용하는 보정값 테이블을 생각해 봅시다. 공장에서 검증한 보정값(높은 무결성)과 현장 엔지니어가 노트북에서 입력한 임시값(낮은 무결성)이 있습니다. 장비가 임시값을 바로 읽어 측정에 쓰면 Biba의 No Read Down을 어긴 것이고, 엔지니어 노트북이 공장 보정값 파일을 덮어쓸 수 있으면 No Write Up을 어긴 것입니다. 원문 사례의 “검증 게이트”는 여기서 서명 확인과 범위 검사를 거친 값만 정식 보정값으로 올리는 절차입니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D3.2-Q12</div>
+<p>Biba 모델이 금지하는 것은?</p><ol type="A"><li>더 높은 무결성 등급의 데이터를 읽는 것과 더 낮은 등급에 쓰는 것.</li><li>더 낮은 무결성 등급의 데이터를 읽는 것과 더 높은 무결성 등급에 쓰는 것. 낮은 무결성 데이터가 높은 무결성 데이터를 오염시키지 못하게 한다.</li><li>서로 다른 등급 간의 모든 접근을 양방향으로 금지한다.</li><li>감사 기록 없이 객체에 쓰는 모든 행위.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> Biba 는 무결성 모델이므로 오염을 막는 방향이다. 신뢰도가 낮은 출처의 데이터를 읽어 들이면 판단이 오염되고, 낮은 등급 주체가 높은 등급 객체에 쓰면 신뢰도가 떨어진다. 그래서 올려 읽기 금지가 아니라 내려 읽기 금지, 내려 쓰기 금지가 아니라 올려 쓰기 금지다. Bell-LaPadula 와 방향이 반대라는 점이 핵심이다.</p><ul><li>A · Bell-LaPadula 의 방향이다.</li><li>C · 모든 접근을 금지하지 않는다.</li><li>D · 감사 요구는 모델의 규칙이 아니다.</li></ul><div class="src">원문 위치 · D3.2-Q12</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.2.md §3 Biba, §4 Simple Integrity Property·*-Integrity Property, §7 사례 2 · 공식 개요 3.2 “Biba” · 기존 문제 Q12 주제</div>
+<h2 id="s5"><span class="n">5</span>BLP와 Biba, 방향 정리</h2>
+<p>원본은 이 부분을 가장 혼동하기 쉽다고 하며 다음 구조로 정리합니다.</p>
+<div class="tw"><table>
+<tr><th>모델</th><th>Simple = 읽기</th><th>Star(*) = 쓰기</th></tr>
+<tr><td><b>BLP(기밀성)</b></td><td>No Read <b>Up</b></td><td>No Write <b>Down</b></td></tr>
+<tr><td><b>Biba(무결성)</b></td><td>No Read <b>Down</b></td><td>No Write <b>Up</b></td></tr>
+</table></div>
+<p>원본의 요령은 <b>보호 목표를 먼저 떠올리면 방향이 따라온다</b>입니다.</p>
+<ul>
+<li>기밀성을 지키려면 → 높은 비밀을 <b>못 읽고</b>, 낮은 곳으로 <b>못 흘린다</b></li>
+<li>무결성을 지키려면 → 오염된 것을 <b>안 읽고</b>, 신뢰 영역을 <b>못 더럽힌다</b></li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>“Simple은 읽기, Star는 쓰기”가 두 모델에서 똑같다는 점이 첫 번째 고정점입니다. 그다음은 정보가 흐르는 방향으로 생각하면 됩니다. 읽기는 자료에서 사용자에게, 쓰기는 사용자에서 자료로 정보가 흐릅니다. 기밀성은 정보가 <b>높은 곳에서 낮은 곳으로</b> 흐르는 것이 문제이므로 위에서 읽어 오는 것과 아래로 써 내리는 것을 막습니다. 무결성은 정보가 <b>낮은 신뢰에서 높은 신뢰로</b> 흐르는 것이 문제이므로 아래에서 읽어 오는 것과 위로 써 올리는 것을 막습니다. 두 모델은 막는 흐름의 방향이 정반대일 뿐 같은 생각입니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>모델 규칙을 묻는 상황에서는 ① 지문이 기밀성(유출)을 걱정하는지 무결성(오염)을 걱정하는지 먼저 가리고 ② 기밀성이면 BLP, 무결성이면 Biba(상용 거래면 Clark-Wilson) ③ 읽기를 묻는지 쓰기를 묻는지 확인한 뒤 ④ 위 표의 방향을 적용합니다. “BLP가 다루지 않는 것”을 물으면 무결성, 가용성, 은닉 채널입니다.</p></div>
+<div class="quiz" id="question-5">
+<div class="qh">이해 확인 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>한 시스템에서 Secret 등급 사용자가 Top Secret 문서에 의견을 덧붙여 저장하는 것은 허용되고, Confidential 문서에 메모를 남기는 것은 거부되었다. 이 시스템이 따르는 모델과 그 결과의 위험으로 옳은 것은?</p>
+<ol type="A">
+<li>Biba — 위로 쓰기를 막으므로 무결성이 보장된다.</li>
+<li>BLP — 아래로 쓰기를 막아 기밀성은 지키지만, 낮은 등급 사용자가 높은 등급 문서를 오염시킬 수 있다.</li>
+<li>Clark-Wilson — 프로그램을 거쳐야 하므로 모든 위험이 사라진다.</li>
+<li>Brewer-Nash — 접근 이력에 따라 쓰기가 결정되었다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 위로 쓰기 허용 + 아래로 쓰기 거부는 BLP의 스타 속성입니다. BLP는 무결성을 다루지 않으므로 write up으로 높은 등급 자료가 오염될 수 있습니다.</p>
+<ul><li>A: Biba라면 위로 쓰기를 막아야 합니다. 지문은 반대입니다.</li>
+<li>C: 등급에 따른 읽기·쓰기 방향 규칙은 Clark-Wilson의 특징이 아닙니다.</li>
+<li>D: 접근 이력에 대한 언급이 없습니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.2.md §3 BLP 와 Biba 암기법, §5 첫 표</div>
+<h2 id="s6"><span class="n">6</span>Clark-Wilson — 상용 환경의 무결성</h2>
+<h3 id="s6-why">왜 필요한가</h3>
+<p>BLP와 Biba는 군사 등급 체계를 전제로 합니다. 하지만 기업의 회계 시스템에는 Top Secret 같은 등급이 없고, 걱정하는 것은 “장부가 엉터리로 바뀌지 않는가”입니다. Clark-Wilson은 <b>상용 환경</b>을 겨냥한 무결성 모델이며, 원본은 실제 기업 시스템 설계에 가장 가깝다고 설명합니다.</p>
+<h3 id="s6-easy">구성 요소</h3>
+<div class="tw"><table>
+<tr><th>요소</th><th>의미</th></tr>
+<tr><td><b>CDI</b> Constrained Data Item</td><td>무결성을 보호해야 할 데이터</td></tr>
+<tr><td><b>UDI</b> Unconstrained Data Item</td><td>보호 대상이 아닌 데이터(예: 아직 검증되지 않은 입력)</td></tr>
+<tr><td><b>TP</b> Transformation Procedure</td><td>CDI를 바꿀 수 있는 <b>인가된 프로그램</b></td></tr>
+<tr><td><b>IVP</b> Integrity Verification Procedure</td><td>CDI의 무결성 상태를 검증하는 절차</td></tr>
+</table></div>
+<h3 id="s6-how">접근 3요소</h3>
+<div class="flow">
+<div class="nd"><b>주체</b> Subject</div><div class="ar">→</div>
+<div class="nd"><b>프로그램</b> TP</div><div class="ar">→</div>
+<div class="nd"><b>객체</b> CDI</div>
+</div>
+<p><b>주체가 객체에 직접 접근하지 못하고 반드시 인가된 프로그램을 거칩니다.</b> 원본은 이것을 BLP·Biba와의 결정적 차이로 꼽습니다. 두 가지 핵심 개념이 있습니다.</p>
+<ul>
+<li><b>잘 구성된 거래(Well-Formed Transaction)</b> — 데이터를 임의로 바꿀 수 없고 정해진 방식으로만 바꾼다</li>
+<li><b>직무 분리</b> — 모델 자체에 들어 있다</li>
+</ul>
+<p>원본은 Clark-Wilson이 무결성의 세 목표를 모두 다룬다고 설명합니다. ① 인가되지 않은 사용자의 변경 방지 ② <b>인가된 사용자의 부적절한 변경 방지</b> ③ 내부·외부 일관성 유지. BLP와 Biba는 첫째만 다루므로, 이 점이 상용 환경에서 더 실용적인 이유라는 것입니다.</p>
+<p><b>원문 사례 — Clark-Wilson이 설명하는 기업 시스템.</b> 경리 담당자가 데이터베이스에 직접 접속해 잔액을 고칠 수 있다면 무결성은 무너집니다. 실제 설계에서는 회계 애플리케이션(TP)으로만 거래를 입력하고, 애플리케이션이 차변·대변 일치를 강제하며, 승인자는 다른 계정이어야 합니다. 야간 배치로 도는 잔액 검증이 IVP에 해당합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>둘째 목표, “인가된 사용자의 부적절한 변경”이 Clark-Wilson의 진짜 기여입니다. 경리 담당자는 장부를 고칠 권한이 있는 사람이므로 BLP·Biba식 “권한 없는 사람 차단”으로는 막을 수 없습니다. 권한 있는 사람이라도 정해진 거래 형식(TP)으로만, 다른 사람의 승인을 받아서만 바꿀 수 있게 만드는 것이 해법입니다. <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 “무결성 통제 목록에 직무 분리가 들어 있는 이유”를 다룬 것이 바로 이 지점입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>설계 원칙으로서의 직무 분리는 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>, 운영 절차로서의 직무 분리는 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>, 입력 검증과 업무 규칙 검증은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.2.md §3 Clark-Wilson, §4 CDI / UDI·TP / IVP·Access Triple·Well-Formed Transaction, §5 둘째 표, §7 사례 3 · 기존 문제 주제(접근 3요소)</div>
+<h2 id="s7"><span class="n">7</span>Brewer-Nash (Chinese Wall) — 이해충돌 방지</h2>
+<p>다른 모델의 규칙이 고정되어 있는 것과 달리, 이 모델은 <b>접근 이력에 따라 권한이 동적으로 바뀝니다.</b></p>
+<p>배경은 컨설팅 회사입니다. 경쟁 관계인 A사와 B사가 모두 고객이라면, 컨설턴트가 A사 자료를 본 순간 B사 자료는 볼 수 없어야 합니다.</p>
+<div class="flow">
+<div class="nd"><b>이해충돌 범주</b> Conflict of Interest Class</div><div class="ar">⊃</div>
+<div class="nd"><b>회사 데이터셋</b> Company Dataset</div><div class="ar">⊃</div>
+<div class="nd"><b>개별 객체</b></div>
+</div>
+<p>처음에는 어느 데이터셋이든 접근할 수 있지만, <b>하나를 고르는 순간 같은 이해충돌 범주 안의 다른 데이터셋은 막힙니다.</b> 원본의 표현으로 벽은 사용자가 움직이는 대로 세워집니다.</p>
+<p><b>원문 사례 — 컨설팅 회사.</b> 같은 회사가 경쟁 관계인 두 통신사를 모두 고객으로 두었고, 컨설턴트가 A사 프로젝트 자료를 연 순간 시스템이 B사 자료 접근을 자동으로 차단했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>이 모델을 구현하려면 시스템이 “누가 무엇을 이미 봤는가”를 기억해야 합니다. 그래서 접근 기록이 단순한 감사 자료가 아니라 <b>다음 접근을 결정하는 입력</b>이 됩니다. 다른 범주(예: 통신사와 은행)의 자료는 서로 막지 않는다는 점도 기억해 둘 만합니다. 벽은 경쟁 관계 안에서만 세워집니다.</p></div>
+<div class="src">원문 위치: D3.2.md §3 Brewer-Nash, §4 Chinese Wall / Brewer-Nash, §5 셋째 표, §7 사례 4 · 기존 문제 주제(동적 접근 통제)</div>
+<h2 id="s8"><span class="n">8</span>권한이 생기고 옮겨지는 것을 다루는 모델</h2>
+<p>BLP와 Biba는 “지금 이 접근이 허용되는가”를 다룹니다. 원본은 “권한이 어떻게 생기고 옮겨지는가”를 다루는 세 모델을 함께 소개합니다.</p>
+<div class="tw"><table>
+<tr><th>모델</th><th>다루는 것</th><th>핵심</th></tr>
+<tr><td><b>Graham-Denning</b></td><td>보호 권한의 기본 연산</td><td><b>8가지</b>: 객체 생성·삭제, 주체 생성·삭제, 읽기 권한 조회, 권한 부여(grant)·삭제(delete)·전달(transfer)</td></tr>
+<tr><td><b>Harrison-Ruzzo-Ullman (HRU)</b></td><td>접근 매트릭스와 그 변경 규칙</td><td><b>안전성 문제(Safety Problem)는 결정 불가능(undecidable)</b></td></tr>
+<tr><td><b>Take-Grant</b></td><td>그래프로 표현한 권한 전파</td><td><b>Take · Grant · Create · Remove</b> 4규칙. 특정 조건에서 전파 가능성을 효율적으로 판정</td></tr>
+</table></div>
+<p>HRU의 결과를 풀면 이렇습니다. 임의의 시스템에서 “어떤 주체가 특정 권한을 얻게 될 수 있는가”를 모든 경우에 판정하는 일반적인 절차는 존재하지 않습니다. 원본은 이것이 <b>완벽한 권한 분석이 이론적으로 불가능</b>하다는 뜻이며, 실무에서 보수적으로 설계하고 계속 검토해야 하는 이론적 근거라고 설명합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>“결정 불가능”은 “아무것도 검사할 수 없다”는 뜻이 아닙니다. 일반 모형에서 모든 경우에 답하는 방법이 없다는 뜻이고, 연산과 범위를 제한한 실제 정책에서는 검사할 수 있는 것이 많습니다(Take-Grant가 그런 제한된 경우의 예). 또 권한 전파 모델이 보는 것은 “지금 누가 접근하는가”가 아니라 “권한을 주고받을 수 있는 연결 때문에 다음에 누가 접근하게 될 수 있는가”입니다. 두 계정이 같은 파일을 읽을 수 있어도 한쪽만 다른 사람에게 권한을 넘길 수 있다면 위험이 다릅니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>권한 부여와 회수의 실제 관리는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>, 권한 누적은 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.2.md §3 Graham-Denning, Harrison-Ruzzo-Ullman, Take-Grant, §4 Safety Problem</div>
+<h2 id="s9"><span class="n">9</span>정보 흐름, 비간섭, 은닉 채널</h2>
+<p><b>정보 흐름 모델(Information Flow Model)</b>은 정보가 한 객체에서 다른 객체로 흐르는 것을 통제합니다. 원본은 BLP와 Biba를 정보 흐름 모델의 특수한 형태로 볼 수 있다고 하고, 은닉 채널도 정보 흐름의 관점에서 분석된다고 설명합니다.</p>
+<p><b>비간섭 모델(Non-interference Model)</b>의 요구는 <b>높은 등급 주체의 행위가 낮은 등급 주체에게 관찰되지 않아야 한다</b>입니다. 왜 필요할까요. BLP를 완벽히 지켜도, 고등급 사용자의 행위가 시스템 성능, 응답 시간, 자원 상태에 영향을 주면 저등급 사용자가 그것을 보고 무언가를 <b>추론</b>할 수 있습니다. 이렇게 정상 통신 경로가 아닌 수단으로 정보가 흐르는 경로가 <b>은닉 채널(Covert Channel)</b>이며, 저장 채널과 타이밍 채널이 있습니다.</p>
+<p><b>원문 사례 — 은닉 채널.</b> 고등급 프로세스가 특정 파일을 잠갔다 풀었다를 반복해, 저등급 프로세스가 잠금 상태를 관찰하며 1비트씩 정보를 받았습니다. BLP 규칙은 모두 지켜졌지만 정보는 흘렀습니다. 원본은 실무 대응으로 자원 분리와 타이밍 잡음 추가를 듭니다.</p>
+<div class="box add"><p><span class="tag">보충</span>은닉 채널과 <b>부채널(Side Channel)</b>은 구분해 두면 좋습니다. 은닉 채널은 안쪽의 주체가 <b>일부러</b> 신호를 보내는 것(위 사례의 파일 잠금)이고, 부채널은 처리 과정에서 <b>의도치 않게</b> 새는 물리적·시간적 정보(전력 소비, 처리 시간)를 바깥에서 관찰해 비밀을 추론하는 것입니다(NIST 용어집의 Side Channel·Covert Timing Channel 정의에 따른 구분). 비간섭은 두 경우 모두에 대해 “높은 쪽의 행동이 낮은 쪽의 관찰을 바꾸는가”를 묻습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>은닉 채널이 시스템 취약점으로 다뤄지는 곳은 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>, 부채널 공격은 <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a>의 암호 분석 공격에서 다룹니다. <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>의 추론 문제(공개 정보로 비공개 정보를 알아냄)와도 같은 계열입니다.</p></div>
+<div class="src">원문 위치: D3.2.md §3 정보 흐름 모델과 비간섭, §4 Non-interference·Covert Channel, §7 사례 5 · 외부 확인: NIST 용어집 Side Channel, Covert Timing Channel</div>
+<h2 id="s10"><span class="n">10</span>모델 고르기</h2>
+<div class="tw"><table>
+<tr><th>모델</th><th>목표</th><th>핵심</th><th>통제 성격</th></tr>
+<tr><td>Bell-LaPadula</td><td>기밀성</td><td>No Read Up / No Write Down</td><td>정적, 주체가 객체에 직접</td></tr>
+<tr><td>Biba</td><td>무결성</td><td>No Read Down / No Write Up</td><td>정적, 주체가 객체에 직접</td></tr>
+<tr><td>Clark-Wilson</td><td>무결성(상용)</td><td>접근 3요소, 잘 구성된 거래, 직무 분리</td><td><b>반드시 프로그램 경유</b></td></tr>
+<tr><td>Brewer-Nash</td><td>이해충돌</td><td>접근 이력 기반</td><td><b>동적</b></td></tr>
+<tr><td>Graham-Denning</td><td>권한 관리</td><td>8가지 기본 연산</td><td>—</td></tr>
+<tr><td>HRU</td><td>권한 분석</td><td>안전성 문제 결정 불가능</td><td>—</td></tr>
+<tr><td>Take-Grant</td><td>권한 전파</td><td>그래프 4규칙</td><td>—</td></tr>
+<tr><td>비간섭</td><td>추론 방지</td><td>은닉 채널 대응</td><td>—</td></tr>
+</table></div>
+<div class="box think"><p><span class="tag">판단 순서</span>모델 이름을 고르기 전에 <b>보호할 속성을 한 문장으로</b> 써 봅니다. “미공개 결산 정보가 아래로 새면 안 된다”면 BLP, “검증되지 않은 입력이 확정 원장을 바꾸면 안 된다”면 Biba 또는(업무 거래라면) Clark-Wilson, “A사 자료를 본 사람이 경쟁사 B사 자료를 보면 안 된다”면 Brewer-Nash, “권한이 넘어가다 보면 누가 결국 관리자 권한을 얻게 되는가”라면 권한 전파 모델입니다.</p></div>
+<div class="src">원문 위치: D3.2.md §3 모델별 특징 종합, §5</div>
+<h2 id="s11"><span class="n">11</span>종합 이해 확인</h2>
+<div class="quiz" id="question-6">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>한 회사가 세 가지 요구를 받았다. ㉠ 회계 직원이 장부를 직접 수정하지 못하고 승인된 전표 입력 화면으로만 바꾸게 할 것 ㉡ 감사 법인 직원이 한 고객사의 감사 자료를 열면 같은 업종 경쟁사 자료는 열리지 않게 할 것 ㉢ 외부 협력사가 올린 미검증 파일을 생산 설정에 바로 반영하지 못하게 할 것. 각 요구에 가장 잘 맞는 모델은?</p>
+<ol type="A">
+<li>㉠ Clark-Wilson / ㉡ Brewer-Nash / ㉢ Biba</li>
+<li>㉠ BLP / ㉡ Biba / ㉢ Clark-Wilson</li>
+<li>㉠ Biba / ㉡ BLP / ㉢ Brewer-Nash</li>
+<li>㉠ Take-Grant / ㉡ HRU / ㉢ BLP</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b></p>
+<ul>
+<li>㉠ 주체 → 프로그램(TP) → 객체(CDI)의 접근 3요소입니다(6절).</li>
+<li>㉡ 접근 이력에 따라 같은 이해충돌 범주의 다른 데이터셋이 막힙니다(7절).</li>
+<li>㉢ 낮은 무결성(미검증)을 높은 무결성 영역이 바로 읽지 않는 No Read Down입니다(4절).</li>
+</ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">12</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>보안 모델 문제에서 읽기·쓰기 금지 방향이 헷갈리면 어디서 시작하나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>보호 속성과 데이터가 흐르는 방향을 그립니다. 기밀성은 높은 등급의 정보가 낮은 곳으로 유출되는 것을, 무결성은 낮은 신뢰의 정보가 높은 신뢰의 기록을 오염시키는 것을 막으려 합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">13</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>보안 모델 = 정책을 <b>검증 가능한 형식 규칙</b>으로 표현한 것. 상태 기계 모델: 안전한 상태 → 안전한 상태(기본 보안 정리).</li>
+<li><b>BLP = 기밀성 / Biba = 무결성 / Clark-Wilson = 상용 무결성 / Brewer-Nash = 이해충돌</b>.</li>
+<li><b>Simple = 읽기, Star(*) = 쓰기.</b></li>
+<li><b>BLP: No Read Up, No Write Down.</b> Strong Star = 같은 등급에서만. 무결성·가용성·은닉 채널은 다루지 않는다.</li>
+<li><b>Biba: No Read Down, No Write Up.</b> Invocation: 낮은 무결성 주체가 높은 쪽 서비스를 호출하지 못한다.</li>
+<li>기밀성은 위를 못 읽고 아래로 못 흘린다. 무결성은 아래를 안 읽고 위를 못 더럽힌다.</li>
+<li>격자 기반 접근 통제 = <b>MAC의 수학적 기반</b>. 등급 + 구획 → 격자.</li>
+<li><b>Clark-Wilson: 주체 → TP → CDI.</b> 직접 접근 불가. CDI/UDI/TP/IVP, 잘 구성된 거래, 직무 분리 내장, 무결성 3목표 모두.</li>
+<li><b>Brewer-Nash = 접근 이력 기반 동적 통제.</b></li>
+<li>Graham-Denning = 8가지 기본 보호 연산. <b>HRU = 안전성 문제 결정 불가능.</b> Take-Grant = Take·Grant·Create·Remove.</li>
+<li><b>비간섭 = 고등급 행위가 저등급에게 관찰되지 않아야.</b> 은닉 채널(저장·타이밍) 대응.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D3.2.md §8 CISSP 시험 관점, §9 핵심 암기 요약(16항목). 원본 §6의 연도(BLP 1973, Biba 1977, Clark-Wilson 1987, Brewer-Nash 1989)와 TCSEC → Common Criteria(ISO/IEC 15408) 대체 관계는 여기에 적어 둡니다. 원본은 Common Criteria를 D3.4에서 상세히 다룬다고 하지만, 원본 노트에서 Common Criteria가 실제로 자세히 나오는 곳은 D3.3입니다.</div>
+<h2 id="glossary"><span class="n">14</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Security Model</span> <span class="term-ko">· 보안 모델</span></h3>
+<p>보안 정책을 수학적·형식적 규칙으로 표현한 것. 검증 가능성을 제공한다.</p>
+<h3 id="glossary-2"><span lang="en">State Machine Model</span> <span class="term-ko">· 상태 기계 모델</span></h3>
+<p>모든 상태 전이가 안전한 상태 사이에서 이루어지면 시스템이 안전하다고 보는 모델.</p>
+<h3 id="glossary-3"><span lang="en">Lattice-Based Access Control</span> <span class="term-ko">· 격자 기반 접근통제</span></h3>
+<p>주체와 객체에 등급을 부여하고 등급 간 순서 관계로 접근을 결정하는 구조. MAC 의 수학적 기반이다.</p>
+<h3 id="glossary-4"><span lang="en">Simple Security Property</span> <span class="term-ko">· 단순 보안 속성</span></h3>
+<p>BLP 의 읽기 규칙. <strong>No Read Up</strong> — 자기보다 높은 등급을 읽을 수 없다.</p>
+<h3 id="glossary-5"><span lang="en">*-Property / Star Property</span> <span class="term-ko">· 스타 속성</span></h3>
+<p>BLP 의 쓰기 규칙. <strong>No Write Down</strong> — 자기보다 낮은 등급에 쓸 수 없다.</p>
+<h3 id="glossary-6"><span lang="en">Simple Integrity Property</span> <span class="term-ko">· 단순 무결성 속성</span></h3>
+<p>Biba 의 읽기 규칙. <strong>No Read Down</strong> — 자기보다 낮은 무결성 수준을 읽을 수 없다.</p>
+<h3 id="glossary-7"><span lang="en">*-Integrity Property</span> <span class="term-ko">· 스타 무결성 속성</span></h3>
+<p>Biba 의 쓰기 규칙. <strong>No Write Up</strong> — 자기보다 높은 무결성 수준에 쓸 수 없다.</p>
+<h3 id="glossary-8"><span lang="en">CDI / UDI — Constrained Data Item / Unconstrained Data Item</span> <span class="term-ko">· 제약 데이터 항목 / 비제약 데이터 항목</span></h3>
+<p>Clark-Wilson 의 제약 데이터 항목(무결성 보호 대상)과 비제약 데이터 항목.</p>
+<h3 id="glossary-9"><span lang="en">TP / IVP — Transformation Procedure / Integrity Verification Procedure</span> <span class="term-ko">· 변환 절차 / 무결성 검증 절차</span></h3>
+<p>변환 절차(CDI 를 변경할 수 있는 인가된 프로그램)와 무결성 검증 절차.</p>
+<h3 id="glossary-10"><span lang="en">Access Triple</span> <span class="term-ko">· 접근 3요소</span></h3>
+<p>Clark-Wilson 의 주체-프로그램-객체 구조. 주체가 객체에 직접 접근하지 못하게 한다.</p>
+<h3 id="glossary-11"><span lang="en">Well-Formed Transaction</span> <span class="term-ko">· 잘 구성된 거래</span></h3>
+<p>데이터를 임의로 변경할 수 없고 정해진 방식으로만 변경하도록 하는 거래 구조.</p>
+<h3 id="glossary-12"><span lang="en">Chinese Wall / Brewer-Nash</span> <span class="term-ko">· 이해충돌 방지 접근 통제 모델</span></h3>
+<p>접근 이력에 따라 접근 권한이 동적으로 변하는 이해충돌 방지 모델.</p>
+<h3 id="glossary-13"><span lang="en">Safety Problem</span> <span class="term-ko">· 안전성 문제</span></h3>
+<p>임의 시스템에서 권한 획득 가능성을 일반적으로 판정하는 문제. HRU 가 결정 불가능함을 증명했다.</p>
+<h3 id="glossary-14"><span lang="en">Non-interference</span> <span class="term-ko">· 비간섭</span></h3>
+<p>높은 등급 주체의 행위가 낮은 등급 주체에게 관찰되지 않아야 한다는 원칙. 은닉 채널 대응의 이론적 기반이다.</p>
+<h3 id="glossary-15"><span lang="en">Covert Channel</span> <span class="term-ko">· 은닉 채널</span></h3>
+<p>정상적인 통신 경로가 아닌 수단으로 정보가 흐르는 경로. 저장 채널과 타이밍 채널이 있다.</p>
+<div class="src">원문 위치 · D3.2.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">15</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>Bell-LaPadula (1973)</strong> — 기밀성 중심 최초의 형식 모델</li>
+<li><strong>Biba (1977)</strong> — 무결성 중심, BLP 와 대칭</li>
+<li><strong>Clark-Wilson (1987)</strong> — 상용 환경 무결성, 접근 3요소</li>
+<li><strong>Brewer-Nash (1989)</strong> — 이해충돌 방지</li>
+<li><strong>Graham-Denning / HRU / Take-Grant</strong> — 권한의 생성·전파·분석</li>
+<li><strong>TCSEC (Orange Book)</strong> — BLP 를 기반으로 한 평가 기준. 현재는 Common Criteria 로 대체</li>
+<li><strong>Common Criteria (ISO/IEC 15408)</strong> — 현행 보안 평가 기준(D3.4 에서 상세)</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D3.2.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 6개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">라벨을 부여하고 라벨 간 순서 관계를 정의함으로써 강제적 접근통제의 수학적 기반을 제공하는 접근 통제 방식은?</a></li>
+<li><a href="#question-2">Bell-LaPadula 모델에서 스타 속성(*-property)이 금지하는 것은?</a></li>
+<li><a href="#question-3">Bell-LaPadula 모델이 다루지 않는 보안 관심사는?</a></li>
+<li><a href="#question-4">Biba 모델이 금지하는 것은?</a></li>
+<li><a href="#question-5">한 시스템에서 Secret 등급 사용자가 Top Secret 문서에 의견을 덧붙여 저장하는 것은 허용되고, Confidential 문서에 메모를 남기는 것은 거부되었다. 이 시스템이 따르는 모델과 그 결과의 위험으로 옳은 것은?</a></li>
+<li><a href="#question-6">한 회사가 세 가지 요구를 받았다. ㉠ 회계 직원이 장부를 직접 수정하지 못하고 승인된 전표 입력 화면으로만 바꾸게 할 것 ㉡ 감사 법인 직원이 한 고객사의 감사 자료를 열면 같은 업종 경쟁사 자료는 열리지 않게 할 것 ㉢ 외부 협력사가 올린 미검증 파일을 생산 설정에 바로 반영하지 못하게 할 것. 각 요구에 가장 잘 맞는 모델은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D3.1.html"><small>← 이전 단원</small>3.1 안전한 설계 원칙</a><a href="D3.3.html" style="text-align:right"><small>다음 단원 →</small>3.3 통제 선택 (RMF·CC)</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

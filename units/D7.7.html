@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D7.7 탐지 및 예방 수단의 운영과 유지 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D7.7">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 7 보안 운영 › 7.7</div>
+<h1>탐지 및 예방 수단의 운영과 유지</h1>
+<div class="en">Operate and maintain detection and preventative measures · ISC2 CISSP Exam Outline(2024-04-15 발효) 7.7</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">공식 개요 7.7의 제목은 탐지·예방 수단을 “<b>운영하고 유지</b>(Operate and maintain)”하라는 것입니다. 원본은 이 단어에 무게를 둡니다. <b>통제는 설치되었을 때가 아니라 유지될 때 효과를 낸다.</b> 패치되지 않은 보안 장비, 만료된 라이선스, 꺼진 에이전트, 갱신되지 않은 규칙, 처리되지 않는 경보는 모두 “있지만 작동하지 않는 통제”입니다. 이 단원은 여덟 가지 수단을 각각의 한계와 유지 요건과 함께 봅니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D4.2.html">D4.2 네트워크 구성요소</a></td><td>방화벽 유형과 IDS/IPS의 네트워크 관점 (2절, 3절)</td></tr>
+<tr><td><a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a></td><td>탐지 방식, 경보 피로, 유출 모니터링, UEBA (3절, 9절)</td></tr>
+<tr><td><a class="xr" href="D7.9.html">D7.9 변경 관리</a></td><td>변경 관리. 방화벽·IPS 규칙 변경 (2절, 10절)</td></tr>
+<tr><td><a class="xr" href="D1.5.html">D1.5 조사 유형</a></td><td>유인(enticement)과 함정교사(entrapment)의 법적 구분 (6절)</td></tr>
+<tr><td><a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a> · <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a></td><td>제3자 위탁의 책임과 SLA (7절)</td></tr>
+<tr><td><a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a></td><td>침해 공격 시뮬레이션으로 효과 검증 (10절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>수단과 한계 한눈에 보기</h2>
+<div class="tw"><table>
+<tr><th>수단</th><th>성격</th><th>주된 한계</th></tr>
+<tr><td>방화벽</td><td>예방</td><td>허용된 경로의 악용은 못 막음</td></tr>
+<tr><td>IDS / IPS</td><td>탐지 / 예방</td><td>암호화, 미지 공격</td></tr>
+<tr><td>허용/차단 목록</td><td>예방</td><td>허용 목록은 운영 부담, 차단 목록은 미지 대응 불가</td></tr>
+<tr><td>샌드박싱</td><td>탐지</td><td>회피 가능</td></tr>
+<tr><td>허니팟/허니넷</td><td>탐지</td><td>공격자가 안 오면 무용</td></tr>
+<tr><td>제3자 서비스</td><td>탐지·대응</td><td>맥락 부족, 책임 경계</td></tr>
+<tr><td>안티멀웨어</td><td>예방·탐지</td><td>시그니처 한계</td></tr>
+<tr><td>ML/AI 도구</td><td>탐지</td><td>설명 가능성, 기준선 오염</td></tr>
+</table></div>
+<div class="src">원문 위치: D7.7.md §2 · 공식 개요 7.7 “Operate and maintain detection and preventative measures”</div>
+<h2 id="s2"><span class="n">2</span>방화벽</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>판단 기준</th></tr>
+<tr><td>패킷 필터</td><td>주소, 포트, 프로토콜</td></tr>
+<tr><td>상태 기반</td><td>연결 상태 포함</td></tr>
+<tr><td>애플리케이션 프록시</td><td>프로토콜 내용 검사</td></tr>
+<tr><td><b>차세대</b>(NGFW)</td><td>애플리케이션 식별, 사용자 신원, 위협 정보</td></tr>
+<tr><td><b>웹 애플리케이션</b>(WAF)</td><td>HTTP 요청 내용</td></tr>
+</table></div>
+<ul>
+<li><b>네트워크 방화벽은 경로를, WAF는 요청 내용을 통제</b>합니다. NGFW가 WAF를 대체하지 않습니다.</li>
+<li>마지막 규칙은 <b>암묵적 거부</b>입니다.</li>
+<li><b>송신(egress) 규칙이 누락되는 경우가 많습니다.</b> 나가는 것을 전부 허용하면 C2와 유출이 자유롭습니다.</li>
+</ul>
+<h3 id="s2-ops">운영과 유지</h3>
+<p><b>규칙 누적</b>: 임시 허용이 영구화되어 수년 뒤 수천 개 규칙 중 무엇이 왜 있는지 아무도 모릅니다. 대응은 <b>규칙별 히트 카운트</b>를 근거로 한 주기적 정리, 규칙마다 <b>요청자·사유·승인·만료일</b> 문서화(만료일 없는 규칙이 누적의 원인), 변경 통제, 설정 백업과 롤백, 고가용성과 장애 시 동작(fail-open/fail-close) 결정입니다.</p>
+<p><b>원문 사례 — 아무도 모르는 방화벽 규칙 4,200개.</b> 10년간 규칙 4,200개가 누적되었고, 히트 카운트 분석에서 1,900개가 1년간 한 번도 적용되지 않았고, 일부는 전 대역 허용이었으며, 요청자와 사유 기록이 없는 규칙이 다수였습니다.</p>
+<p><b>원문 사례 — 송신 규칙이 없던 방화벽.</b> 인바운드는 엄격했지만 아웃바운드는 전면 허용이어서, 침해 후 공격자가 임의 포트로 C2를 세우고 데이터를 내보냈습니다. 필요한 목적지·포트만 허용하는 송신 정책과 프록시 경유를 강제했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>검사 장비가 멈추면 어느 연결을 끊고 어느 연결을 계속 허용할지 미리 정해야 합니다. 병원처럼 연결 중단이 진료 중단으로 이어지는 곳에서는 무조건 fail-close가 답이 아닐 수 있습니다. 업무 안전과 “관찰할 수 없는 상태”의 위험을 함께 검토해 비상 동작을 정하고, 실제로 전환·복귀가 예상대로 되는지 시험합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>방화벽 유형은 <a class="xr" href="D4.2.html">D4.2 네트워크 구성요소</a>의 1절, 규칙 기반 접근 통제와 암묵적 거부는 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>의 5절, 유출 모니터링은 <a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>의 6절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.7.md §3 방화벽, §7 사례 1, 사례 2 · 공식 개요 7.7 “Firewalls (e.g., next generation, web application, network)”</div>
+<h2 id="s3"><span class="n">3</span>IDS / IPS 운영</h2>
+<p>탐지 방식과 배치는 <a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>의 2절에서 다뤘고, 여기서는 유지 관점입니다.</p>
+<ul>
+<li><b>시그니처 갱신</b>: 갱신이 멈춘 IDS는 과거 공격만 봅니다.</li>
+<li><b>튜닝</b>: 오탐을 줄이면서 탐지력을 유지합니다.</li>
+<li><b>배치 지점 검증</b>: 네트워크 변경 후 <b>IDS가 보지 못하는 구간</b>이 생깁니다.</li>
+<li><b>용량 관리</b>: 처리 한계를 넘으면 <b>조용히 패킷을 버립니다.</b> 처리율과 드롭률을 모니터링합니다.</li>
+<li>IPS 차단 규칙은 업무 영향 위험이 있으므로 변경 관리 대상입니다.</li>
+</ul>
+<p><b>원문 사례 — IDS가 보지 못한 구간.</b> 네트워크 재구성 후 트래픽 경로가 바뀌어 IDS가 주요 구간을 보지 못했고, 6개월간 그 구간 경보가 0건이었는데 아무도 이상하게 여기지 않았습니다. 원본은 <b>경보가 없는 것과 안전한 것은 구분되지 않는다</b>고 말합니다. 네트워크 변경 시 탐지 배치 검증을 필수로 넣고, 탐지 장비별 트래픽 수신량과 경보 발생 추세를 모니터링했습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>같은 규칙을 탐지 모드와 차단 모드로 쓸 수 있어도 결과는 다릅니다. 오탐이 기록만 남기는지, 정상 업무를 멈추는지에 따라 변경의 검증 수준과 되돌리기 조건을 다르게 정합니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D7.7-Q17</div>
+<p>IDS 와 IPS 의 기본적인 차이는?</p><ol type="A"><li>IDS 는 의심 활동을 탐지해 보고하고 IPS 는 차단까지 할 수 있는 위치에 놓인다. 그래서 IPS 의 오탐은 정당한 트래픽을 중단시킬 수 있다.</li><li>IDS 는 시그니처가 필요하고 IPS 는 필요하지 않다.</li><li>IDS 는 네트워크에서, IPS 는 호스트에서 동작한다.</li><li>IPS 는 암호화된 트래픽에서만 동작한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 둘의 탐지 방식은 같을 수 있고 차이는 배치와 권한이다. IDS 는 복사된 트래픽을 보며 알려 주고, IPS 는 경로 안에 있어 차단할 수 있다. 차단 능력의 대가로 오탐이 업무 중단이 되고 장비 자체가 단일 실패점이 될 수 있다.</p><ul><li>B · 둘 다 시그니처와 이상 기반을 쓸 수 있다.</li><li>C · 둘 다 네트워크형과 호스트형이 있다.</li><li>D · 암호화 여부와 무관하다.</li></ul><div class="src">원문 위치 · D7.7-Q17</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.7.md §3 IDS / IPS 운영, §7 사례 3 · 공식 개요 7.7 “Intrusion Detection Systems (IDS) and Intrusion Prevention Systems (IPS)” · 기존 문제 Q17 주제</div>
+<h2 id="s4"><span class="n">4</span>허용 목록과 차단 목록</h2>
+<div class="tw"><table>
+<tr><th>방식</th><th>원리</th><th>특성</th></tr>
+<tr><td><b>허용 목록</b> allowlist</td><td>명시 허용만 실행·통신</td><td>기본 거부. 강력하지만 운영 부담</td></tr>
+<tr><td><b>차단 목록</b> blocklist</td><td>명시 차단만 금지</td><td>기본 허용. 쉽지만 미지 대응 불가</td></tr>
+</table></div>
+<p>원본은 <b>허용 목록이 본질적으로 더 안전하다</b>고 말합니다. 알려지지 않은 악성코드도 목록에 없으므로 실행되지 않습니다. 적용 영역은 앱 실행 제어, 스크립트 실행, 네트워크 목적지, 이동식 매체, 매크로입니다.</p>
+<div class="tw"><table>
+<tr><th>구현 방식</th><th>특성</th></tr>
+<tr><td>경로 기반</td><td>우회 쉬움</td></tr>
+<tr><td>해시 기반</td><td>정확하지만 업데이트마다 갱신</td></tr>
+<tr><td><b>서명 기반</b></td><td>발행자 인증서 기준. 실무적 균형</td></tr>
+</table></div>
+<p><b>운영 부담이 실패 원인</b>이므로, 감사 모드로 먼저 운영해 실행되는 것을 모은 뒤 강제 모드로 전환하고, <b>변화가 적고 위험이 높은 환경</b>(서버, 산업 제어, 키오스크, 특권 단말)부터 적용합니다.</p>
+<p>원본이 짚는 흔한 우회: <b>허용된 인터프리터나 시스템 유틸리티로 악성 코드를 실행</b>합니다. 그래서 허용된 프로그램의 자식 프로세스와 스크립트 실행도 함께 통제합니다.</p>
+<p><b>원문 사례 — 허용 목록의 인터프리터 우회.</b> 앱 허용 목록을 적용했지만 공격자가 허용된 스크립트 인터프리터로 악성 코드를 실행해, 실행 파일 없이 공격이 진행되었습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>의료 영상 판독 워크스테이션이나 검사 장비의 제어 PC는 설치 소프트웨어가 거의 바뀌지 않고 패치는 제조사 검증이 필요해 늦어지기 쉽습니다. 이런 단말은 허용 목록이 운영 부담 대비 효과가 가장 큰 곳입니다. 다만 장비 제조사의 업데이트 절차와 목록 갱신을 연결해 두지 않으면, 정식 업데이트가 차단되는 장애가 생깁니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D7.7-Q01</div>
+<p>애플리케이션 허용 목록이 알려지지 않은 악성코드에 대해 차단 목록보다 본질적으로 더 강한 이유는?</p><ol type="A"><li>허용 목록이 차단 목록보다 정의를 더 자주 갱신한다.</li><li>허용 목록은 파일 내용을 검사하고 차단 목록은 파일 이름만 확인한다.</li><li>허용 목록은 기본 거부이므로 명시적으로 승인되지 않은 것은 실행되지 않으며 처음 보는 악성코드도 포함된다.</li><li>허용 목록은 커널 모드에서, 차단 목록은 사용자 모드에서 동작한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 차단 목록은 기본 허용이므로 목록에 없는 악성코드는 그대로 실행된다. 허용 목록은 기본 거부이므로 목록에 없다는 사실만으로 차단되며 알려지지 않은 악성코드도 막힌다. 대가는 업데이트마다 목록을 갱신해야 하는 운영 부담이다.</p><ul><li>A · 갱신 빈도가 아니라 기본값의 방향이 차이의 본질이다.</li><li>B · 두 방식 모두 해시나 서명 기반으로 구현될 수 있다.</li><li>D · 실행 모드는 본질적 차이가 아니다.</li></ul><div class="src">원문 위치 · D7.7-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.7.md §3 허용 목록과 차단 목록, §7 사례 4 · 공식 개요 7.7 “Whitelisting / blacklisting” · 기존 문제 Q01 주제</div>
+<h2 id="s5"><span class="n">5</span>샌드박싱</h2>
+<p><b>격리된 환경에서 실행해 행위를 관찰</b>합니다. 미지 파일·메일 첨부·URL 검사와 악성코드 동적 분석에 쓰이며, 메일 게이트웨이, 웹 프록시, 엔드포인트, 분석 전용 환경에 배치합니다. 격리가 불완전하면 <b>샌드박스 탈출</b>이 가능합니다.</p>
+<div class="tw"><table>
+<tr><th>회피 기법</th><th>내용</th></tr>
+<tr><td>환경 인식</td><td>가상화 흔적, 적은 메모리·CPU, 마우스 움직임·사용자 파일 부재를 감지하면 악성 행위를 하지 않음</td></tr>
+<tr><td>시간 지연</td><td>분석 시간보다 길게 대기</td></tr>
+<tr><td>조건 트리거</td><td>특정 도메인 가입, 언어 설정, 날짜에만 동작</td></tr>
+<tr><td>사용자 상호작용 요구</td><td>클릭이나 암호 입력을 기다림</td></tr>
+</table></div>
+<p>대응은 샌드박스를 실제 환경처럼 꾸미고, 관찰 시간을 늘리고, <b>정적 분석·평판·엔드포인트 행위 탐지를 함께</b> 쓰는 것입니다. 원본의 결론은 <b>샌드박스 통과는 안전을 의미하지 않는다</b>입니다.</p>
+<p><b>원문 사례 — 샌드박스를 통과한 악성코드.</b> 메일 게이트웨이 샌드박스가 첨부를 “악성 아님”으로 판정했지만 단말에서 실행된 뒤 랜섬웨어가 동작했습니다. 분석해 보니 악성코드가 가상화 흔적과 사용자 파일 부재를 감지해 샌드박스 안에서는 무해하게 동작했습니다.</p>
+<div class="src">원문 위치: D7.7.md §3 샌드박싱, §7 사례 5 · 공식 개요 7.7 “Sandboxing”</div>
+<h2 id="s6"><span class="n">6</span>허니팟, 허니넷, 허니토큰</h2>
+<div class="tw"><table>
+<tr><th>구분</th><th>범위</th></tr>
+<tr><td>허니팟</td><td>단일 미끼 시스템</td></tr>
+<tr><td>허니넷</td><td>미끼 네트워크 전체</td></tr>
+<tr><td><b>허니토큰</b></td><td>미끼 자격증명·파일·레코드</td></tr>
+</table></div>
+<p>저상호작용은 서비스를 흉내만 내 안전하지만 정보가 적고, 고상호작용은 실제 시스템이라 상세히 관찰할 수 있지만 <b>침해되어 공격 발판으로 쓰일 위험</b>이 있습니다.</p>
+<p>가치: <b>탐지 신호의 품질이 매우 높습니다.</b> 정상 업무가 미끼에 접근할 이유가 없으므로 <b>접근 자체가 거의 확실한 이상 신호</b>이고 오탐이 극히 적습니다. 특히 <b>허니토큰</b>은 비용이 낮고 실용적입니다. 내부 정찰도 미끼를 만나면서 드러납니다.</p>
+<p><b>원문 사례 — 허니토큰이 잡은 자격증명 탈취.</b> 사용되지 않아야 할 미끼 서비스 계정 자격증명을 설정 파일에 심어 두고 사용 시도를 경보로 걸었더니, 어느 날 그 계정으로 인증 시도가 발생해 자격증명 탈취와 내부 정찰이 즉시 탐지되었습니다.</p>
+<p><b>원문 사례 — 격리되지 않은 고상호작용 허니팟.</b> 연구용 허니팟에 송신 통제를 적용하지 않아, 침해된 허니팟이 외부 시스템 공격의 발판이 되었습니다.</p>
+<p>주의점: 고상호작용 허니팟은 <b>격리와 송신 통제 필수</b>, 방치된 허니팟은 그 자체가 취약 자산, <b>실제 데이터를 넣지 않음</b>. 그리고 법적 경계입니다.</p>
+<div class="box warn"><p><span class="tag">확인 필요</span>원본 D7.7은 “유인(entrapment)과 함정(enticement)”이라고 영문을 반대로 짝지었습니다. 이 교재의 용어 기준과 일반적 용법은 <b>Enticement = 유인</b>(이미 범의가 있는 침입자에게 머물 기회를 제공, 일반적으로 허용), <b>Entrapment = 함정교사</b>(없던 범의를 유발, 문제가 됨)입니다. 원본의 요지(“없던 범의를 유발하면 문제”)는 그대로이며 영문 짝만 바로잡았습니다. 구체적 허용 범위는 관할 법에 따라 다르므로 법무 검토가 필요합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>유인과 함정교사의 법적 구분은 <a class="xr" href="D1.5.html">D1.5 조사 유형</a>, 같은 용어 주의는 <a class="xr" href="D4.2.html">D4.2 네트워크 구성요소</a>에서도 다뤘습니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D7.7-Q06</div>
+<p>심어 둔 미끼 자격증명의 사용에 대한 경보가 일반적으로 매우 낮은 오탐률을 갖는 이유는?</p><ol type="A"><li>미끼 자격증명이 실제 자격증명보다 더 강한 암호로 보호된다.</li><li>인증 시스템이 미끼 자격증명을 더 높은 우선순위 이벤트로 취급한다.</li><li>미끼 자격증명은 업무 시간에만 유효하다.</li><li>어떤 정상 업무 프로세스도 그 자격증명을 사용할 이유가 없으므로 사용 자체가 거의 확실한 이상 신호다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 미끼는 정상 업무에서 쓰이지 않도록 설계되므로 사용 시도가 발생하면 누군가 설정 파일이나 저장소를 뒤져 자격증명을 수집했다는 뜻이다. 정상 트래픽과 구분하기 위한 기준선 학습이 필요 없어 오탐이 극히 적은 고품질 신호가 된다.</p><ul><li>A · 암호 강도와 오탐률은 무관하다.</li><li>B · 우선순위 설정은 결과이며 원인이 아니다.</li><li>C · 유효 시간은 신호 품질의 근거가 아니다.</li></ul><div class="src">원문 위치 · D7.7-Q06</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.7.md §3 허니팟과 허니넷, §7 사례 6, 사례 7 · 공식 개요 7.7 “Honeypots / honeynets” · 기존 문제 Q06 주제</div>
+<h2 id="s7"><span class="n">7</span>제3자 제공 보안 서비스</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>제공 범위</th></tr>
+<tr><td>MSSP</td><td>장비·도구 운영과 모니터링</td></tr>
+<tr><td><b>MDR</b></td><td>탐지와 <b>대응 조치</b> 포함</td></tr>
+<tr><td>SOCaaS</td><td>관제 기능 전반</td></tr>
+<tr><td>클라우드 보안 서비스</td><td>WAF, DDoS 완화, 메일 보안, SASE</td></tr>
+</table></div>
+<p>이점은 24시간 운영과 전문 인력, 다수 고객 경험, 빠른 역량 확보입니다.</p>
+<div class="tw"><table>
+<tr><th>한계와 책임 경계</th><th>내용</th></tr>
+<tr><td>조직 맥락 부족</td><td>무엇이 정상 업무인지 외부는 모름. <b>맥락과 자산 중요도 전달은 조직 책임</b></td></tr>
+<tr><td><b>책임은 이전되지 않음</b></td><td>위탁해도 최종 책임은 조직(위험 수용 결정, 결과 책임)</td></tr>
+<tr><td><b>대응 권한의 범위</b></td><td>어디까지 조치할 수 있는가. 서버 격리 권한? 사전 합의와 승인 경로</td></tr>
+<tr><td>에스컬레이션</td><td>심각도별 연락 경로와 시간을 SLA로</td></tr>
+<tr><td>가시성 공백</td><td>공급자가 보지 않는 영역은 아무도 보지 않음</td></tr>
+<tr><td>종료 시 전환</td><td>탐지 규칙과 이력이 조직에 남는가</td></tr>
+<tr><td>공급자 침해</td><td>다수 고객 환경 접근 권한 → <b>공급자 침해가 조직 침해로 전이</b></td></tr>
+</table></div>
+<p><b>원문 사례 — MDR의 대응 권한이 불명확했던 사례.</b> 격리 조치 권한 범위를 합의하지 않아, 사고 때 공급자는 조직 승인을 기다리고 조직은 공급자가 조치했다고 생각해 초기 2시간 동안 아무 조치도 이루어지지 않았습니다. 심각도별 자동 조치 범위와 승인 필요 범위를 구분했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>공급자 관리와 책임은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, SLA는 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>의 6절에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D7.7-Q12</div>
+<p>어떤 조직이 모니터링을 관리형 보안 서비스 공급자에게 외주한다. 전가할 수 없는 책임은?</p><ol type="A"><li>공급자가 수행하는 24시간 경보 선별.</li><li>공급자가 할 수 있는 탐지 규칙 조정.</li><li>결과에 대한 책임. 위험 수용 수준 결정, 무엇을 사고로 볼지 정의, 억제 조치 승인, 그리고 문제가 생겼을 때 규제기관과 고객에게 답하는 일.</li><li>공급자가 호스팅하는 모니터링 플랫폼 유지.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 실행은 외주할 수 있지만 책임은 남는다. 무엇을 사고로 볼지와 어디까지 조치를 허용할지는 조직의 위험 수용 수준에서 나오는 결정이므로 공급자가 정할 수 없다. 침해가 발생했을 때 규제기관과 고객은 조직에 묻는다. 그래서 계약에 대응 권한과 상향 보고 기준, 통지 의무를 명시하고 공급자의 성과를 조직이 검증해야 한다.</p><ul><li>A · 운영 업무는 외주 가능하다.</li><li>B · 규칙 조정은 조직 승인 아래 외주 가능하다.</li><li>D · 플랫폼 운영은 외주 가능하다.</li></ul><div class="src">원문 위치 · D7.7-Q12</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.7.md §3 제3자 제공 보안 서비스, §7 사례 8 · 공식 개요 7.7 “Third-party provided security services” · 기존 문제 Q12 주제</div>
+<h2 id="s8"><span class="n">8</span>안티멀웨어</h2>
+<p>탐지 방식은 시그니처, 휴리스틱·행위, 평판, ML 분류, 그리고 행위 기록·사후 조사·격리까지 포함하는 <b>EDR</b>입니다.</p>
+<ul>
+<li><b>커버리지</b>: 에이전트 미설치 자산이 공백. <b>설치율과 정상 동작률</b>을 지표로.</li>
+<li><b>에이전트 상태</b>: 꺼진 에이전트, 오래된 정의 파일, 통신 실패. 보안 에이전트 중지는 공격의 선행 행위.</li>
+<li><b>예외 목록</b>: 성능을 위해 추가한 제외 경로가 <b>공격자의 은닉 장소</b>가 됩니다. 최소화하고 문서화·주기 검토.</li>
+<li>중앙 관리와 경보 연동: 로컬 알림만으로는 탐지 체계가 아닙니다.</li>
+</ul>
+<p>한계: <b>파일 없는 공격과 정상 도구 악용</b>(living off the land)에 약합니다. 그래서 EDR, 행위 탐지, 허용 목록이 보완합니다.</p>
+<div class="src">원문 위치: D7.7.md §3 안티멀웨어 · 공식 개요 7.7 “Anti-malware”</div>
+<h2 id="s9"><span class="n">9</span>ML / AI 기반 도구</h2>
+<div class="tw"><table>
+<tr><th>효용</th><th>운영상 한계</th></tr>
+<tr><td>대량 데이터의 패턴 발견, 기준선 이상 탐지(UEBA), 경보 묶기·우선순위(<b>경보 피로 완화</b>), 자동 보강·요약, 변형 악성코드 탐지</td><td><b>설명 가능성 부족</b>(징계·법적 절차에서 단독 근거 곤란), 학습 데이터 품질 의존(기준선 오염), <b>개념 변화(drift)</b>, 적대적 회피, 학습 데이터 오염, <b>과신</b>(기본 통제 소홀), 프라이버시</td></tr>
+</table></div>
+<p>운영 원칙: ML 출력은 <b>다른 증거와 결합</b>해 판단하고, <b>사람의 검토 경로</b>를 유지하며, <b>성능 지표와 재학습 주기</b>를 관리합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>UEBA와 기준선 오염은 <a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>의 8절, 개발 환경과 외부 구성요소의 AI 관련 위험은 <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>·<a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.7.md §3 ML / AI 기반 도구 · 공식 개요 7.7 “Machine learning and Artificial Intelligence (AI) based tools”</div>
+<h2 id="s10"><span class="n">10</span>운영과 유지의 공통 요건</h2>
+<div class="tw"><table>
+<tr><th>요건</th><th>내용</th></tr>
+<tr><td><b>커버리지 측정</b></td><td>자산 대비 통제 적용률. 누락이 공백</td></tr>
+<tr><td><b>상태 모니터링</b></td><td>꺼짐·만료·통신 실패 탐지</td></tr>
+<tr><td>갱신</td><td>시그니처, 규칙, 정의, 모델, 라이선스</td></tr>
+<tr><td>튜닝</td><td>환경 변화 반영, 오탐 관리</td></tr>
+<tr><td><b>효과 검증</b></td><td>실제로 탐지·차단하는가(BAS)</td></tr>
+<tr><td>경보 처리</td><td>절차와 잔량 관리</td></tr>
+<tr><td>예외 관리</td><td>최소화와 주기 검토</td></tr>
+<tr><td>변경 통제</td><td>차단 규칙 변경은 가용성 영향</td></tr>
+<tr><td>수명 관리</td><td>지원 종료 제품 교체</td></tr>
+</table></div>
+<p>원본의 결론: <b>“도구는 있는데 작동하지 않는다”가 가장 흔한 상태다.</b> 통제 인벤토리를 만들고 각 통제의 <b>커버리지·상태·효과</b>를 측정하는 것이 운영의 출발점입니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>서비스 담당자가 탐지 규칙이 정상 파일 배포를 경고한다고 보고했고, “보안 제품이니 모든 차단을 강제하고 예외를 허용하지 말자”는 제안이 나왔습니다. 경보와 차단을 운영 변경으로 다루면 판단이 달라집니다. 어떤 배포 경로와 서명이 걸렸는지 확인하고, 그 조합만 범위를 좁혀 예외로 두되 만료일과 재검토를 붙이고, 차단 강화는 변경 관리 절차로 영향 범위를 시험한 뒤 적용합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>침해 공격 시뮬레이션은 <a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a>의 9절, 예외 관리는 <a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>의 4절, 변경 관리는 <a class="xr" href="D7.9.html">D7.9 변경 관리</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.7.md §3 운영과 유지의 공통 요건</div>
+<h2 id="s11"><span class="n">11</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>탐지·예방 수단 점검 결과다. ㉠ 방화벽 규칙 4,200개 중 1,900개가 1년간 미적용이며 아웃바운드는 전면 허용이다. ㉡ 네트워크 재구성 후 한 구간 IDS 경보가 6개월간 0건이다. ㉢ 앱 허용 목록을 적용했는데 스크립트 인터프리터는 자유롭게 실행된다. ㉣ MDR 계약에 격리 권한 범위가 없다. 가장 적절한 대책 묶음은?</p>
+<ol type="A">
+<li>㉠ 규칙을 그대로 두고 장비 교체 / ㉡ 0건이므로 안전 / ㉢ 차단 목록으로 전환 / ㉣ 공급자가 알아서 판단</li>
+<li>㉠ 히트 카운트로 정리, 규칙마다 사유·승인·만료일, 송신 정책 수립 / ㉡ 배치 지점 검증과 장비별 수신량 모니터링 / ㉢ 인터프리터·스크립트·자식 프로세스까지 통제 / ㉣ 심각도별 자동 조치·승인 범위와 에스컬레이션 합의</li>
+<li>㉠ 모든 규칙 삭제 / ㉡ IPS로 교체 / ㉢ 허용 목록 폐기 / ㉣ MDR 해지</li>
+<li>㉠ 아웃바운드 규칙만 추가 / ㉡ 시그니처만 갱신 / ㉢ 경로 기반 목록 추가 / ㉣ 책임도 공급자에게 이전</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> ㉠ 2절(규칙 누적, 송신 규칙), ㉡ 3절(경보 없음 ≠ 안전), ㉢ 4절(허용된 인터프리터 우회), ㉣ 7절(대응 권한 사전 합의). D의 “책임 이전”은 7절에서 보듯 불가능합니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">12</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>같은 규칙을 IDS와 IPS에서 쓰더라도 배포 판단이 달라지는 이유는 무엇인가요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>IDS의 잘못된 탐지는 대체로 경보를 남기지만 IPS가 같은 정상 흐름을 차단하면 업무가 멈출 수 있습니다. 차단 전 영향과 예외를 시험하고 되돌리는 조건을 정합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">13</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>통제는 설치가 아니라 유지될 때 효과.</b> “있지만 작동하지 않는 통제”가 가장 흔하다.</li>
+<li>방화벽: 패킷 필터 → 상태 기반 → 프록시 → NGFW, <b>WAF는 요청 내용(NGFW가 대체 못 함)</b>. 암묵적 거부, <b>송신 규칙</b>. 규칙 누적 → 히트 카운트, 사유·승인·<b>만료일</b>.</li>
+<li>IDS/IPS 운영: 시그니처 갱신, 튜닝, <b>배치 지점 검증</b>, 용량(조용한 드롭). <b>경보 없음 ≠ 안전.</b></li>
+<li><b>허용 목록 &gt; 차단 목록</b>(미지 악성코드도 실행 안 됨). 서명 기반이 균형. 감사 모드 → 강제. 변화 적고 위험 높은 곳부터. <b>인터프리터 우회</b> 주의.</li>
+<li>샌드박스: 환경 인식·시간 지연·조건 트리거로 회피. <b>통과 ≠ 안전</b>, 엔드포인트 탐지와 병행.</li>
+<li>허니팟/허니넷/<b>허니토큰</b>: 오탐 극히 적은 고품질 신호. 고상호작용은 <b>격리·송신 통제</b>. <b>Enticement = 유인, Entrapment = 함정교사</b>.</li>
+<li>제3자(MSSP·MDR·SOCaaS): 맥락 전달은 조직 몫, <b>책임은 이전되지 않음</b>, <b>대응 권한 사전 합의</b>, 공급자 침해 전이.</li>
+<li>안티멀웨어: 커버리지·상태·<b>예외 목록(은닉 장소)</b>. 파일 없는 공격엔 EDR·행위 탐지.</li>
+<li>ML/AI: 설명 가능성, 기준선 오염, drift, 적대적 회피, <b>과신</b>. 다른 증거와 결합, 사람 검토 유지.</li>
+<li>공통: 커버리지, 상태, 갱신, 튜닝, <b>효과 검증</b>, 경보 처리, 예외, 변경 통제, 수명.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D7.7.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">14</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">NGFW (Next-Generation Firewall)</span> <span class="term-ko">· 차세대 방화벽</span></h3>
+<p>애플리케이션 식별, 사용자 신원, 침입 방지, 위협 정보를 통합한 방화벽.</p>
+<h3 id="glossary-2"><span lang="en">WAF (Web Application Firewall)</span> <span class="term-ko">· 웹 애플리케이션 방화벽</span></h3>
+<p>HTTP 요청을 검사해 웹 애플리케이션 공격을 차단하는 통제.</p>
+<h3 id="glossary-3"><span lang="en">Implicit Deny</span> <span class="term-ko">· 암묵적 거부</span></h3>
+<p>명시적으로 허용되지 않은 모든 트래픽을 거부하는 마지막 규칙.</p>
+<h3 id="glossary-4"><span lang="en">Egress Filtering</span> <span class="term-ko">· 송신 필터링</span></h3>
+<p>외부로 나가는 트래픽을 통제하는 규칙. 누락되기 쉽다.</p>
+<h3 id="glossary-5"><span lang="en">Rule Hit Count</span> <span class="term-ko">· 규칙 히트 카운트</span></h3>
+<p>각 방화벽 규칙이 적용된 횟수. 미사용 규칙 정리의 근거다.</p>
+<h3 id="glossary-6"><span lang="en">Allowlist / Blocklist</span> <span class="term-ko">· 허용 목록 / 차단 목록</span></h3>
+<p>명시 허용만 허용하는 방식과 명시 차단만 금지하는 방식.</p>
+<h3 id="glossary-7"><span lang="en">Audit Mode</span> <span class="term-ko">· 감사 모드</span></h3>
+<p>허용 목록을 차단 없이 관찰만 하며 목록을 수집하는 단계.</p>
+<h3 id="glossary-8"><span lang="en">Sandboxing</span> <span class="term-ko">· 샌드박싱</span></h3>
+<p>격리된 환경에서 실행해 행위를 관찰하는 분석 방식.</p>
+<h3 id="glossary-9"><span lang="en">Sandbox Evasion</span> <span class="term-ko">· 샌드박스 회피</span></h3>
+<p>분석 환경임을 탐지하면 악성 행위를 하지 않는 기법.</p>
+<h3 id="glossary-10"><span lang="en">Honeypot / Honeynet / Honeytoken</span> <span class="term-ko">· 유인 시스템 / 유인 네트워크 / 유인 데이터</span></h3>
+<p>미끼 시스템 / 미끼 네트워크 / 미끼 자격증명·파일.</p>
+<h3 id="glossary-11"><span lang="en">Low / High Interaction</span> <span class="term-ko">· 저/고 상호작용</span></h3>
+<p>서비스를 흉내만 내는 방식과 실제 시스템을 쓰는 방식.</p>
+<h3 id="glossary-12"><span lang="en">Entrapment / Enticement</span> <span class="term-ko">· 유인 / 함정</span></h3>
+<p>없던 범의를 유발하는 것과 이미 범의가 있는 자에게 기회를 제공하는 것.</p>
+<h3 id="glossary-13"><span lang="en">MSSP / MDR / SOCaaS — Managed Security Service Provider / Managed Detection and Response / Security Operations Center as a Service</span> <span class="term-ko">· 관리형 보안 서비스 제공자 / 관리형 탐지·대응 / 서비스형 보안관제센터</span></h3>
+<p>운영·모니터링 위탁 / 탐지와 대응 포함 / 관제 기능 전반 서비스.</p>
+<h3 id="glossary-14"><span lang="en">Living off the Land</span> <span class="term-ko">· 시스템의 정상 도구를 이용하는 공격 방식</span></h3>
+<p>시스템에 이미 있는 정상 도구로 공격을 수행하는 기법.</p>
+<h3 id="glossary-15"><span lang="en">EDR (Endpoint Detection and Response)</span> <span class="term-ko">· 엔드포인트 탐지 및 대응</span></h3>
+<p>단말 행위를 기록해 탐지·조사·격리를 제공하는 체계.</p>
+<h3 id="glossary-16"><span lang="en">Concept Drift</span> <span class="term-ko">· 개념 변화</span></h3>
+<p>환경 변화로 모델 성능이 저하되는 현상.</p>
+<h3 id="glossary-17"><span lang="en">Adversarial Evasion</span> <span class="term-ko">· 적대적 회피</span></h3>
+<p>모델을 우회하도록 입력을 조작하는 공격.</p>
+<div class="src">원문 위치 · D7.7.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">15</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-41 Rev.1</strong> — 방화벽과 방화벽 정책 지침</li>
+<li><strong>NIST SP 800-94</strong> — 침입 탐지·방지 시스템</li>
+<li><strong>NIST SP 800-83 Rev.1</strong> — 악성코드 사고 예방과 처리</li>
+<li><strong>NIST SP 800-167</strong> — 애플리케이션 허용 목록 지침</li>
+<li><strong>NIST SP 800-53 SI 통제군</strong> — 시스템과 정보 무결성</li>
+<li><strong>MITRE ATT&amp;CK</strong> — 탐지 커버리지 매핑</li>
+<li><strong>CIS Controls 10 / 13</strong> — 악성코드 방어와 네트워크 모니터링</li>
+<li><strong>ISO/IEC 27002:2022 8.7</strong> — 악성코드 대응</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D7.7.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">IDS 와 IPS 의 기본적인 차이는?</a></li>
+<li><a href="#question-2">애플리케이션 허용 목록이 알려지지 않은 악성코드에 대해 차단 목록보다 본질적으로 더 강한 이유는?</a></li>
+<li><a href="#question-3">심어 둔 미끼 자격증명의 사용에 대한 경보가 일반적으로 매우 낮은 오탐률을 갖는 이유는?</a></li>
+<li><a href="#question-4">어떤 조직이 모니터링을 관리형 보안 서비스 공급자에게 외주한다. 전가할 수 없는 책임은?</a></li>
+<li><a href="#question-5">탐지·예방 수단 점검 결과다. ㉠ 방화벽 규칙 4,200개 중 1,900개가 1년간 미적용이며 아웃바운드는 전면 허용이다. ㉡ 네트워크 재구성 후 한 구간 IDS 경보가 6개월간 0건이다. ㉢ 앱 허용 목록을 적용했는데 스크립트 인터프리터는 자유롭게 실행된다. ㉣ MDR 계약에 격리 권한 범위가 없다. 가장 적절한 대책 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D7.6.html"><small>← 이전 단원</small>7.6 사고 관리</a><a href="D7.8.html" style="text-align:right"><small>다음 단원 →</small>7.8 패치·취약점 관리</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

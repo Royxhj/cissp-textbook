@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D1.4 정보보안 관련 법률, 규제, 컴플라이언스 이슈의 통합적 이해 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D1.4">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 1 보안 및 위험 관리 › 1.4</div>
+<h1>정보보안 관련 법률, 규제, 컴플라이언스 이슈의 통합적 이해</h1>
+<div class="en">Understand legal, regulatory, and compliance issues that pertain to information security in a holistic context · ISC2 CISSP Exam Outline(2024-04-15 발효) 1.4</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">보안 담당자가 법률가가 될 필요는 없습니다. 하지만 “이 데이터에는 어느 나라의 어떤 규칙이 걸리는가”, “이것은 법인가 계약인가”를 알아보지 못하면 통제를 잘못 고르게 됩니다. 이 단원은 적용되는 요구를 식별하는 눈을 기르는 단원입니다.</p>
+<details class="more"><summary>공식 개요 세부 항목</summary><div><ul>
+<li lang="en">Cybercrimes and data breaches</li>
+<li lang="en">Licensing and Intellectual Property requirements</li>
+<li lang="en">Import/export controls</li>
+<li lang="en">Transborder data flow</li>
+<li lang="en">Issues related to privacy (e.g., GDPR, CCPA, PIPL, POPIA)</li>
+<li lang="en">Contractual, legal, industry standards, and regulatory requirements</li>
+</ul></div></details>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.1.html">D1.1 전문가 윤리</a></td><td>윤리는 이 단원이 다루는 ‘지켜야 하는 것’보다 넓다. 합법이어도 비윤리적일 수 있다 (1절)</td></tr>
+<tr><td><a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a></td><td>PCI DSS가 법률이 아닌 계약상 의무라는 구분. 의무를 다하지 않으면 태만이 된다 (1절)</td></tr>
+<tr><td><a class="xr" href="D1.5.html">D1.5 조사 유형</a></td><td>여기서 배우는 형사·민사·행정의 입증 기준이 조사 유형별 증거 수집 기준으로 이어진다 (2절)</td></tr>
+<tr><td><a class="xr" href="D1.9.html">D1.9 위험 관리</a></td><td>법규가 요구하는 통제는 비용 대비 효과와 무관하게 도입한다는 예외의 근거 (1절)</td></tr>
+<tr><td><a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a> · <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a></td><td>라이선스 준수를 실제로 관리하는 소프트웨어 자산 관리, 오픈소스 도입 평가 (4절)</td></tr>
+<tr><td><a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a></td><td>컨트롤러·프로세서·정보주체의 역할, 수집 최소화와 보존 (7절)</td></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a></td><td>설계 단계 프라이버시(Privacy by Design)를 설계 원칙으로 다룬다 (7절)</td></tr>
+<tr><td><a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a></td><td>승인 없는 보안 테스트가 왜 불법이 될 수 있는가 (5절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>지켜야 하는 것의 네 가지 출처</h2>
+<h3 id="s1-easy">쉬운 설명</h3>
+<p>컴플라이언스(compliance, 정해진 요구를 지키는 것)의 요구는 <b>법률(law)·규제(regulation)·계약(contract)·산업 표준(industry standard)</b> 네 곳에서 나옵니다. 성격이 다르므로 어겼을 때의 결과도 다릅니다.</p>
+<div class="tw"><table>
+<tr><th>출처</th><th>누가 정하는가</th><th>위반하면</th><th>예</th></tr>
+<tr><td>법률·규제</td><td>입법부·규제기관</td><td>형사 처벌, 과징금</td><td>GDPR, HIPAA, CFAA</td></tr>
+<tr><td>계약</td><td>당사자 합의</td><td>손해배상, 계약 해지</td><td>NDA(기밀 유지 계약), SLA(서비스 수준 합의)</td></tr>
+<tr><td>산업 표준</td><td>업계 단체</td><td>자격 상실, 거래 제한</td><td>PCI DSS</td></tr>
+</table></div>
+<p><b>PCI DSS</b>는 카드 산업 표준으로, 법률이 아니라 <b>계약상 의무</b>입니다. 그리고 원본의 기본 원칙: <b>여러 요구사항이 동시에 적용되면 가장 엄격한 기준을 따른다.</b> 다국적 조직의 기본 전략입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>“가장 엄격한 기준”은 요구들이 <b>같은 방향</b>일 때 통하는 전략입니다. 침해 통지 기한이 A국은 72시간, B국은 30일이면 72시간에 맞추면 둘 다 지켜집니다. 그러나 한쪽은 “5년 보관하라”, 다른 쪽은 “목적 달성 후 지체 없이 삭제하라”처럼 방향이 반대인 요구는 더 엄격한 쪽을 고르는 것으로 풀리지 않습니다. 원본 암기노트가 “가장 엄격한 기준을 기본선으로 삼고 관할권별 예외를 둔다”고 적은 것이 이 경우를 위한 것이며, 그런 충돌은 법무 검토가 필요합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>출처를 가르는 일이 왜 중요한지는 다른 단원에서 드러납니다. <a class="xr" href="D1.9.html">D1.9 위험 관리</a>에서 통제 가치가 음수여도 빼지 못하는 통제가 있는데, 그 근거가 법인지 계약인지에 따라 빼면 생기는 결과(처벌인지 계약 해지인지)가 다릅니다. <a class="xr" href="D1.5.html">D1.5 조사 유형</a>에서는 카드 결제 침해 뒤의 포렌식 조사가 법률이 아니라 계약에 근거한 ‘산업 표준 조사’로 분류됩니다. 그리고 <a class="xr" href="D1.1.html">D1.1 전문가 윤리</a>의 윤리는 이 표의 바깥까지 포함합니다. 네 출처를 모두 지켰다고 옳은 행동이 보장되지는 않습니다.</p></div>
+<div class="src">원문 위치: D1.4.md §2, §3 계약·산업 표준 요구사항 · 암기노트 K09 · 기존 문제 Q08, Q10 주제</div>
+<h2 id="s2"><span class="n">2</span>법 체계와 입증 기준</h2>
+<h3 id="s2-easy">두 가지 큰 법 체계</h3>
+<ul>
+<li><b>관습법(Common Law)</b> — 미국, 영국, 캐나다 등. 판례(precedent)가 법의 근거가 된다.</li>
+<li><b>성문법(Civil Law)</b> — 한국, 일본, 프랑스, 독일 등. 법전(code)이 중심이고 판례의 구속력이 약하다.</li>
+<li>그 밖에 종교법(Religious Law), 관습법(Customary Law), 이들이 섞인 혼합법(Mixed Law) 체계가 있다.</li>
+</ul>
+<div class="box warn"><p><span class="tag">용어 주의</span><b>Civil law</b>는 뜻이 둘입니다. 관습법 체계 안에서 형사(criminal)와 대비되는 <b>민사</b>를 뜻하기도 하고, 관습법(common law)과 대비되는 <b>성문법 체계</b>를 뜻하기도 합니다. 문맥으로 구분합니다. 한국어 ‘관습법’도 Common Law와 Customary Law 두 곳에 쓰여 헷갈리므로, 이 교재에서는 영문을 함께 적습니다.</p></div>
+<h3 id="s2-how">관습법 체계의 세 갈래와 입증 기준</h3>
+<div class="tw"><table>
+<tr><th>구분</th><th>다루는 것</th><th>제재</th><th>입증 기준(standard of proof)</th></tr>
+<tr><td><b>형사</b> Criminal</td><td>사회에 대한 범죄</td><td>징역, 벌금</td><td><b>beyond a reasonable doubt</b> 합리적 의심을 넘어서. 가장 높은 기준</td></tr>
+<tr><td><b>민사</b> Civil</td><td>당사자 간 분쟁</td><td>금전 배상</td><td><b>preponderance of the evidence</b> 증거의 우월. 사실일 개연성이 50%를 넘으면 충족</td></tr>
+<tr><td><b>행정</b> Administrative</td><td>규제 위반</td><td>과징금, 인가 취소</td><td>substantial evidence 상당한 증거. 원본은 민사보다 낮거나 비슷한 수준으로 설명</td></tr>
+</table></div>
+<p>같은 사건이 형사에서 무죄여도 민사에서는 책임이 인정될 수 있습니다. 입증 기준이 다르기 때문입니다. <b>적법 절차(Due Process)</b>는 법적 권리를 박탈하기 전에 공정한 절차를 보장해야 한다는 원칙입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>입증 기준이 왜 다른지는 걸린 것의 무게로 이해하면 됩니다. 형사는 사람의 자유를 빼앗을 수 있으므로 “틀릴 가능성이 합리적으로 남아 있지 않을 것”을 요구하고, 민사는 두 당사자 중 누구의 말이 더 그럴듯한지만 가리면 되므로 저울이 조금이라도 기운 쪽이 이깁니다.</p></div>
+<div class="box warn"><p><span class="tag">확인 필요</span>원본은 형사 기준을 “통상 99% 수준의 확신”이라고 적지만, 이 기준에 공식적으로 정해진 숫자는 없습니다. 민사의 “50% 초과”와 대비하기 위한 표현으로만 받아들이세요. 또 행정 사건의 기준을 substantial evidence로 적은 부분은 관할과 절차에 따라 다르게 쓰이는 것으로 알고 있으나 이번에 법률 자료와 대조하지 못했습니다. 형사 &gt; 민사라는 순서만 확실한 것으로 두고, 행정의 위치는 원본 서술로 표시합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>이 입증 기준이 <a class="xr" href="D1.5.html">D1.5 조사 유형</a>에서 증거를 얼마나 엄격하게 모아야 하는지를 정합니다. 형사로 갈 수 있는 사건은 처음부터 가장 높은 기준으로 수집해야 하고, 민사 소송이 예상되면 관련 자료를 지우지 말아야 하는 보존 의무(Legal Hold)가 생깁니다.</p></div>
+<div class="quiz" id="question-1">
+<div class="qh">이해 확인 1 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>전 직원이 설계 자료를 빼돌린 혐의로 형사 재판을 받았으나 무죄가 선고되었다. 회사는 같은 사실로 손해배상 소송을 내려 한다. 가장 적절한 설명은?</p>
+<ol type="A">
+<li>형사에서 무죄였으므로 민사에서도 책임을 물을 수 없다.</li>
+<li>민사의 입증 기준이 형사보다 낮으므로, 같은 증거로도 민사 책임이 인정될 수 있다.</li>
+<li>민사 소송은 형사보다 높은 입증 기준을 요구하므로 더 어렵다.</li>
+<li>무죄 판결 뒤에는 행정 절차만 가능하다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 형사는 합리적 의심을 넘어야 하고 민사는 증거의 우월이면 됩니다. 형사 기준에는 못 미쳤지만 “그랬을 개연성이 더 높다”는 정도는 입증될 수 있습니다.</p>
+<ul><li>A: 두 절차는 기준과 목적이 다릅니다.</li>
+<li>C: 순서가 반대입니다.</li>
+<li>D: 그런 제한은 원본에 없습니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D1.4.md §3 법 체계의 유형, §4 입증 기준 용어·Due Process, §5 첫 표 · 암기노트 K01, K10 · 기존 문제 Q01 주제</div>
+<h2 id="s3"><span class="n">3</span>지식재산권 네 가지</h2>
+<h3 id="s3-why">왜 필요한가</h3>
+<p>소스코드, 알고리즘, 설계 자료, 브랜드는 훔쳐도 원본이 그대로 남는 자산입니다. 무엇으로 보호할지에 따라 지켜야 하는 방식이 정반대가 됩니다. 어떤 것은 공개해야 보호되고, 어떤 것은 숨겨야 보호됩니다. 보안 통제의 방향이 여기서 정해집니다.</p>
+<h3 id="s3-easy">쉬운 설명</h3>
+<div class="tw"><table>
+<tr><th>유형</th><th>보호 대상</th><th>존속 기간</th><th>보호받는 조건</th></tr>
+<tr><td><b>특허</b> Patent</td><td>발명, 기술적 사상</td><td>출원일로부터 20년</td><td>발명을 <b>공개</b>한다</td></tr>
+<tr><td><b>상표</b> Trademark</td><td>브랜드 식별 표지</td><td>갱신하면 무기한</td><td>사용하고 갱신한다</td></tr>
+<tr><td><b>저작권</b> Copyright</td><td><b>표현</b> (아이디어 아님)</td><td>저작자 사후 70년 (미국 기준)</td><td>표현물로 만들어져 있다</td></tr>
+<tr><td><b>영업비밀</b> Trade Secret</td><td>비밀로 유지되는 정보</td><td><b>비밀인 동안 무기한</b></td><td><b>비밀로 유지</b>한다</td></tr>
+</table></div>
+<h3 id="s3-how">작동 방식: 세 가지 핵심</h3>
+<p><b>① 특허는 거래다.</b> 발명을 공개하는 대가로 20년간 독점권을 받습니다. 공개를 원하지 않으면 특허 대신 영업비밀을 택합니다.</p>
+<p><b>② 영업비밀은 공개되는 순간 보호가 사라진다.</b> 원본의 예: 코카콜라 제조법이 100년 넘게 보호되는 것은 공개하지 않았기 때문입니다. 반대로 경쟁사가 <b>역공학(reverse engineering)으로 독자적으로 알아내면 침해가 아닙니다.</b> 영업비밀은 부정한 수단에 의한 취득만 금지합니다.</p>
+<p><b>③ 저작권은 아이디어가 아니라 표현을 보호한다.</b> 같은 기능의 프로그램을 코드 복제 없이 독자적으로 작성하는 것은 저작권 침해가 아닙니다. 기능적 아이디어를 독점하려면 특허가 필요합니다.</p>
+<p>소프트웨어 소스코드는 <b>저작권과 영업비밀로 동시에</b> 보호될 수 있습니다. 공개 배포하면 영업비밀성은 잃지만 저작권은 남습니다.</p>
+<p><b>원문 사례 — 역공학.</b> 경쟁사가 공개 판매 중인 제품을 구매해 분해하고 동작 방식을 알아낸 뒤 유사 제품을 만들었습니다. 영업비밀은 부정한 수단에 의한 취득만 금지하므로 정당하게 구매한 제품의 역공학은 일반적으로 침해가 아닙니다. 다만 구매 시 동의한 <b>EULA에 역공학 금지 조항</b>이 있었다면 계약 위반이 될 수 있습니다. 법률 영역과 계약 영역이 따로 작동하는 사례입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>보안 관점에서 넷 중 <b>영업비밀만이 기밀성 통제에 전적으로 의존</b>합니다. 특허와 저작권은 내용이 알려져도 권리가 남지만, 영업비밀은 새는 순간 법적 보호도 함께 사라집니다. 그래서 영업비밀로 지키려면 “비밀로 관리했다”는 사실 자체가 필요합니다. 접근 제한, 기밀 표시, 기밀 유지 계약, 퇴사자 관리가 그 증거가 됩니다. 저작권 기간의 ‘사후 70년’은 개인 저작자 기준이며, 회사 명의 저작물 등은 계산 방식이 다릅니다(세부는 이번에 대조하지 않았습니다).</p></div>
+<div class="box ex"><p><span class="tag">가상 예시</span>어느 회사가 장비의 측정 정확도를 높이는 보정 알고리즘을 개발했습니다.</p>
+<ul>
+<li>제품을 분해해도 알아내기 어렵고 오래 쓸 기술이라면 → <b>영업비밀</b>. 대신 소스 접근을 최소 인원으로 제한하고, 펌웨어에서 추출하기 어렵게 보호하고, 협력사와 NDA를 맺는다.</li>
+<li>제품을 분석하면 원리가 드러나는 기술이라면 → 어차피 숨길 수 없으므로 <b>특허</b>로 공개하고 20년 독점을 받는다.</li>
+<li>알고리즘을 구현한 소스코드 자체 → <b>저작권</b>이 자동으로 붙는다. 다만 경쟁사가 같은 원리를 자기 코드로 구현하는 것은 막지 못한다.</li>
+<li>제품 이름과 로고 → <b>상표</b>.</li>
+</ul></div>
+<div class="box link"><p><span class="tag">연결</span>영업비밀을 지키는 통제는 여러 단원에 흩어져 있습니다. 기밀 유지 계약이 퇴사 뒤에도 유지되어야 한다는 점은 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>, 분류와 취급 표시는 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>·<a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>, 알 필요성에 따른 접근 제한은 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 다룹니다. <a class="xr" href="D1.5.html">D1.5 조사 유형</a>의 사례(직원의 USB 반출 의혹이 영업비밀 유출 형사 사건으로 번짐)가 이 주제의 조사 쪽 모습입니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>보호 수단을 고르는 상황에서는 ① 보호하려는 것이 발명·표현·표지·비밀 정보 중 무엇인지 ② 공개해도 되는지 ③ 얼마나 오래 보호해야 하는지를 봅니다. 침해 여부를 묻는 상황에서는 상대가 <b>어떻게 알아냈는지</b>(부정한 수단인가, 독자적 분석인가)와 별도의 <b>계약 조항</b>이 있는지를 나눠 판단합니다.</p></div>
+<div class="quiz" id="question-2">
+<div class="qh">이해 확인 2 · 자작 상황 문제</div>
+<p>한 회사가 자사 검색 순위 알고리즘을 보호하려 한다. 알고리즘은 서버에서만 동작해 외부에서 분석하기 어렵고, 회사는 20년이 지난 뒤에도 독점하고 싶어 하며, 원리를 공개하고 싶지 않다. 가장 적합한 보호 수단은?</p>
+<ol type="A">
+<li>특허</li>
+<li>상표</li>
+<li>영업비밀</li>
+<li>저작권만으로 충분하다</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 C.</b> 공개하지 않고, 기간 제한 없이, 외부에서 알아내기 어려운 정보라는 세 조건이 모두 영업비밀에 맞습니다.</p>
+<ul><li>A: 공개가 전제이고 20년으로 끝납니다.</li>
+<li>B: 브랜드 표지를 보호하는 것으로 알고리즘과 무관합니다.</li>
+<li>D: 코드라는 표현은 보호하지만, 경쟁사가 같은 원리를 독자적으로 구현하는 것은 막지 못합니다.</li></ul>
+<p>조건을 바꿔 보기: 알고리즘이 고객에게 배포되는 앱 안에 들어 있어 분석하면 드러난다면, 영업비밀로는 역공학을 막을 수 없으므로 특허가 후보가 됩니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D1.4.md §3 지식재산권, §4 Patent·Trade Secret·Copyright, §5 둘째 표, §7 사례 1 · 암기노트 K02, K03, K04 · 기존 문제 Q02, Q04, Q09, Q13 주제</div>
+<h2 id="s4"><span class="n">4</span>라이선싱</h2>
+<h3 id="s4-easy">쉬운 설명</h3>
+<p>라이선스는 저작권자가 “이 조건으로 쓰는 것을 허락한다”고 정한 것입니다. 소프트웨어를 산다는 것은 대개 소유권이 아니라 이 사용 허락을 받는 것입니다.</p>
+<ul>
+<li><b>EULA(End User License Agreement)</b> — 최종 사용자 사용 조건</li>
+<li><b>상용 / 셰어웨어 / 프리웨어 / 학술용</b> — 용도 제한이 다르다. 학술용 라이선스를 상업적으로 쓰면 위반</li>
+<li><b>오픈소스 라이선스</b>
+<ul>
+<li><b>Copyleft (GPL 계열)</b> — 파생 저작물도 같은 조건으로 공개해야 한다. 상용 제품에 링크하면 소스 공개 의무가 생길 수 있다</li>
+<li><b>Permissive (MIT, Apache, BSD)</b> — 저작권 표시 유지 정도의 의무만 있다</li>
+</ul></li>
+</ul>
+<p>조직은 <b>소프트웨어 라이선스 준수에 법적 책임</b>을 집니다. 직원이 무단 설치한 소프트웨어도 조직이 책임질 수 있어서, 자산 관리와 소프트웨어 인벤토리가 컴플라이언스 통제가 됩니다.</p>
+<p><b>원문 사례 — 학술용 라이선스의 상업적 사용.</b> 연구 목적으로 저렴하게 구매한 소프트웨어를 제품 개발에 사용했습니다. 라이선스 조건 위반이며, 직원 개인이 아니라 조직이 법적 책임을 집니다. 소프트웨어 자산 관리(SAM, Software Asset Management)가 컴플라이언스 통제인 이유입니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>장비 펌웨어를 만들면서 개발자가 GPL 라이선스의 압축 라이브러리를 가져다 자사 코드와 합쳐 빌드했습니다. 제품을 출하하면 그 펌웨어를 받은 사람에게 관련 소스를 제공해야 할 의무가 생길 수 있고, 3절의 보정 알고리즘을 영업비밀로 지키려던 계획과 충돌합니다. 어떤 구성요소가 어떤 라이선스로 들어가 있는지 모르면 이 충돌을 출하 전에 알 수 없습니다. (GPL 의무의 정확한 범위는 결합 방식과 라이선스 버전에 따라 다르며 법무 검토 대상입니다.)</p></div>
+<div class="box link"><p><span class="tag">연결</span>소프트웨어 구성요소 목록인 SBOM은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>·<a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>에서 주로 취약점 추적 수단으로 나오지만, 위 예시처럼 <b>라이선스 추적</b>에도 같은 목록이 쓰입니다. 원본 <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>·<a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>는 오픈소스의 라이선스 위험을 “보안은 아니지만 함께 관리되는 법적 위험”으로 적습니다. 설치 소프트웨어 인벤토리, 보유 수량과 사용량 대조, 승인되지 않은 소프트웨어 탐지는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>의 소프트웨어 자산 관리에서 다룹니다.</p></div>
+<div class="src">원문 위치: D1.4.md §3 라이선싱, §4 Copyleft, §7 사례 4 · 기존 문제 Q12 주제 · 연결: D2.3.md §3 소프트웨어 자산 관리, D8.2.md·D8.4.md의 라이선스 위험 문장</div>
+<h2 id="s5"><span class="n">5</span>사이버범죄와 데이터 침해 통지</h2>
+<h3 id="s5-easy">알아 둘 법률</h3>
+<div class="tw"><table>
+<tr><th>법률 (미국)</th><th>다루는 것</th></tr>
+<tr><td><b>CFAA</b> Computer Fraud and Abuse Act</td><td>무단 접근(unauthorized access)과 <b>권한 초과 접근</b>을 처벌하는 핵심 사이버범죄 법률</td></tr>
+<tr><td><b>ECPA</b> Electronic Communications Privacy Act</td><td>통신 감청과 저장 통신 보호</td></tr>
+<tr><td><b>USA PATRIOT Act</b></td><td>수사기관 권한 확대</td></tr>
+</table></div>
+<div class="box add"><p><span class="tag">보충</span>CFAA에서 눈여겨볼 것은 ‘권한 초과’입니다. 아예 권한이 없는 침입만이 아니라, 접근 권한은 있지만 허락된 범위를 넘어선 사용도 문제가 될 수 있습니다. 보안 일을 하는 사람에게 이 조항이 가까운 이유입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span><a class="xr" href="D6.4.html">D6.4 결과 분석과 보고</a>는 “승인 없는 테스트는 불법일 수 있다. 취약점을 선의로 찾는 행위도 권한 없이 수행하면 법적 문제가 된다”고 적습니다. 그 근거가 되는 종류의 법률이 CFAA입니다. 침투 테스트 전에 서면 승인서와 범위를 받는 것(<a class="xr" href="D6.1.html">D6.1 평가·테스트·감사 전략</a>·<a class="xr" href="D6.2.html">D6.2 보안 통제 테스트</a>), 버그 바운티에 세이프 하버 문구가 필요한 것이 모두 이 법적 위험 때문입니다. <a class="xr" href="D1.1.html">D1.1 전문가 윤리</a>의 종합 문제에서 “증명을 위해 고객 장비에 접속해 본다”가 답이 될 수 없었던 이유이기도 합니다.</p></div>
+<h3 id="s5-notify">침해 통지 의무</h3>
+<p><b>데이터 침해 통지(breach notification)</b> 의무는 관할권마다 다릅니다. 미국은 연방 통합법이 없어 주별로 다르고, GDPR 제33조는 컨트롤러에게 지체 없이, 가능하면 인지 후 72시간 이내에 감독기관에 통지하도록 요구합니다. 자연인의 권리와 자유에 위험을 초래할 가능성이 낮다면 감독기관 통지의 예외가 적용됩니다. 프로세서는 인지한 뒤 컨트롤러에게 지체 없이 알립니다. <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng/">GDPR 제33·34조</a></p>
+<p><b>원문 사례 — 72시간의 의미.</b> 침해를 인지한 금요일 저녁, 조사팀은 “원인을 완전히 파악한 뒤 보고하자”고 제안합니다. GDPR의 72시간은 <b>원인 규명 완료 시점이 아니라 인지 시점</b>부터 계산됩니다. 정보가 불완전하면 단계적으로 보완 통지할 수 있습니다. 완벽한 보고를 기다리다 기한을 넘기는 것이 더 큰 위반입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>두 가지를 구분해 두면 좋습니다. 72시간은 <b>감독기관</b>에 대한 통지 기한입니다. 침해가 개인에게 높은 위험을 줄 때 <b>정보주체 본인</b>에게 알리는 의무는 별도로 있습니다. 그리고 통지 기한을 지키려면 “누가 인지했다고 판단하고 누가 통지를 결정하는가”가 미리 정해져 있어야 합니다. 사고가 난 뒤 정하면 72시간 안에 끝나지 않습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>사고 대응 절차 안에서 ‘보고’가 어디에 놓이는지는 <a class="xr" href="D7.6.html">D7.6 사고 관리</a>에서 다룹니다. 신고와 통지를 보안팀이 단독으로 정하지 않고 경영진과 법무의 판단을 거친다는 점, 다만 법적 의무가 있으면 선택의 여지가 없다는 점은 <a class="xr" href="D1.5.html">D1.5 조사 유형</a>에 있습니다.</p></div>
+<div class="src">원문 위치: D1.4.md §3 사이버범죄와 데이터 침해, §4 CFAA, §7 사례 3 · 암기노트 K05, K11 · 기존 문제 Q03, Q11 주제 · 연결: D6.4.md §3 윤리적 원칙과 법적 경계</div>
+<h2 id="s6"><span class="n">6</span>수출입 통제</h2>
+<h3 id="s6-why">왜 보안 단원에 무역 규제가 나오는가</h3>
+<p>암호 기술은 전통적으로 민간과 군사 양쪽에 쓰이는 <b>이중용도(dual-use)</b> 품목으로 분류되어 수출 통제를 받습니다. 강한 암호가 들어간 제품을 만드는 순간 보안 담당자의 설계 결정이 무역 규제 대상이 됩니다.</p>
+<div class="tw"><table>
+<tr><th>이름</th><th>성격</th></tr>
+<tr><td><b>Wassenaar Arrangement</b> 바세나르 협정</td><td>재래식 무기와 이중용도 기술의 수출 통제에 관한 다자간 협정. 암호 기술 포함</td></tr>
+<tr><td><b>ITAR</b> International Traffic in Arms Regulations</td><td>미국. 군수 품목</td></tr>
+<tr><td><b>EAR</b> Export Administration Regulations</td><td>미국. 상업용 이중용도 품목</td></tr>
+</table></div>
+<p><b>간주 수출(Deemed Export)</b>: 기술을 국외로 반출하지 않아도 자국 내에서 외국인에게 제공하면 수출로 간주하는 개념입니다. 원본이 드는 실무 영향은 세 가지입니다. 강한 암호를 포함한 제품을 특정 국가에 수출하는 것, 해당 국가 국적자에게 기술을 제공하는 것이 제한될 수 있고, <b>클라우드에 소스코드를 올리는 행위도 수출로 간주될 수 있습니다.</b> 또 일부 국가는 암호의 수입이나 사용 자체를 제한하므로 글로벌 서비스 설계 시 확인이 필요합니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>통제 대상 기술이 포함된 설계 자료를 다루는 미국 법인에서, 해외 국적의 계약 엔지니어에게 저장소 접근 권한을 주려고 합니다. 자료는 한 번도 국경을 넘지 않지만, 그 사람이 열람하는 순간 간주 수출 문제가 될 수 있습니다. 접근 권한 부여라는 일상적인 IT 작업이 수출 허가 문제가 되는 지점이며, 권한을 주기 전에 확인해야 할 속성에 ‘국적’이 들어가게 됩니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>암호 알고리즘과 키 길이의 선택은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>에서 기술적 기준으로 다루지만, 수출 대상국에 따라 쓸 수 있는 선택지가 달라질 수 있다는 제약이 이 절에서 옵니다. 위 예시처럼 사용자의 속성을 보고 접근을 정하는 방식은 <a class="xr" href="D5.4.html">D5.4 인가 메커니즘</a>의 속성 기반 접근 통제와 맞닿습니다.</p></div>
+<div class="src">원문 위치: D1.4.md §3 수출입 통제, §4 Wassenaar Arrangement·Deemed Export · 암기노트 K08 · 기존 문제 Q07 주제</div>
+<h2 id="s7"><span class="n">7</span>프라이버시 법규: GDPR을 중심으로</h2>
+<h3 id="s7-why">왜 GDPR을 기준으로 배우는가</h3>
+<p>공식 개요 1.4는 프라이버시 예시로 GDPR, CCPA, PIPL, POPIA를 듭니다. 그중 GDPR(EU 일반 개인정보보호법)은 적용 범위가 넓고 다른 법들이 구조를 많이 따왔기 때문에, 이것을 기준으로 익혀 두면 나머지를 차이로 이해할 수 있습니다.</p>
+<h3 id="s7-scope">누구에게 적용되는가: 역외 적용</h3>
+<p>EU 내 사업장의 활동과 관련해 개인정보를 처리하면 처리 장소에 관계없이 GDPR이 적용됩니다. EU에 사업장이 없는 컨트롤러나 프로세서에게도, <b>EU 내에 있는 정보주체에게 상품·서비스를 제공하거나 EU 내에서 이루어지는 그들의 행동을 모니터링하는 활동과 관련된 처리</b>에는 GDPR이 적용됩니다. <a href="https://eur-lex.europa.eu/eli/reg/2016/679">GDPR 제3조</a></p>
+<h3 id="s7-rights">정보주체의 권리</h3>
+<ul>
+<li>접근권(access), 정정권(rectification)</li>
+<li><b>삭제권</b>(erasure, 잊힐 권리)</li>
+<li>처리 제한권(restriction), <b>데이터 이동권</b>(portability)</li>
+<li>반대권(object), 자동화된 의사결정 거부권</li>
+</ul>
+<h3 id="s7-basis">적법 처리 근거 6가지</h3>
+<p>동의(consent), 계약 이행, 법적 의무, 중대한 이익, 공익적 임무, 정당한 이익. <b>동의는 여러 근거 중 하나일 뿐</b>이며 유일한 근거가 아닙니다.</p>
+<div class="box add"><p><span class="tag">보충</span>“개인정보를 쓰려면 동의를 받아야 한다”는 생각이 흔하지만, GDPR의 구조는 “여섯 근거 중 <b>하나</b>가 있어야 한다”입니다. 주문한 물건을 배송하려고 주소를 쓰는 것은 계약 이행이고, 세법이 요구하는 거래 기록 보관은 법적 의무입니다. 동의는 언제든 철회될 수 있으므로, 다른 근거가 맞는 처리까지 동의에 기대면 오히려 불안정해집니다.</p></div>
+<h3 id="s7-duty">주요 의무</h3>
+<div class="tw"><table>
+<tr><th>의무</th><th>내용</th></tr>
+<tr><td>침해 통지</td><td>개인의 권리·자유에 위험 가능성이 낮은 경우를 제외하고, 컨트롤러가 지체 없이 가능하면 인지 후 <b>72시간 이내</b> 감독기관에 통지</td></tr>
+<tr><td><b>DPIA</b> Data Protection Impact Assessment 개인정보 영향평가</td><td>고위험 처리 <b>전에</b> 위험을 평가하고 완화 방안을 수립</td></tr>
+<tr><td><b>DPO</b> Data Protection Officer 개인정보보호 책임자</td><td>일정 요건에서 지정이 의무화되는 독립적 책임자</td></tr>
+<tr><td>Privacy by Design / by Default</td><td>설계 단계부터의 프라이버시, 기본값 프라이버시</td></tr>
+</table></div>
+<p><b>과징금</b>은 2단계입니다. 중대한 위반은 <b>전 세계 연간 매출의 4% 또는 2천만 유로 중 높은 금액</b>, 그보다 가벼운 위반은 2% 또는 1천만 유로 중 높은 금액입니다.</p>
+<div class="box link"><p><span class="tag">연결</span>이 절의 용어들이 뒤 단원에서 구체화됩니다.</p>
+<ul>
+<li><a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>: 처리의 목적과 수단을 결정하는 쪽이 컨트롤러(Controller), 그 지시에 따라 처리하는 쪽이 프로세서(Processor), 데이터가 가리키는 본인이 정보주체(Data Subject)입니다. 클라우드 제공자는 통상 프로세서이고 고객 조직이 컨트롤러입니다. 위 권리를 행사하는 사람이 정보주체, 그 요청에 답할 책임을 지는 쪽이 컨트롤러입니다.</li>
+<li><a class="xr" href="D1.9.html">D1.9 위험 관리</a>: DPIA는 위험 평가를 개인정보 처리에 적용한 것입니다. 다만 평가하는 것이 조직의 손실이 아니라 <b>정보주체가 입을 피해</b>라는 점이 다릅니다.</li>
+<li><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>: Privacy by Design을 안전한 설계 원칙의 하나로 다룹니다.</li>
+<li><a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a>: 개인정보가 포함된 로그는 과다 보존도 위반이며, 보존과 삭제 의무가 충돌하면 법무 검토가 필요합니다. 1절 보충의 ‘방향이 반대인 요구’의 실제 예입니다.</li>
+</ul></div>
+<div class="box add"><p><span class="tag">보충</span>ISO/IEC 27701 심사 경험과 연결하면, 원본이 관련 표준으로 드는 ISO/IEC 27701은 개인정보 보호 관리체계(PIMS)를 세우고 운영하기 위한 표준입니다. 원본이 설명하는 2019판은 ISO/IEC 27001·27002의 확장이었고, 2025판은 독립적으로 적용할 수 있는 관리체계 표준입니다. 개인정보 처리의 역할을 확인하는 위 구분은 여전히 업무 적용의 출발점입니다. <a href="https://www.iso.org/standard/27701">ISO/IEC 27701:2025</a> 인증이 법 준수를 대신하지는 않지만, 법이 요구하는 것(처리 근거 식별, 권리 요청 처리, 영향평가)을 운영 체계로 옮기는 틀이 됩니다.</p></div>
+<h3 id="s7-others">그 밖의 프라이버시·분야별 법규</h3>
+<div class="tw"><table>
+<tr><th>법규</th><th>관할</th><th>대상</th></tr>
+<tr><td>CCPA / CPRA</td><td>미국 캘리포니아</td><td>소비자 개인정보</td></tr>
+<tr><td>PIPL</td><td>중국</td><td>자연인의 개인정보 처리. 중국 내 처리와 중국 내 사람에게 상품·서비스를 제공하는 등 제3조의 일부 역외 처리에도 적용된다. <a href="https://wb.flk.npc.gov.cn/flfg/PDF/f67af9f12e1b4c83a998cf5a876ce0e4.pdf">중국 전인대 PIPL 제3조</a></td></tr>
+<tr><td>POPIA</td><td>남아프리카공화국</td><td>책임 당사자(responsible party) 또는 그를 대신한 개인정보 처리에 목적 명시, 보안 보호조치 등의 조건을 둔다. <a href="https://www.justice.gov.za/legislation/acts/2013-004.pdf">남아프리카공화국 POPIA 제4조</a></td></tr>
+<tr><td><b>HIPAA</b></td><td>미국</td><td>의료 정보(PHI)</td></tr>
+<tr><td><b>GLBA</b></td><td>미국</td><td>금융기관 고객 정보</td></tr>
+<tr><td><b>SOX</b></td><td>미국</td><td>상장사 재무보고 내부통제</td></tr>
+<tr><td><b>FERPA</b></td><td>미국</td><td>학생 교육 기록</td></tr>
+<tr><td><b>COPPA</b></td><td>미국</td><td>13세 미만 아동 온라인 정보</td></tr>
+</table></div>
+<div class="box add"><p><span class="tag">보충</span>미국은 GDPR 같은 포괄법 대신 분야별 법을 두는 구조라는 점이 표에서 보입니다. 그래서 “미국에서 이 데이터에 무슨 법이 걸리는가”는 데이터의 <b>종류</b>(의료, 금융, 교육, 아동)를 먼저 물어야 답이 나옵니다. SOX는 프라이버시 법이 아니라 재무보고의 신뢰성에 관한 법이며, 재무 시스템의 접근 통제와 변경 관리가 감사 대상이 되는 경로로 보안과 이어집니다.</p></div>
+<div class="quiz" id="question-3">
+<div class="qh">이해 확인 3 · 자작 상황 문제</div>
+<p>한국에 본사를 둔 회사가 EU에 사무소 없이 온라인으로 EU 내에 있는 사람을 대상으로 서비스를 제공하며 그들의 개인정보를 처리한다. 법무팀 한 명이 “우리는 EU에 법인이 없으니 GDPR과 무관하고, 설령 적용돼도 가입 때 동의만 받으면 모든 처리가 적법하다”고 말했다. 가장 적절한 평가는?</p>
+<ol type="A">
+<li>두 주장 모두 맞다.</li>
+<li>첫 주장은 틀리고 둘째는 맞다. GDPR은 적용되지만 동의가 유일한 적법 근거다.</li>
+<li>두 주장 모두 틀리다. EU 내 사람에게 제공하는 서비스와 관련된 개인정보 처리에는 역외에도 적용되며, 동의는 여섯 가지 적법 근거 중 하나일 뿐이다.</li>
+<li>첫 주장은 맞고 둘째는 틀리다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 C.</b> 한국 회사가 EU 내 사람에게 서비스를 제공하고 그 과정에서 개인정보를 처리하므로 제3조 제2항의 요건에 해당합니다. 그리고 동의를 받았다고 모든 처리가 적법해지지는 않습니다. 처리마다 맞는 근거가 있어야 하고, 동의 외에도 계약 이행·법적 의무 등 다른 근거가 있습니다.</p>
+<ul><li>A, D: 역외 적용을 놓쳤습니다.</li>
+<li>B: 동의를 유일한 근거로 본 것이 틀렸습니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D1.4.md §3 프라이버시 법규, §4 DPIA·DPO, §6 · 암기노트 K05, K06, K11 · 기존 문제 Q06 주제 · 연결: D2.4.md §3 데이터 역할, D7.2.md 로그 보존 기간 설계</div>
+<h2 id="s8"><span class="n">8</span>국경 간 데이터 이전과 데이터 현지화</h2>
+<h3 id="s8-why">왜 필요한가</h3>
+<p>보호 수준이 높은 지역의 법은 데이터가 보호 수준이 낮은 곳으로 빠져나가면 무력해집니다. 그래서 GDPR은 EU 역외로 개인정보를 이전할 때 “밖에서도 같은 수준으로 보호된다”는 것을 보장하는 수단을 요구합니다.</p>
+<h3 id="s8-easy">세 가지 적법 수단</h3>
+<div class="tw"><table>
+<tr><th>수단</th><th>성격</th><th>누가 보장하는가 (보충)</th></tr>
+<tr><td><b>적정성 결정</b> Adequacy Decision</td><td>EU 집행위가 해당 국가의 보호 수준을 충분하다고 인정. 국가 단위</td><td>상대 <b>국가</b>의 법제</td></tr>
+<tr><td><b>표준계약조항</b> SCC, Standard Contractual Clauses</td><td>EU가 승인한 계약 문구 사용</td><td>보내는 쪽과 받는 쪽의 <b>계약</b></td></tr>
+<tr><td><b>구속적 기업규칙</b> BCR, Binding Corporate Rules</td><td>다국적 기업 그룹 내 이전을 위한 내부 규칙. 감독기관 승인 필요</td><td>기업 <b>그룹</b>의 내부 규칙</td></tr>
+</table></div>
+<p>원본 암기노트의 한 줄이 중요합니다. <b>암호화는 보안 조치일 뿐 이전 제한을 면제하지 않습니다.</b></p>
+<p>별도로 <b>데이터 현지화(Data Localization / Residency)</b>를 요구하는 국가가 있습니다. 특정 유형의 데이터를 국내에 저장하도록 강제하는 것으로, 클라우드 리전 선택에 직접 영향을 줍니다.</p>
+<div class="box add"><p><span class="tag">보충</span>두 규제는 방향이 다릅니다. 이전 제한은 “나가려면 조건을 갖춰라”이고, 현지화는 “나가지 마라(또는 사본을 안에 둬라)”입니다. 적정성 결정을 받은 국가 목록은 바뀝니다. 한국은 2021년 12월 EU로부터 적정성 결정을 받은 것으로 알고 있고, 미국은 관련 체계가 무효화되었다가 새로 만들어지기를 반복해 왔습니다. 원본 사례가 “적정성 결정이 없는 상태라면”이라고 조건을 단 이유입니다. 실제 업무에서는 현재 상태를 확인해야 하며, 이 문단의 국가별 내용은 이번에 대조하지 않았습니다.</p></div>
+<p><b>원문 사례 — 리전 선택이 컴플라이언스 결정이 되는 경우.</b> EU 고객 데이터를 미국 리전에서 처리하려 합니다. 적정성 결정이 없는 상태라면 SCC 또는 BCR 같은 적법 수단이 필요하고, 추가로 전송 영향평가가 요구될 수 있습니다. 기술적으로는 “어느 리전이든 동작한다”가 맞지만 법적으로는 리전 선택이 <b>적법성 자체를 바꿉니다.</b></p>
+<div class="box think"><p><span class="tag">판단 순서</span>“이 데이터 처리에 어떤 요구가 걸리는가”를 읽는 순서입니다.</p>
+<ol>
+<li><b>무슨 데이터인가.</b> 개인정보인가, 그중에서도 의료·금융·아동 정보인가, 카드 정보인가, 통제 대상 기술인가.</li>
+<li><b>어떤 활동과 관련된 처리인가.</b> EU 내 사업장 활동과 관련 있는가. EU 밖 사업자라면 EU 내 사람을 대상으로 한 상품·서비스 제공이나 EU 내 행동 모니터링과 관련 있는가.</li>
+<li><b>어디서 처리하고 어디로 옮기는가.</b> 국경을 넘으면 이전 수단, 넘지 못하게 되어 있으면 현지화.</li>
+<li><b>근거가 법인가 계약인가 표준인가.</b> 어겼을 때의 결과와 조사 주체가 달라진다.</li>
+<li><b>겹치면</b> 같은 방향의 요구는 엄격한 쪽을 기본선으로, 반대 방향의 요구는 법무 검토로.</li>
+</ol></div>
+<div class="box ex"><p><span class="tag">가상 예시</span>EU 병원에 설치된 장비가 원격 서비스 로그를 한국 본사 서버로 보냅니다. 로그에는 검사 일시와 환자 식별번호가 들어 있습니다.</p>
+<ol>
+<li>무슨 데이터: 환자를 식별할 수 있으므로 개인정보, 그중에서도 건강 관련 정보.</li>
+<li>어떤 활동: EU 병원이 EU 내 사업장 활동과 관련해 환자 정보를 처리하므로 해당 처리에 GDPR 적용.</li>
+<li>어디로: EU에서 한국으로 국경을 넘는다 → 이전 수단이 필요(적정성 결정이 유효한지 확인, 아니면 SCC 등).</li>
+<li>역할: 병원이 컨트롤러, 제조사는 병원의 지시에 따라 처리하는 프로세서일 가능성이 높다 → 처리 위탁 계약이 필요.</li>
+<li>더 근본적인 질문: 서비스 목적에 환자 식별번호가 필요한가. 필요 없다면 장비에서 보내기 전에 빼는 것이 가장 확실한 통제다.</li>
+</ol>
+<p>마지막 항목이 Privacy by Design의 실제 모습입니다. 전송 구간을 암호화하는 것은 필요한 보안 조치이지만 2~4번의 의무를 없애 주지 않습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>데이터가 어디에 놓이는지는 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>의 생애주기에서 ‘소재지(Location)’ 단계로 다시 나오고, 필요 없는 정보를 처음부터 모으지 않는 것은 같은 단원의 데이터 최소화입니다. 클라우드에서 고객과 제공자의 책임이 어떻게 나뉘는지는 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>의 공동 책임 모델, 식별 정보를 빼거나 바꾸는 기법(가명화, 익명화, 토큰화)은 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>에서 다룹니다.</p></div>
+<h3 id="s8-worked">개인정보 이전과 암호화의 판단 순서</h3>
+<div class="box ex"><p><span class="tag">가상 예시</span>한국 본사의 서비스가 EU 내 이용자에게 제공되고, 현지 지원 업체의 직원이 문의 기록을 열람할 예정입니다. 개발팀이 접속 경로를 TLS로 보호하자고 제안했습니다.</p></div>
+<div class="box think"><p><span class="tag">판단 순서</span></p><ol class="steps"><li>먼저 서비스와 처리 활동에 적용되는 규정을 판단하고, 고객과 업체가 맡는 역할과 실제 자료 흐름을 그립니다.</li><li>자료가 어디에서 처리·접근되는지 확인해 필요한 이전 근거와 계약 조건을 검토합니다.</li><li>이어 목적에 필요한 자료만 허용하고 전송 보안·권한·기록을 설계합니다.</li></ol><p><b>조건을 바꿔 보기.</b> 직원이 원격으로 자료를 보기만 하고 파일을 내려받지 않아도 접근 주체와 위치에 관한 검토는 남습니다. 반대로 개인을 식별할 수 없는 집계 정보만 사용하는 경우에는 데이터의 성격부터 다시 판단합니다.</p></div>
+<div class="quiz" id="question-4">
+<div class="qh">이해 확인 4 · 자작 상황 문제</div>
+<p>EU 고객의 개인정보를 적정성 결정이 없는 국가의 데이터센터로 옮기려는 회사에서, 담당자가 “전송과 저장을 모두 강하게 암호화하니 이전 제한은 신경 쓰지 않아도 된다”고 한다. 가장 적절한 답변은?</p>
+<ol type="A">
+<li>맞다. 암호화된 데이터는 개인정보가 아니므로 이전 규제 대상이 아니다.</li>
+<li>암호화는 보안 조치일 뿐 이전 제한을 면제하지 않는다. SCC나 BCR 같은 적법 수단이 필요하다.</li>
+<li>암호화 대신 정보주체의 동의만 받으면 다른 조치는 필요 없다.</li>
+<li>데이터센터를 운영하는 업체가 책임지므로 회사는 조치할 것이 없다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 이전 규제가 묻는 것은 “안전하게 보냈는가”가 아니라 “받는 곳에서도 같은 수준의 보호와 권리가 보장되는가”입니다.</p>
+<ul><li>A: 원본은 암호화가 이전 제한을 면제하지 않는다고 명시합니다.</li>
+<li>C: 원본이 드는 수단은 적정성 결정·SCC·BCR입니다. 동의 하나로 일반적인 이전을 해결할 수 있다는 근거는 원본에 없습니다.</li>
+<li>D: 위탁해도 컨트롤러의 책임은 남습니다(D1.3의 책임 원칙).</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D1.4.md §3 국경 간 데이터 이전, §4 Adequacy Decision·SCC·BCR·Data Localization, §5 셋째 표, §7 사례 2 · 암기노트 K07 · 기존 문제 Q05 주제</div>
+<h2 id="s9"><span class="n">9</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>한 회사가 새 제품 출시를 준비하며 다음을 확인했다. ㉠ 제품에 강한 암호 모듈이 들어가며 여러 나라에 판매할 예정이다. ㉡ 온라인 결제를 받아 카드 정보를 처리한다. ㉢ EU에 사업장이 없지만 EU 내 고객에게 서비스를 제공하며 그에 필요한 개인정보를 처리한다. 각 항목에 대한 설명으로 가장 적절한 것은?</p>
+<ol type="A">
+<li>㉠ 수출 통제 대상 여부를 확인해야 한다. ㉡ PCI DSS는 계약상 의무로 준수해야 한다. ㉢ EU 내 고객을 대상으로 한 서비스 관련 처리에 GDPR이 적용된다.</li>
+<li>㉠ 암호는 보안 기능이므로 규제와 무관하다. ㉡ PCI DSS는 법률이므로 위반 시 형사 처벌된다. ㉢ EU에 법인이 없으면 적용되지 않는다.</li>
+<li>㉠ 수출 통제는 군수품에만 해당한다. ㉡ PCI DSS는 권고이므로 선택 사항이다. ㉢ 동의만 받으면 의무가 모두 면제된다.</li>
+<li>세 항목 모두 법무팀 소관이므로 보안 담당자가 파악할 필요가 없다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> 세 항목은 각각 다른 출처(법률·규제 / 계약·산업 표준 / 법률)에서 온 요구입니다. ㉢은 EU 내 고객을 대상으로 제공하는 서비스에 관련된 처리이므로 GDPR 제3조 제2항에 해당합니다.</p>
+<ul><li>B: 암호는 이중용도 품목입니다. PCI DSS는 법률이 아니며 제재는 계약에 따릅니다. GDPR은 역외 적용됩니다.</li>
+<li>C: 이중용도 품목은 상업용에도 해당합니다. 계약상 의무는 선택 사항이 아닙니다. 동의는 여섯 근거 중 하나일 뿐 다른 의무를 없애지 않습니다.</li>
+<li>D: 원본은 보안 전문가가 적용 법규를 식별하고 통제에 반영할 것을 요구한다고 정리합니다. 해석은 법무의 일이지만, 어떤 데이터와 기술이 어디로 흐르는지 아는 사람은 보안·개발 쪽입니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">10</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>개인정보를 암호화해서 해외로 보내면 어떤 질문에는 답했고 어떤 질문은 남아 있나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>암호화는 전송 중 보호 수단입니다. 어느 법이 적용되는지, 처리와 이전의 근거가 있는지, 받는 곳이 어떤 역할을 하는지는 별도로 판단합니다. 계약과 산업 표준의 요구도 법률 요구와 근거를 구분합니다.</p></div></details></div>
+<h2 id="s10"><span class="n">11</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>요구의 출처는 <b>법률·규제 / 계약 / 산업 표준</b>. 위반 결과가 다르다. PCI DSS는 계약상 의무.</li>
+<li>여러 요구가 겹치면 <b>가장 엄격한 기준</b>을 기본선으로 삼는다. 방향이 반대인 요구는 법무 검토.</li>
+<li>입증 기준: 형사 <b>beyond a reasonable doubt</b> &gt; 민사 <b>preponderance of the evidence</b>. 형사 무죄와 민사 책임이 함께 성립할 수 있다.</li>
+<li>Civil law는 <b>민사</b>와 <b>성문법 체계</b> 두 뜻. 문맥으로 구분.</li>
+<li>특허 <b>20년</b>(공개의 대가), 저작권 <b>사후 70년</b>(표현 보호, 미국 기준), 영업비밀 <b>비밀인 동안</b>, 상표 <b>갱신 가능</b>.</li>
+<li>영업비밀은 <b>공개되면 소멸</b>, <b>역공학은 침해 아님</b>(단 EULA 조항은 별개의 계약 문제).</li>
+<li>라이선스 준수의 법적 책임은 <b>조직</b>에 있다. Copyleft는 파생물 공개 의무.</li>
+<li>암호는 <b>이중용도 품목</b>(Wassenaar, ITAR, EAR). <b>간주 수출</b>: 국내에서 외국인에게 기술을 제공해도 수출.</li>
+<li>GDPR: <b>역외 적용</b>, 적법 근거 <b>6가지</b>(동의는 그중 하나), 감독기관 통지가 필요한 경우 지체 없이, 가능하면 <b>인지 후 72시간 이내</b> 통지, 과징금 상한 <b>4% 또는 2천만 유로 중 높은 쪽</b>.</li>
+<li>역외 이전 수단: <b>적정성 결정 / SCC / BCR</b>. 암호화는 이전 제한을 면제하지 않는다.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D1.4.md §8 CISSP 시험 관점, §9 핵심 암기 요약(10항목). 원본의 “시험 단골 / 반드시 외운다 / 오답”류의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">12</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div>
+<h3 id="glossary-1"><span lang="en">Beyond a Reasonable Doubt</span> <span class="term-ko">· 합리적 의심을 넘어서</span></h3>
+<p>형사 사건의 입증 기준. 가장 높은 수준의 확신을 요구한다.</p>
+<h3 id="glossary-2"><span lang="en">Preponderance of the Evidence</span> <span class="term-ko">· 증거의 우월</span></h3>
+<p>민사 사건의 입증 기준. 주장이 사실일 개연성이 50%를 넘으면 충족된다.</p>
+<h3 id="glossary-3"><span lang="en">Due Process</span> <span class="term-ko">· 적법 절차</span></h3>
+<p>법적 권리를 박탈하기 전에 공정한 절차를 보장해야 한다는 원칙.</p>
+<h3 id="glossary-4"><span lang="en">Patent</span> <span class="term-ko">· 특허</span></h3>
+<p>발명을 공개하는 대가로 출원일로부터 20년간 독점권을 부여받는 권리.</p>
+<h3 id="glossary-5"><span lang="en">Trade Secret</span> <span class="term-ko">· 영업비밀</span></h3>
+<p>비밀로 유지되는 동안 보호되는 정보. 공개되면 보호가 소멸하며, 역공학에 의한 독자적 취득은 침해가 아니다.</p>
+<h3 id="glossary-6"><span lang="en">Copyright</span> <span class="term-ko">· 저작권</span></h3>
+<p>아이디어가 아니라 <strong>표현</strong>을 보호하는 권리.</p>
+<h3 id="glossary-7"><span lang="en">Copyleft</span> <span class="term-ko">· 카피레프트</span></h3>
+<p>파생 저작물도 동일한 라이선스로 공개하도록 요구하는 오픈소스 조건. GPL 계열이 대표적이다.</p>
+<h3 id="glossary-8"><span lang="en">CFAA — Computer Fraud and Abuse Act</span> <span class="term-ko">· 미국 컴퓨터 사기 및 남용법</span></h3>
+<p>미국의 핵심 사이버범죄 법률. 무단 접근과 권한 초과 접근을 처벌한다.</p>
+<h3 id="glossary-9"><span lang="en">Wassenaar Arrangement</span> <span class="term-ko">· 바세나르 협정</span></h3>
+<p>재래식 무기와 이중용도 기술의 수출 통제에 관한 다자간 협정. 암호 기술이 포함된다.</p>
+<h3 id="glossary-10"><span lang="en">Deemed Export</span> <span class="term-ko">· 간주 수출</span></h3>
+<p>기술을 국외로 반출하지 않아도 자국 내에서 외국인에게 제공하면 수출로 간주하는 개념.</p>
+<h3 id="glossary-11"><span lang="en">Adequacy Decision</span> <span class="term-ko">· 적정성 결정</span></h3>
+<p>EU 집행위가 특정 국가의 개인정보 보호 수준이 충분하다고 인정하는 결정.</p>
+<h3 id="glossary-12"><span lang="en">SCC — Standard Contractual Clauses</span> <span class="term-ko">· 표준계약조항</span></h3>
+<p>EU 승인 계약 문구를 사용해 역외 이전을 적법화하는 수단.</p>
+<h3 id="glossary-13"><span lang="en">BCR — Binding Corporate Rules</span> <span class="term-ko">· 구속적 기업규칙</span></h3>
+<p>다국적 기업 그룹 내부 이전을 위해 감독기관의 승인을 받은 내부 규칙.</p>
+<h3 id="glossary-14"><span lang="en">DPIA — Data Protection Impact Assessment</span> <span class="term-ko">· 개인정보 영향평가</span></h3>
+<p>고위험 처리 전에 위험을 평가하고 완화 방안을 수립하는 절차.</p>
+<h3 id="glossary-15"><span lang="en">DPO — Data Protection Officer</span> <span class="term-ko">· 개인정보보호 책임자</span></h3>
+<p>GDPR 상 일정 요건에서 지정이 의무화되는 독립적 책임자.</p>
+<h3 id="glossary-16"><span lang="en">Data Localization / Data Residency</span> <span class="term-ko">· 데이터 현지화 / 데이터 소재지</span></h3>
+<p>데이터 현지화는 특정 국가나 지역에 저장·처리하도록 요구하는 것을 말합니다. 데이터 소재지는 데이터가 어디에 실제로 저장되거나 처리되는지 가리킵니다. 위치에 적용되는 요구는 관할과 데이터 유형에 따라 확인합니다.</p>
+<div class="src">원문 위치 · D1.4.md §4 주요 용어 정리</div></div></details>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">전 직원이 설계 자료를 빼돌린 혐의로 형사 재판을 받았으나 무죄가 선고되었다. 회사는 같은 사실로 손해배상 소송을 내려 한다. 가장 적절한 설명은?</a></li>
+<li><a href="#question-2">한 회사가 자사 검색 순위 알고리즘을 보호하려 한다. 알고리즘은 서버에서만 동작해 외부에서 분석하기 어렵고, 회사는 20년이 지난 뒤에도 독점하고 싶어 하며, 원리를 공개하고 싶지 않다. 가장 적합한 보호 수단은?</a></li>
+<li><a href="#question-3">한국에 본사를 둔 회사가 EU에 사무소 없이 온라인으로 EU 내에 있는 사람을 대상으로 서비스를 제공하며 그들의 개인정보를 처리한다. 법무팀 한 명이 “우리는 EU에 법인이 없으니 GDPR과 무관하고, 설령 적용돼도 가입 때 동의만 받으면 모든 처리가 적법하다”고 말했다. 가장 적절한 평가는?</a></li>
+<li><a href="#question-4">EU 고객의 개인정보를 적정성 결정이 없는 국가의 데이터센터로 옮기려는 회사에서, 담당자가 “전송과 저장을 모두 강하게 암호화하니 이전 제한은 신경 쓰지 않아도 된다”고 한다. 가장 적절한 답변은?</a></li>
+<li><a href="#question-5">한 회사가 새 제품 출시를 준비하며 다음을 확인했다. ㉠ 제품에 강한 암호 모듈이 들어가며 여러 나라에 판매할 예정이다. ㉡ 온라인 결제를 받아 카드 정보를 처리한다. ㉢ EU에 사업장이 없지만 EU 내 고객에게 서비스를 제공하며 그에 필요한 개인정보를 처리한다. 각 항목에 대한 설명으로 가장 적절한 것은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D1.3.html"><small>← 이전 단원</small>1.3 보안 거버넌스</a><a href="D1.5.html" style="text-align:right"><small>다음 단원 →</small>1.5 조사 유형</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

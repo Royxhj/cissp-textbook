@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D3.4 정보시스템의 보안 기능 이해 (메모리 보호, TPM, 암복호화) — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D3.4">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 6개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 3 보안 아키텍처 및 엔지니어링 › 3.4</div>
+<h1>정보시스템의 보안 기능 이해 (메모리 보호, TPM, 암복호화)</h1>
+<div class="en">Understand security capabilities of Information Systems (IS) (e.g., memory protection, Trusted Platform Module (TPM), encryption/decryption) · ISC2 CISSP Exam Outline(2024-04-15 발효) 3.4</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 6개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">애플리케이션을 아무리 잘 만들어도, 그 아래의 운영체제나 하드웨어가 뚫리면 모든 것이 무너집니다. 이 단원은 그 바닥, 즉 하드웨어와 운영체제가 제공하는 보안 기능을 다룹니다. 누가 모든 접근을 검사하는가(참조 모니터), 프로그램끼리 서로를 어떻게 침범하지 못하는가(격리와 메모리 보호), 기기가 변조되지 않았음을 어떻게 아는가(TPM, 보안 부팅)가 중심입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a></td><td>“단순하고 작게”. TCB는 작을수록 검증할 수 있다 (1절)</td></tr>
+<tr><td><a class="xr" href="D3.2.html">D3.2 보안 모델</a></td><td>보안 모델의 규칙을 실제로 강제하는 장치가 참조 모니터, 은닉 채널 (1절, 10절)</td></tr>
+<tr><td><a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a></td><td>하드웨어 신뢰 루트(Silicon Root of Trust)와 PUF (6절)</td></tr>
+<tr><td><a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a> · <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a></td><td>사용 중 데이터 보호(기밀 컴퓨팅), 암호 소거와 자체 암호화 드라이브 (7~8절)</td></tr>
+<tr><td><a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a></td><td>가상화·컨테이너·클라우드의 취약점과 완화 (9절)</td></tr>
+<tr><td><a class="xr" href="D3.6.html">D3.6 암호 솔루션</a></td><td>암호 알고리즘과 키 관리, HSM (5절, 8절)</td></tr>
+<tr><td><a class="xr" href="D8.5.html">D8.5 안전한 코딩</a></td><td>메모리 보호 기법이 막지 못하는 것을 고치는 안전한 코딩 (3절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>TCB, 보안 커널, 참조 모니터</h2>
+<h3 id="s1-easy">쉬운 설명</h3>
+<div class="tw"><table>
+<tr><th>개념</th><th>의미</th><th>성격</th></tr>
+<tr><td><b>TCB</b> Trusted Computing Base 신뢰 컴퓨팅 기반</td><td>보안을 강제하는 <b>모든 보호 메커니즘의 집합</b>(하드웨어·펌웨어·소프트웨어)</td><td>전체</td></tr>
+<tr><td><b>보안 커널</b> Security Kernel</td><td>참조 모니터를 <b>실제로 구현한 것</b></td><td>구현체</td></tr>
+<tr><td><b>참조 모니터</b> Reference Monitor</td><td>주체의 객체 접근을 <b>중재하는 추상 개념</b></td><td>개념</td></tr>
+</table></div>
+<p>원본은 관계를 <b>TCB ⊃ 보안 커널 ⊃ 참조 모니터</b>로 정리합니다. 그리고 <b>TCB는 작을수록 좋다</b>고 강조합니다. 신뢰해야 하는 범위가 작아야 검증할 수 있기 때문입니다.</p>
+<h3 id="s1-rm">참조 모니터의 세 가지 요건</h3>
+<div class="tw"><table>
+<tr><th>요건</th><th>의미</th></tr>
+<tr><td><b>완전한 중재</b> Complete mediation</td><td><b>모든</b> 접근을 예외 없이 검사한다</td></tr>
+<tr><td><b>변조 불가</b> Tamper-proof</td><td>격리되어 수정할 수 없다</td></tr>
+<tr><td><b>검증 가능</b> Verifiable</td><td>충분히 작고 단순해 정확성을 분석할 수 있다</td></tr>
+</table></div>
+<p>원본의 핵심 문장은 <b>우회 경로가 하나라도 있으면 참조 모니터는 무의미하다</b>입니다. 완전한 중재가 첫 번째 요건인 이유입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>세 요건을 건물 출입 관리에 대어 보면 이렇습니다. 완전한 중재는 “모든 출입구에 경비가 있다”, 변조 불가는 “경비를 매수하거나 출입 명부를 고칠 수 없다”, 검증 가능은 “경비 규칙이 단순해서 제대로 지켜지는지 감사할 수 있다”입니다. 뒷문 하나가 열려 있으면 정문 경비가 아무리 엄격해도 소용이 없습니다. 소프트웨어에서는 정상 화면만 검사하고 백그라운드 작업이나 내보내기 기능이 같은 자료를 검사 없이 읽는 경우가 그 뒷문입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>TCB를 작게 하는 원칙은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>의 7절, 참조 모니터가 강제하는 규칙(BLP, Biba 등)은 <a class="xr" href="D3.2.html">D3.2 보안 모델</a>에서 다뤘습니다. “모든 접근을 매번 검사”는 제로 트러스트의 생각과도 같습니다. 원본은 참조 모니터 개념의 기원으로 Anderson Report(1972)를 듭니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D3.4-Q01</div>
+<p>참조 모니터가 충족해야 하는 속성의 조합은?</p><ol type="A"><li>완전한 중재, 변조 불가 동작, 검증 가능성.</li><li>저장·전송·사용 중 암호화.</li><li>높은 성능, 벤더 독립성, 오픈소스 라이선스.</li><li>이중화, 지리적 분산, 자동 장애 조치.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 참조 모니터는 모든 접근 요청을 예외 없이 검사하고(완전한 중재), 격리되어 수정할 수 없으며(변조 불가), 충분히 작고 단순해 정확성을 분석할 수 있어야 한다(검증 가능). 우회 경로가 하나라도 있으면 참조 모니터는 무의미해진다.</p><ul><li>B · 데이터 상태별 암호화는 별개의 보호 수단이다.</li><li>C · 성능과 라이선스는 참조 모니터의 정의 요건이 아니다.</li><li>D · 이중화는 가용성 설계 요소다.</li></ul><div class="src">원문 위치 · D3.4-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.4.md §2, §3 참조 모니터의 세 가지 요건, §5 첫 표, §6 Anderson Report · 공식 개요 3.4 “Understand security capabilities of Information Systems (IS)”</div>
+<h2 id="s2"><span class="n">2</span>보호 링</h2>
+<p><b>보호 링(Protection Rings)</b>은 CPU가 제공하는 권한 계층입니다. 안쪽일수록 권한이 높습니다.</p>
+<div class="tw"><table>
+<tr><th>링</th><th>영역</th></tr>
+<tr><td>Ring -3</td><td>관리 엔진 등 하위 펌웨어</td></tr>
+<tr><td>Ring -2</td><td>시스템 관리 모드(SMM)</td></tr>
+<tr><td><b>Ring -1</b></td><td><b>하이퍼바이저</b></td></tr>
+<tr><td><b>Ring 0</b></td><td><b>운영체제 커널</b> (최고 권한, 전통적 의미)</td></tr>
+<tr><td>Ring 1·2</td><td>장치·입출력 드라이버(일부 설계)</td></tr>
+<tr><td><b>Ring 3</b></td><td><b>사용자 애플리케이션</b> (최저 권한)</td></tr>
+</table></div>
+<p>현대 운영체제는 대부분 <b>Ring 0과 Ring 3만</b> 씁니다. 가상화와 펌웨어가 더해지면서 음수 링이라는 표현이 쓰입니다. 사용자 모드와 커널 모드 사이의 전환은 <b>시스템 호출(system call)</b>로 이루어지며, 이 경계가 중요한 신뢰 경계입니다.</p>
+<p>원본이 강조하는 결과는 이것입니다. <b>더 낮은 링이 침해되면 그 위 전체가 무력화된다.</b> 하이퍼바이저가 뚫리면 그 위의 모든 가상 머신이 노출됩니다. 펌웨어와 하이퍼바이저 보안이 중요한 이유입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>낮은 링은 위층을 감시하는 자리이기도 합니다. 그래서 낮은 층에 숨은 악성코드(부트킷, 펌웨어 악성코드)는 위층의 백신이 볼 수 없습니다. 감시하는 쪽보다 아래에 있기 때문입니다. 6절의 보안 부팅과 측정 부팅이 아래층부터 차례로 검증하는 이유가 여기 있습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>사용자-커널 경계를 신뢰 경계로 보는 관점은 <a class="xr" href="D1.10.html">D1.10 위협 모델링</a>의 위협 모델링, 하이퍼바이저와 VM 탈출은 9절과 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D3.4-Q05</div>
+<p>가상화 환경에서 하이퍼바이저 침해가 특히 심각하게 평가되는 이유는?</p><ol type="A"><li>게스트 운영체제는 자체 보안 통제를 전혀 갖지 않는다.</li><li>하이퍼바이저는 운영에 배포되면 패치할 수 없다.</li><li>게스트 커널보다 낮은 링에서 동작하므로 그 위의 모든 게스트가 노출된다.</li><li>하이퍼바이저는 설계상 모든 게스트 데이터를 평문으로 저장한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 하이퍼바이저는 Ring -1 에서 동작해 게스트 커널(Ring 0)보다 낮은 계층에 있다. 더 낮은 링이 침해되면 그 위의 모든 계층이 무력화되므로 하이퍼바이저가 뚫리면 그 위의 모든 가상머신이 노출된다.</p><ul><li>A · 게스트 OS 도 자체 통제를 갖지만 하위 계층 침해에는 무력하다.</li><li>B · 하이퍼바이저도 패치 가능하다.</li><li>D · 평문 저장이 설계 전제가 아니다.</li></ul><div class="src">원문 위치 · D3.4-Q05</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.4.md §3 보호 링 · 기존 문제 Q05 주제</div>
+<h2 id="s3"><span class="n">3</span>프로세스 격리와 메모리 보호</h2>
+<h3 id="s3-iso">프로세스 격리</h3>
+<p>각 프로세스는 자기 주소 공간만 접근할 수 있고, 다른 프로세스의 메모리를 읽거나 쓸 수 없습니다. 구현 수단은 <b>가상 메모리</b>(프로세스마다 독립된 가상 주소 공간), <b>세그멘테이션</b>(논리 단위로 나눠 권한 부여), <b>페이징</b>(고정 크기 페이지 단위 관리), <b>MMU</b>(주소 변환과 권한 검사를 하드웨어로 수행)입니다.</p>
+<h3 id="s3-mitig">공격 완화 기법</h3>
+<div class="tw"><table>
+<tr><th>기법</th><th>막는 것</th></tr>
+<tr><td><b>ASLR</b> 주소 공간 배치 무작위화</td><td>공격자가 메모리 주소를 예측하는 것</td></tr>
+<tr><td><b>DEP / NX</b> 데이터 실행 방지</td><td>데이터 영역의 코드 실행</td></tr>
+<tr><td><b>스택 카나리</b></td><td>스택 버퍼 오버플로로 복귀 주소를 바꾸는 것</td></tr>
+<tr><td><b>CFI</b> 제어 흐름 무결성</td><td>비정상적인 실행 흐름 전환</td></tr>
+<tr><td>스택/힙 분리</td><td>영역 간 침범</td></tr>
+</table></div>
+<p>원본의 핵심은 <b>이 기법들은 취약점을 없애는 것이 아니라 악용을 어렵게 만든다</b>는 것입니다. 근본 해결은 안전한 코딩입니다.</p>
+<h3 id="s3-zero">메모리 잔류</h3>
+<p>메모리에 남은 키나 자격증명은 덤프로 유출될 수 있어서, 사용 후 <b>명시적으로 지워야(zeroization)</b> 합니다.</p>
+<p><b>원문 사례 — 메모리에 남은 키.</b> 프로세스 메모리 덤프에서 복호화 키가 평문으로 발견되었습니다. 사용 후 버퍼를 지우지 않았기 때문입니다. 원본은 암호 라이브러리가 보통 키 버퍼를 지우지만, 애플리케이션이 복사본을 만들어 두면 그 복사본은 남는다고 지적합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>스택 버퍼 오버플로를 예로 세 기법의 역할을 나누면 이렇습니다. 공격자는 버퍼를 넘치게 해 복귀 주소를 자기 코드 주소로 바꾸려 합니다. 카나리는 덮어쓰기를 <b>탐지</b>하고, DEP는 넣은 코드가 <b>실행되지 못하게</b> 하고, ASLR은 어디로 뛰어야 할지 <b>모르게</b> 합니다. 셋 다 공격을 어렵게 할 뿐 버퍼가 넘치는 버그 자체는 남아 있으므로, 우회 기법이 나오면 다시 위험해집니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>버퍼 오버플로 같은 취약점을 코드에서 없애는 방법은 <a class="xr" href="D8.5.html">D8.5 안전한 코딩</a>, 사용 중 데이터 보호는 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>·<a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>에서 다룹니다. <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>의 데이터 잔류가 저장 매체의 문제라면 메모리 잔류는 같은 문제의 메모리 버전입니다.</p></div>
+<div class="src">원문 위치: D3.4.md §3 프로세스 격리와 메모리 보호, §7 사례 4 · 기존 문제 주제(완화 기법)</div>
+<h2 id="s4"><span class="n">4</span>TPM — 기기의 무결성을 보증하는 칩</h2>
+<h3 id="s4-easy">쉬운 설명</h3>
+<p><b>TPM(Trusted Platform Module)</b>은 메인보드에 들어 있는 하드웨어 보안 칩이며, TCG(Trusted Computing Group) 표준입니다.</p>
+<div class="tw"><table>
+<tr><th>기능</th><th>설명</th></tr>
+<tr><td><b>키 생성·보관</b></td><td>하드웨어 난수로 키를 만들고, 키가 칩 밖으로 나오지 않는다</td></tr>
+<tr><td><b>플랫폼 무결성 측정</b></td><td>부팅 과정의 해시를 <b>PCR</b>에 누적 기록</td></tr>
+<tr><td><b>봉인(Sealing)</b></td><td>특정 플랫폼 상태에서만 복호화되도록 데이터를 묶는다</td></tr>
+<tr><td><b>증명(Attestation)</b></td><td>플랫폼 상태를 외부에 증명한다</td></tr>
+<tr><td><b>바인딩(Binding)</b></td><td>특정 TPM에서만 복호화할 수 있게 암호화</td></tr>
+</table></div>
+<p><b>PCR(Platform Configuration Register)</b>은 부팅의 각 단계를 측정한 해시를 누적합니다. 한 단계라도 바뀌면 PCR 값이 달라집니다.</p>
+<h3 id="s4-seal">봉인이 핵심이다</h3>
+<p>디스크 암호화 키를 PCR 값에 봉인해 두면, <b>부팅 구성이 변조된 상태에서는 키가 풀리지 않습니다.</b> 디스크를 떼어 다른 기기에 붙여도 복호화할 수 없습니다.</p>
+<p><b>원문 사례 — TPM 봉인이 막은 디스크 탈취.</b> 도난당한 노트북의 SSD를 떼어 다른 기기에 연결했지만 데이터를 읽을 수 없었습니다. 전체 디스크 암호화 키가 원래 기기의 TPM에 PCR 값과 함께 봉인되어 있었기 때문입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>봉인과 바인딩의 차이는 조건의 개수입니다. 바인딩은 “이 TPM에서만”이고, 봉인은 “이 TPM에서, 그리고 이 부팅 상태일 때만”입니다. 그래서 봉인은 디스크를 옮기는 공격과 부팅 과정을 바꾸는 공격(부트로더 교체)을 함께 막습니다. 반대로 정상적인 펌웨어 업데이트도 PCR 값을 바꾸므로, 업데이트 절차에 키 재봉인이나 복구 키 준비가 들어가야 정상 사용자가 잠기는 일이 없습니다.</p></div>
+<div class="src">원문 위치: D3.4.md §3 TPM, §6 TCG TPM Specification, §7 사례 1 · 공식 개요 3.4 “Trusted Platform Module (TPM)”</div>
+<h2 id="s5"><span class="n">5</span>TPM과 HSM</h2>
+<div class="tw"><table>
+<tr><th>구분</th><th>TPM</th><th>HSM</th></tr>
+<tr><td>형태</td><td>메인보드 내장 칩</td><td>전용 장비·카드·네트워크 어플라이언스</td></tr>
+<tr><td>목적</td><td><b>플랫폼 무결성</b>과 로컬 키 보호</td><td><b>대량 암호 연산</b>과 키 관리</td></tr>
+<tr><td>범위</td><td>그 기기 1대</td><td>여러 시스템이 공유</td></tr>
+<tr><td>성능</td><td>낮음</td><td>높음(하드웨어 가속)</td></tr>
+<tr><td>인증</td><td>—</td><td><b>FIPS 140</b> 수준 인증이 일반적</td></tr>
+</table></div>
+<p>원본의 요약입니다. <b>TPM은 “이 기기가 변조되지 않았음”을 보증하고, HSM은 “키를 안전하게 보관하고 대량 연산을 처리”합니다.</b></p>
+<div class="box ex"><p><span class="tag">가상 예시</span>한 회사가 두 가지 키를 강화하려 합니다. 하나는 각 노트북의 디스크 잠금을 푸는 키, 다른 하나는 배포하는 장비 소프트웨어에 서명하는 회사 전체의 키입니다. 둘을 같은 장치에 넣자는 제안이 나왔습니다. 첫째 키의 목표는 “승인된 부팅 상태의 그 노트북에서만 풀린다”이므로 노트북마다 있는 TPM이 맞습니다. 둘째 키는 여러 빌드 작업이 사용하고, 키를 꺼내지 않고 서명만 하며, 누가 언제 서명했는지 기록하고 이중 승인을 걸어야 하므로 HSM이 맞습니다. 서명 키가 유출되면 모든 고객 장비가 위조 소프트웨어를 믿게 되기 때문입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>FIPS 140(암호 모듈 보안 요구사항, 현행은 140-3)과 키 관리 수명주기는 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>, 소프트웨어 서명과 공급망 무결성은 <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.4.md §3 TPM vs HSM, §5 둘째 표, §6 FIPS 140-2 / 140-3 · 기존 문제 주제(TPM과 HSM 구분)</div>
+<h2 id="s6"><span class="n">6</span>보안 부팅, 측정 부팅, 신뢰 사슬</h2>
+<h3 id="s6-easy">쉬운 설명</h3>
+<div class="tw"><table>
+<tr><th>구분</th><th>동작</th><th>목적</th></tr>
+<tr><td><b>Secure Boot</b> 보안 부팅</td><td>서명을 검증해 <b>맞지 않으면 부팅을 중단</b></td><td>차단</td></tr>
+<tr><td><b>Measured Boot</b> 측정 부팅</td><td>각 단계를 측정해 <b>PCR에 기록하고 부팅은 계속</b></td><td>기록과 증명</td></tr>
+</table></div>
+<p>측정 부팅은 나중에 <b>원격 증명(remote attestation)</b>으로 “이 기기가 어떤 상태로 부팅했는지”를 입증하는 데 쓰입니다.</p>
+<h3 id="s6-chain">신뢰 사슬</h3>
+<div class="flow">
+<div class="nd"><b>하드웨어 신뢰 루트</b></div><div class="ar">→</div>
+<div class="nd"><b>펌웨어</b></div><div class="ar">→</div>
+<div class="nd"><b>부트로더</b></div><div class="ar">→</div>
+<div class="nd"><b>커널</b></div><div class="ar">→</div>
+<div class="nd"><b>운영체제</b></div>
+</div>
+<p>변경할 수 없는 <b>신뢰 루트(Root of Trust)</b>에서 시작해 각 단계가 다음 단계를 검증하며 올라갑니다. <b>UEFI Secure Boot</b>가 대표적인 구현이며 서명되지 않은 부트로더나 드라이버의 로딩을 막습니다.</p>
+<p><b>원문 사례 — 측정 부팅으로 발견한 펌웨어 변조.</b> 원격 증명 결과 일부 단말의 PCR 값이 기준과 달랐고, 조사해 보니 부트로더가 교체되어 있었습니다. 원본은 보안 부팅만 있었다면 부팅이 막혀 사용자는 “고장”으로 여겼을 수 있지만, 측정 부팅은 상태를 기록하고 증명하므로 중앙에서 어떤 단말이 어떻게 변조되었는지 식별할 수 있었다고 설명합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>둘은 경쟁 관계가 아니라 짝입니다. 보안 부팅은 알려진 나쁜 것(서명 없는 코드)을 그 자리에서 막고, 측정 부팅은 서명은 맞지만 기대와 다른 상태(예: 승인된 구버전으로 되돌린 부트로더)까지 기록해서 나중에 판단할 수 있게 합니다. 증명(attestation)은 그 기록을 원격 검증자에게 보여 주는 단계입니다. 서버가 “PCR 값이 기준과 같은 단말만 사내 자원에 접속 허용”으로 정책을 걸면, <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>의 제로 트러스트에서 말한 “기기 상태를 신호로 쓰는 판단”이 됩니다.</p></div>
+<div class="box warn"><p><span class="tag">용어 주의</span>Root of Trust는 이 교재에서 <b>신뢰 루트</b>로 통일합니다(원본 D1.11은 ‘신뢰 기반’). 1절의 TCB(신뢰 컴퓨팅 기반)와는 다른 개념입니다. 신뢰 루트는 사슬의 출발점 하나이고, TCB는 보안을 강제하는 메커니즘 전체입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>하드웨어 신뢰 루트(Silicon Root of Trust)와 PUF는 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>, 사슬의 각 고리인 디지털 서명 검증은 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>·<a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>에서 다룹니다. 원본은 NIST SP 800-147(BIOS 보호), 800-155(BIOS 무결성 측정), 800-193(플랫폼 펌웨어 복원력)을 관련 표준으로 듭니다.</p></div>
+<div class="quiz" id="question-3">
+<div class="qh">이해 확인 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>회사가 현장에 출하한 장비 500대 중 일부의 부트로더가 바뀌었다는 첩보를 받았다. 장비를 멈추지 않고 어떤 장비가 영향을 받았는지 중앙에서 식별하려면 무엇이 가장 직접적인가?</p>
+<ol type="A">
+<li>보안 부팅만 켜서 변조된 장비가 부팅되지 않게 한다.</li>
+<li>측정 부팅으로 기록된 PCR 값을 원격 증명으로 받아 기준값과 비교한다.</li>
+<li>모든 장비의 디스크를 HSM으로 암호화한다.</li>
+<li>ASLR을 켠다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b> 측정 부팅은 부팅을 막지 않고 상태를 기록하며, 원격 증명으로 그 기록을 중앙에서 확인할 수 있습니다(원문 사례 2).</p>
+<ul><li>A: 변조된 장비는 멈추지만 “장비를 멈추지 않고 식별”이라는 요구와 맞지 않고, 현장에서는 고장으로 보입니다.</li>
+<li>C: HSM은 장비마다 들어가는 무결성 측정 장치가 아닙니다.</li>
+<li>D: ASLR은 실행 중 메모리 공격을 어렵게 할 뿐 부트로더 변조를 알려 주지 않습니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.4.md §3 보안 부팅과 측정 부팅, §5 셋째 표, §6 NIST SP 800-147/155/193·UEFI Secure Boot, §7 사례 2 · 기존 문제 주제(보안 부팅 vs 측정 부팅)</div>
+<h2 id="s7"><span class="n">7</span>TEE — 신뢰 실행 환경</h2>
+<p><b>TEE(Trusted Execution Environment)</b>는 <b>CPU 안에 격리된 실행 영역</b>을 만들어 그 안의 코드와 데이터를 운영체제조차 접근할 수 없게 합니다.</p>
+<ul>
+<li>운영체제나 하이퍼바이저가 침해되어도 <b>enclave 내부는 보호</b>된다</li>
+<li><b>기밀 컴퓨팅(Confidential Computing)</b>의 기반이다</li>
+<li>사용 중(in use) 데이터 보호의 핵심 수단이다</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>TEE가 줄이는 위험과 남기는 위험을 나눠 봐야 합니다. 줄이는 것은 “같은 기계의 운영체제나 관리자가 처리 중인 데이터를 들여다보는 위험”입니다. 남는 것은 TEE에 넣은 코드 자체의 버그, 밖에서 들어오는 입력을 누가 검사하는가, 결과가 어디로 나가는가입니다. 안전한 영역에서 계산해도 결과를 평문 로그로 내보내면 그 로그는 여전히 보호가 필요합니다. 또 TEE도 부채널 공격의 대상이 될 수 있습니다(10절).</p></div>
+<div class="box link"><p><span class="tag">연결</span>데이터의 세 상태와 사용 중 데이터의 어려움은 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>, 통제 선택은 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>에서 다뤘습니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D3.4-Q09</div>
+<p>신뢰 실행 환경(TEE)이 전통적 프로세스 격리가 제공하지 못하는 보안 속성은?</p><ol type="A"><li>두 사용자 프로세스가 서로의 메모리를 읽지 못하게 한다.</li><li>운영체제나 하이퍼바이저가 침해되어도 enclave 내부를 보호한다.</li><li>애플리케이션에 소프트웨어 취약점이 결코 없음을 보장한다.</li><li>저장 데이터 암호화의 필요성을 제거한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 전통적 프로세스 격리는 OS 가 신뢰된다는 전제 위에 있어 OS 가 침해되면 무력해진다. TEE 는 CPU 내부에 격리된 실행 영역을 만들어 OS 나 하이퍼바이저가 침해되어도 enclave 내부의 코드와 데이터를 보호한다. 기밀 컴퓨팅의 기반이다.</p><ul><li>A · 그것은 일반적인 프로세스 격리도 제공한다.</li><li>C · 취약점 부재를 보장하지 않는다.</li><li>D · 저장 데이터 보호는 별개의 요구다.</li></ul><div class="src">원문 위치 · D3.4-Q09</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.4.md §3 TEE · 기존 문제 Q09 주제</div>
+<h2 id="s8"><span class="n">8</span>암호화를 돕는 하드웨어 기능</h2>
+<ul>
+<li><b>하드웨어 가속</b> — CPU의 암호 명령어 집합으로 성능 향상</li>
+<li><b>하드웨어 난수 생성기(TRNG)</b> — 예측 불가능한 난수. 소프트웨어 의사난수보다 안전하다</li>
+<li><b>전체 디스크 암호화(FDE)</b> — TPM에 키를 봉인해 사용</li>
+<li><b>자체 암호화 드라이브(SED)</b> — 드라이브가 스스로 암복호화한다. 암호 소거에 유용하다</li>
+<li><b>메모리 암호화</b> — 메모리 덤프로부터 보호</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>난수가 왜 하드웨어 기능 목록에 있을까요. 암호 키는 예측할 수 없어야 하는데, 소프트웨어가 만드는 의사난수는 출발값(시드)을 알면 다시 만들 수 있습니다. 부팅 직후의 임베디드 장비처럼 무작위성의 원천이 부족한 환경에서 같은 키가 여러 장비에 만들어지는 문제가 실제로 보고되어 왔습니다(일반 지식에 근거한 보충). 하드웨어 난수 생성기는 물리 현상에서 무작위성을 얻어 이 문제를 줄입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>SED와 암호 소거는 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>, 디지털 서명이 제공하는 속성(무결성, 출처 인증, 부인방지)과 암호 알고리즘은 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-5"><div class="qh">원본 연습문제 · D3.4-Q13</div>
+<p>디지털 서명이 제공하는 속성은?</p><ol type="A"><li>기밀성만.</li><li>기밀성과 가용성.</li><li>가용성과 부인방지.</li><li>무결성, 서명자 인증, 부인방지. 다만 기밀성은 제공하지 않는다. 서명이 내용을 가리지 않기 때문이다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 서명은 사설키로 만들고 공개키로 검증한다. 그래서 서명자만 만들 수 있고(인증), 내용이 바뀌면 검증이 실패하며(무결성), 서명자가 나중에 부인할 수 없다(부인방지). 내용을 숨기려면 암호화를 함께 적용해야 하며 서명과 암호화는 별개 연산이다.</p><ul><li>A · 기밀성이 아니라 무결성·인증·부인방지다.</li><li>B · 서명은 기밀성을 제공하지 않는다.</li><li>C · 가용성과 무관하다.</li></ul><div class="src">원문 위치 · D3.4-Q13</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.4.md §3 암복호화 지원 기능 · 공식 개요 3.4 “encryption/decryption” · 기존 문제 Q13 주제</div>
+<h2 id="s9"><span class="n">9</span>가상화와 격리 강도</h2>
+<div class="tw"><table>
+<tr><th>기술</th><th>격리 수준</th></tr>
+<tr><td>전가상화 하이퍼바이저</td><td>강함 — 커널 분리</td></tr>
+<tr><td><b>컨테이너</b></td><td><b>약함 — 커널 공유</b></td></tr>
+<tr><td>샌드박스</td><td>애플리케이션 수준</td></tr>
+</table></div>
+<p><b>컨테이너는 호스트 커널을 공유</b>하므로 가상 머신보다 격리가 약합니다. 커널 취약점이 <b>컨테이너 탈출(container escape)</b>로 이어질 수 있습니다. 여러 고객(테넌트)을 한 환경에 올리면서 강한 격리가 필요하면 가상 머신이나 전용 경량 VM을 씁니다. <b>VM 탈출(VM escape)</b>은 게스트에서 하이퍼바이저로 침투하는 공격이며, Ring -1이 뚫리는 것이므로 영향이 치명적입니다.</p>
+<p><b>원문 사례 — 컨테이너 격리를 과신한 경우.</b> 여러 고객의 서비스를 컨테이너로만 나눠 운영했는데, 커널 취약점이 공개되자 컨테이너 탈출로 같은 호스트의 다른 고객 컨테이너까지 접근할 수 있게 되었습니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>격리 방식을 고를 때 ① 같은 호스트 위에 함께 놓이는 것들이 서로 믿을 수 있는 사이인가(같은 팀의 서비스인가, 서로 다른 고객인가) ② 서로 믿을 수 없다면 커널을 공유해도 되는가 ③ 안 된다면 VM 또는 경량 VM ④ 같은 팀 안이라면 컨테이너 + 커널 패치와 런타임 제한으로 충분한가를 봅니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>가상화·컨테이너·클라우드 아키텍처의 취약점과 완화는 <a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a>, 공동 책임 모델(누가 하이퍼바이저를 책임지나)은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.4.md §3 가상화와 격리, §5 넷째 표, §7 사례 3 · 기존 문제 주제(컨테이너 격리)</div>
+<h2 id="s10"><span class="n">10</span>은닉 채널과 부채널</h2>
+<p>은닉 채널은 정상 통신 경로가 아닌 수단으로 정보가 흐르는 경로입니다(<a class="xr" href="D3.2.html">D3.2 보안 모델</a>의 비간섭 모델).</p>
+<div class="tw"><table>
+<tr><th>유형</th><th>방식</th></tr>
+<tr><td><b>저장 채널</b> Storage</td><td>공유 자원의 <b>상태</b>로 전달(파일 잠금, 디스크 사용량)</td></tr>
+<tr><td><b>타이밍 채널</b> Timing</td><td>응답 <b>시간</b>의 차이로 전달</td></tr>
+</table></div>
+<p>대응은 자원 분리, 잡음 추가, 대역폭 제한, 감사입니다. 원본은 <b>완전한 제거는 어렵고 대역폭을 받아들일 수 있는 수준으로 낮추는 것</b>이 현실적인 목표라고 설명합니다.</p>
+<p><b>원문 사례 — 은닉 채널을 통한 유출.</b> 격리된 고등급 시스템에서 저등급 시스템으로 디스크 사용량 변화를 이용해 데이터가 새어 나갔습니다. 고등급 프로세스가 파일 크기를 조절하고 저등급 프로세스가 남은 용량을 관찰하는 방식이었습니다.</p>
+<p>원본은 <b>부채널 공격(Side-channel attack)</b>과 구분하라고 합니다. 은닉 채널은 <b>내부 공모자가 일부러</b> 정보를 내보내는 경로이고, 부채널은 <b>관찰을 통해 비밀을 추출</b>하는 공격(전력 소비, 전자파, 처리 시간 분석)입니다.</p>
+<div class="box link"><p><span class="tag">연결</span>비간섭 모델은 <a class="xr" href="D3.2.html">D3.2 보안 모델</a>, 전력·타이밍 분석 같은 부채널 공격은 <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.4.md §3 은닉 채널, §7 사례 5</div>
+<h2 id="s11"><span class="n">11</span>종합 이해 확인</h2>
+<div class="quiz" id="question-6">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>보안 설계 검토에서 나온 주장이다. ㉠ “ASLR과 DEP를 켰으니 이 버퍼 오버플로 취약점은 해결되었다.” ㉡ “고객별 서비스를 컨테이너로 나눴으니 VM만큼 격리된다.” ㉢ “TPM이 있으니 회사 전체의 코드 서명 키도 각 서버의 TPM에 보관하면 된다.” ㉣ “접근 검사 모듈이 화면 요청은 모두 검사하니, 일괄 내보내기 배치 작업은 검사를 생략해도 된다.” 바르게 반박한 것은?</p>
+<ol type="A">
+<li>㉠ 완화 기법은 악용을 어렵게 할 뿐 취약점을 없애지 않는다 / ㉡ 컨테이너는 커널을 공유한다 / ㉢ 중앙 서명 키는 HSM이 맞다 / ㉣ 완전한 중재 위반이다</li>
+<li>㉠ 맞다 / ㉡ 맞다 / ㉢ 맞다 / ㉣ 맞다</li>
+<li>㉠ CFI도 켜야 해결된다 / ㉡ 샌드박스가 VM보다 강하다 / ㉢ TPM은 서명을 못 한다 / ㉣ 검증 가능성 위반이다</li>
+<li>㉠ 측정 부팅이 필요하다 / ㉡ Ring 3에서 실행하면 된다 / ㉢ PCR에 키를 저장한다 / ㉣ 변조 불가 위반이다</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 3절, ㉡ 9절, ㉢ 5절(가상 예시), ㉣ 1절. 우회 경로가 하나라도 있으면 참조 모니터는 의미가 없고, 이것은 “모든 접근을 검사한다”는 완전한 중재의 위반입니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">12</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>TPM, HSM, 보호 링을 모두 키를 넣는 상자로 생각하면 무엇을 놓치나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>TPM은 플랫폼의 상태 및 장치에 결부된 신뢰에, HSM은 조직이 관리하는 암호 키와 암호 연산에 쓰입니다. 보호 링은 실행 코드가 자원에 행사할 특권을 분리하는 메커니즘입니다.</p></div></details></div>
+<h2 id="summary"><span class="n">13</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><b>TCB(전체) ⊃ 보안 커널(구현) ⊃ 참조 모니터(개념).</b> TCB는 작을수록 좋다.</li>
+<li><b>참조 모니터 3요건: 완전한 중재 · 변조 불가 · 검증 가능.</b> 우회 경로가 하나라도 있으면 무의미.</li>
+<li><b>Ring 0 커널 / Ring 3 사용자 / Ring -1 하이퍼바이저 / Ring -2 SMM.</b> 현대 OS는 주로 0과 3. 낮은 링이 뚫리면 위 전체가 무력화.</li>
+<li>메모리 보호: 가상 메모리, 세그멘테이션, 페이징, MMU. 완화 기법: <b>ASLR / DEP·NX / 스택 카나리 / CFI</b> — 취약점 제거가 아니라 악용을 어렵게. 키는 사용 후 소거.</li>
+<li><b>TPM = 메인보드 칩, 플랫폼 무결성.</b> 기능: 키 생성·보관, PCR 측정, <b>봉인</b>, 증명, 바인딩. 봉인 = 특정 PCR 상태에서만 복호화.</li>
+<li><b>HSM = 전용 장비, 키 관리·대량 연산, FIPS 140 인증.</b></li>
+<li><b>Secure Boot = 서명 검증 실패 시 차단, Measured Boot = 측정해 PCR에 기록하고 계속</b>(원격 증명에 사용).</li>
+<li>신뢰 사슬: <b>신뢰 루트 → 펌웨어 → 부트로더 → 커널 → OS</b>. UEFI Secure Boot.</li>
+<li><b>TEE/enclave = CPU 안의 격리 실행 영역.</b> OS가 침해되어도 내부 보호. 기밀 컴퓨팅의 기반.</li>
+<li>하드웨어 암호 지원: 가속, TRNG, FDE, SED(암호 소거), 메모리 암호화.</li>
+<li><b>컨테이너는 커널 공유 → 격리 약함.</b> VM 탈출은 Ring -1 침해.</li>
+<li><b>은닉 채널 = 저장(상태) + 타이밍(시간).</b> 대역폭 축소가 현실적 목표. <b>은닉 채널(의도적 유출) ≠ 부채널(관찰로 추출)</b>.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D3.4.md §8 CISSP 시험 관점, §9 핵심 암기 요약(16항목). 원본의 “가장 자주 묻는 구분” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다. 공식 개요 3.4의 예시는 memory protection, Trusted Platform Module (TPM), encryption/decryption입니다.</div>
+<h2 id="glossary"><span class="n">14</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">TCB — Trusted Computing Base</span> <span class="term-ko">· 신뢰 컴퓨팅 기반</span></h3>
+<p>보안 정책을 강제하는 하드웨어·펌웨어·소프트웨어의 총합. 작을수록 검증이 쉽다.</p>
+<h3 id="glossary-2"><span lang="en">Reference Monitor</span> <span class="term-ko">· 참조 모니터</span></h3>
+<p>주체의 객체 접근을 중재하는 추상 개념. 완전한 중재, 변조 불가, 검증 가능을 충족해야 한다.</p>
+<h3 id="glossary-3"><span lang="en">Security Kernel</span> <span class="term-ko">· 보안 커널</span></h3>
+<p>참조 모니터를 실제로 구현한 TCB 의 핵심 부분.</p>
+<h3 id="glossary-4"><span lang="en">Complete Mediation</span> <span class="term-ko">· 완전한 중재</span></h3>
+<p>모든 접근 요청을 예외 없이 검사해야 한다는 요건. 우회 경로가 하나라도 있으면 무의미하다.</p>
+<h3 id="glossary-5"><span lang="en">Protection Rings</span> <span class="term-ko">· 보호 링</span></h3>
+<p>CPU 가 제공하는 권한 계층. Ring 0 커널, Ring 3 사용자, Ring -1 하이퍼바이저, Ring -2 SMM.</p>
+<h3 id="glossary-6"><span lang="en">Process Isolation</span> <span class="term-ko">· 프로세스 격리</span></h3>
+<p>각 프로세스가 자신의 주소 공간만 접근하도록 제한하는 것.</p>
+<h3 id="glossary-7"><span lang="en">ASLR — Address Space Layout Randomization</span> <span class="term-ko">· 주소 공간 배치 무작위화</span></h3>
+<p>메모리 배치를 무작위화해 공격자가 주소를 예측하지 못하게 하는 기법.</p>
+<h3 id="glossary-8"><span lang="en">DEP / NX — Data Execution Prevention / No-eXecute</span> <span class="term-ko">· 데이터 실행 방지 / 실행 금지</span></h3>
+<p>데이터 영역에서 코드가 실행되지 못하게 하는 기법.</p>
+<h3 id="glossary-9"><span lang="en">Stack Canary</span> <span class="term-ko">· 스택 카나리</span></h3>
+<p>스택에 삽입한 값의 변조 여부로 버퍼 오버플로를 탐지하는 기법.</p>
+<h3 id="glossary-10"><span lang="en">TPM — Trusted Platform Module</span> <span class="term-ko">· 신뢰 플랫폼 모듈</span></h3>
+<p>플랫폼 무결성 측정과 키 보호를 담당하는 메인보드 내장 보안 칩.</p>
+<h3 id="glossary-11"><span lang="en">PCR — Platform Configuration Register</span> <span class="term-ko">· 플랫폼 구성 레지스터</span></h3>
+<p>TPM 내부에서 부팅 단계별 측정 해시를 누적 기록하는 레지스터.</p>
+<h3 id="glossary-12"><span lang="en">Sealing</span> <span class="term-ko">· 봉인</span></h3>
+<p>데이터를 특정 플랫폼 상태(PCR 값)에 묶어 그 상태에서만 복호화되게 하는 TPM 기능.</p>
+<h3 id="glossary-13"><span lang="en">Attestation</span> <span class="term-ko">· 증명</span></h3>
+<p>플랫폼의 무결성 상태를 외부에 입증하는 기능.</p>
+<h3 id="glossary-14"><span lang="en">HSM — Hardware Security Module</span> <span class="term-ko">· 하드웨어 보안 모듈</span></h3>
+<p>키 관리와 대량 암호 연산을 수행하는 전용 하드웨어. FIPS 140 인증이 일반적이다.</p>
+<h3 id="glossary-15"><span lang="en">Secure Boot / Measured Boot</span> <span class="term-ko">· 보안 부팅 / 측정 부팅</span></h3>
+<p>서명 검증 실패 시 부팅을 중단하는 방식과, 각 단계를 측정해 기록하되 부팅은 계속하는 방식.</p>
+<h3 id="glossary-16"><span lang="en">Root of Trust</span> <span class="term-ko">· 신뢰 기반</span></h3>
+<p>변경 불가능한 신뢰의 출발점. 신뢰 사슬이 여기서 시작된다.</p>
+<h3 id="glossary-17"><span lang="en">TEE — Trusted Execution Environment</span> <span class="term-ko">· 신뢰 실행 환경</span></h3>
+<p>CPU 내부의 격리된 실행 영역. OS 가 침해되어도 내부는 보호된다.</p>
+<h3 id="glossary-18"><span lang="en">Covert Channel</span> <span class="term-ko">· 은닉 채널</span></h3>
+<p>정상 통신 경로가 아닌 수단으로 정보가 흐르는 경로. 저장 채널과 타이밍 채널이 있다.</p>
+<h3 id="glossary-19"><span lang="en">VM Escape / Container Escape</span> <span class="term-ko">· 가상 머신 격리 이탈 / 컨테이너 격리 이탈</span></h3>
+<p>게스트에서 하이퍼바이저로, 또는 컨테이너에서 호스트로 탈출하는 공격.</p>
+<div class="src">원문 위치 · D3.4.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">15</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>TCG TPM Specification</strong> — TPM 2.0 표준</li>
+<li><strong>NIST SP 800-147 / 800-155</strong> — BIOS 보호와 무결성 측정</li>
+<li><strong>NIST SP 800-193</strong> — 플랫폼 펌웨어 복원력</li>
+<li><strong>FIPS 140-2 / 140-3</strong> — 암호 모듈 보안 요구사항. HSM 인증의 기준</li>
+<li><strong>UEFI Secure Boot</strong> — 서명 기반 부팅 검증</li>
+<li><strong>Anderson Report (1972)</strong> — 참조 모니터 개념의 기원</li>
+<li><strong>Common Criteria</strong> — TOE 의 보안 기능 평가(D3.3 참조)</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D3.4.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 6개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">참조 모니터가 충족해야 하는 속성의 조합은?</a></li>
+<li><a href="#question-2">가상화 환경에서 하이퍼바이저 침해가 특히 심각하게 평가되는 이유는?</a></li>
+<li><a href="#question-3">회사가 현장에 출하한 장비 500대 중 일부의 부트로더가 바뀌었다는 첩보를 받았다. 장비를 멈추지 않고 어떤 장비가 영향을 받았는지 중앙에서 식별하려면 무엇이 가장 직접적인가?</a></li>
+<li><a href="#question-4">신뢰 실행 환경(TEE)이 전통적 프로세스 격리가 제공하지 못하는 보안 속성은?</a></li>
+<li><a href="#question-5">디지털 서명이 제공하는 속성은?</a></li>
+<li><a href="#question-6">보안 설계 검토에서 나온 주장이다. ㉠ “ASLR과 DEP를 켰으니 이 버퍼 오버플로 취약점은 해결되었다.” ㉡ “고객별 서비스를 컨테이너로 나눴으니 VM만큼 격리된다.” ㉢ “TPM이 있으니 회사 전체의 코드 서명 키도 각 서버의 TPM에 보관하면 된다.” ㉣ “접근 검사 모듈이 화면 요청은 모두 검사하니, 일괄 내보내기 배치 작업은 검사를 생략해도 된다.” 바르게 반박한 것은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D3.3.html"><small>← 이전 단원</small>3.3 통제 선택 (RMF·CC)</a><a href="D3.5.html" style="text-align:right"><small>다음 단원 →</small>3.5 아키텍처별 취약점</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

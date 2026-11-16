@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D3.6 암호 솔루션의 선택과 결정 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D3.6">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 3 보안 아키텍처 및 엔지니어링 › 3.6</div>
+<h1>암호 솔루션의 선택과 결정</h1>
+<div class="en">Select and determine cryptographic solutions · ISC2 CISSP Exam Outline(2024-04-15 발효) 3.6</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">암호는 보안의 많은 부분을 떠받치지만, 실제 사고는 알고리즘이 깨져서가 아니라 키를 잘못 다루거나 모드를 잘못 고르거나 인증서를 확인하지 않아서 일어납니다. 이 단원은 암호를 “고르고 쓰고 바꾸는” 판단을 다룹니다. 어떤 문제에 대칭을, 어떤 문제에 비대칭을 쓰는지, 왜 둘을 섞는지, 양자 컴퓨터가 무엇을 바꾸는지, 그리고 공개키를 믿게 해 주는 PKI입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a></td><td>기밀성·무결성·진정성·부인방지. 해시만으로는 무결성만, 대칭키로는 부인방지가 안 된다 (1절, 7절)</td></tr>
+<tr><td><a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a></td><td>TPM·HSM, 하드웨어 난수, FIPS 140 (9절)</td></tr>
+<tr><td><a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a></td><td>암호 시스템의 실패는 구현과 키 관리에서. ECC가 IoT·임베디드에 맞는 이유 (5절)</td></tr>
+<tr><td><a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a></td><td>이 단원의 알고리즘과 모드를 노리는 공격 (4절, 7절)</td></tr>
+<tr><td><a class="xr" href="D1.8.html">D1.8 인적 보안</a></td><td>지식 분할·이중 통제는 D1.8의 직무 분리·이중 통제와 같은 원리 (9절)</td></tr>
+<tr><td><a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a> · <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a></td><td>암호 소거(키 파기), 장기 보존 데이터의 키 보존 (9절)</td></tr>
+<tr><td><a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a> · <a class="xr" href="D5.6.html">D5.6 인증 시스템</a></td><td>TLS·VPN의 하이브리드 구조, 인증서 기반 인증 (6절, 10절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>암호가 주는 것과 주지 않는 것</h2>
+<p>암호는 <b>기밀성·무결성·진정성·부인방지</b>를 제공하는 수단이며, <b>가용성은 제공하지 않습니다.</b> 오히려 키를 잃으면 데이터를 쓸 수 없게 되므로 가용성을 해칠 수도 있습니다.</p>
+<p><b>케르크호프스 원칙(Kerckhoffs's Principle)</b> — 시스템의 안전성은 <b>알고리즘의 비밀이 아니라 키의 비밀</b>에 기대야 합니다. 알고리즘이 공개되어도 안전해야 합니다. 원본은 그 실무적 귀결로 <b>직접 만든 암호(roll-your-own crypto)는 쓰지 않는다</b>를 듭니다. 그리고 다시 강조합니다. <b>실패의 대부분은 알고리즘이 아니라 키 관리와 구현에서 일어난다.</b></p>
+<div class="box add"><p><span class="tag">보충</span>알고리즘을 공개하는 쪽이 더 안전한 이유는 검증 때문입니다. 공개된 알고리즘은 전 세계 연구자가 오랫동안 공격해 보고 살아남은 것이고, 비밀 알고리즘은 만든 사람 몇 명만 검토한 것입니다. 또 알고리즘은 제품에 들어가는 순간 분석될 수 있으므로 비밀로 유지하기 어렵고, 들키면 바꾸기도 어렵습니다. 키는 다릅니다. 짧고, 바꾸기 쉽고, 장치별·사용자별로 다르게 할 수 있습니다. 그래서 비밀은 바꾸기 쉬운 곳(키)에 두라는 것이 이 원칙입니다.</p></div>
+<div class="src">원문 위치: D3.6.md §2 · 공식 개요 3.6 “Select and determine cryptographic solutions”</div>
+<h2 id="s2"><span class="n">2</span>암호 수명주기</h2>
+<p>공식 개요 3.6의 첫 세부 항목이 암호 수명주기(키, 알고리즘 선정)입니다.</p>
+<ol class="steps">
+<li><b>요구사항 정의</b> — 무엇을, 얼마나 오래 보호할 것인가</li>
+<li><b>알고리즘 선정</b> — 승인된 알고리즘과 적정 키 길이</li>
+<li><b>키 생성</b> — 고품질 난수</li>
+<li><b>키 분배</b> — 안전한 전달</li>
+<li><b>키 저장</b> — HSM, 키 관리 시스템</li>
+<li><b>사용</b> — 용도 분리</li>
+<li><b>교체(rotation)</b> — 주기적 갱신</li>
+<li><b>폐기·소멸</b> — 안전한 파기</li>
+<li><b>복구·에스크로</b> — 키 손실 대비</li>
+</ol>
+<p>원본의 핵심 판단 기준은 <b>보호 기간</b>입니다. 데이터를 10년 보호해야 한다면 <b>10년 뒤에도 안전한</b> 알고리즘과 키 길이를 골라야 합니다. 오늘 안전한 것으로는 부족합니다.</p>
+<p><b>암호 민첩성(Crypto-agility)</b>은 알고리즘이 깨졌을 때 <b>빨리 바꿀 수 있는 설계</b>입니다. 알고리즘을 코드에 박지 않고 설정으로 분리하며, 인증서와 키의 인벤토리를 유지합니다. 원본은 양자 내성 암호로의 전환을 앞두고 특히 중요해졌다고 설명합니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>현장에 10년 이상 설치되는 장비가 통신에 특정 서명 알고리즘을 쓰도록 펌웨어에 고정되어 있다면, 그 알고리즘이 약해졌다고 판정되어도 바꾸려면 모든 장비의 펌웨어를 교체해야 합니다. 설계 단계에서 “알고리즘 식별자 + 키”를 설정으로 받을 수 있게 하고, 장비별로 어떤 알고리즘과 인증서를 쓰는지 목록을 유지하면, 전환 시점에 영향 범위를 바로 알고 단계적으로 바꿀 수 있습니다. 장비 수명이 길수록 암호 민첩성의 가치가 커집니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>보호 기간과 키 수명주기의 권고는 원본이 드는 NIST SP 800-57, 알고리즘·키 길이 전환 지침은 SP 800-131A에 있습니다. 인증서·키 인벤토리는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>의 인벤토리, 장기 보존 데이터의 키 보존은 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>에서 다뤘습니다.</p></div>
+<div class="src">원문 위치: D3.6.md §3 암호 수명주기, §6 NIST SP 800-57·800-131A · 공식 개요 3.6 “Cryptographic life cycle (e.g., keys, algorithm selection)”</div>
+<h2 id="s3"><span class="n">3</span>대칭키 암호</h2>
+<h3 id="s3-easy">쉬운 설명</h3>
+<p><b>송신자와 수신자가 같은 키를 공유</b>합니다.</p>
+<div class="tw"><table>
+<tr><th>특징</th><th>내용</th></tr>
+<tr><td>속도</td><td><b>빠름</b> — 대량 데이터 암호화에 적합</td></tr>
+<tr><td>제공</td><td>기밀성, (MAC와 결합하면) 무결성·진정성</td></tr>
+<tr><td><b>제공하지 않음</b></td><td><b>부인방지</b> — 같은 키를 둘이 가지므로 누가 만들었는지 제3자에게 증명할 수 없다</td></tr>
+<tr><td>과제</td><td><b>키 분배와 키 개수</b></td></tr>
+</table></div>
+<h3 id="s3-count">키 개수 공식</h3>
+<p>n명이 서로 통신하려면 필요한 대칭키 수는 <b>n(n−1)/2</b>입니다. 100명이면 100 × 99 / 2 = <b>4,950개</b>입니다. 비대칭키는 각자 공개키·개인키 한 쌍이면 되므로 <b>2n개</b>, 100명이면 200개입니다.</p>
+<p><b>원문 사례 — 키 개수 계산.</b> 지사 50곳이 서로 안전하게 통신하려면 대칭키만으로는 50 × 49 / 2 = 1,225개의 키가 필요하고, 지사가 하나 늘 때마다 50개가 추가됩니다. PKI를 도입해 각 지사가 키 쌍 하나씩만 갖자 관리 대상이 100개로 줄었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>공식이 n(n−1)/2인 이유는 악수 횟수와 같습니다. n명 각자가 나머지 n−1명과 키를 하나씩 나누면 n(n−1)개인데, A-B와 B-A는 같은 키이므로 2로 나눕니다. 새 사람이 한 명 들어오면 기존 n명 모두와 새 키가 필요하므로 n개가 늘어납니다(사례의 “하나 늘 때마다 50개”). 이 증가 속도가 대칭키만으로는 규모를 키우기 어려운 이유이고, 비대칭 암호가 해결한 문제입니다.</p></div>
+<h3 id="s3-algo">주요 알고리즘과 블록·스트림</h3>
+<div class="tw"><table>
+<tr><th>알고리즘</th><th>상태</th></tr>
+<tr><td>DES (56비트)</td><td><b>폐기</b> — 키가 너무 짧다</td></tr>
+<tr><td>3DES</td><td><b>폐기 권고</b> — 느리고 블록 크기가 작다</td></tr>
+<tr><td><b>AES</b> (128/192/256)</td><td><b>현행 표준</b>(FIPS 197)</td></tr>
+<tr><td>ChaCha20</td><td>스트림 암호, 모바일에서 효율적</td></tr>
+</table></div>
+<ul>
+<li><b>블록 암호</b> — 고정 크기 블록 단위로 처리(AES는 128비트 블록)</li>
+<li><b>스트림 암호</b> — 비트·바이트 단위로 처리. 빠르고 실시간 통신에 적합. <b>키 스트림 재사용은 치명적</b>이다</li>
+</ul>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D3.6-Q01</div>
+<p>지사 50곳이 대칭 암호만으로 서로 안전하게 통신해야 한다. 필요한 고유 대칭키 수는?</p><ol type="A"><li>1,225개</li><li>100개</li><li>2,500개</li><li>50개</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> n 명이 서로 통신할 때 필요한 대칭키 수는 n(n-1)/2 다. 50 × 49 / 2 = 1,225 개가 된다. 비대칭 방식이라면 각자 키 쌍 하나씩 2n = 100 개로 충분해 대칭 방식의 확장성 문제가 드러난다.</p><ul><li>B · 비대칭 방식에서 필요한 키 수(2n)다.</li><li>C · n² 로 잘못 계산한 값이다.</li><li>D · 각 지사당 1개로 계산한 값이며 쌍별 키가 아니다.</li></ul><div class="src">원문 위치 · D3.6-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.6.md §3 대칭키 암호, §5 첫 표, §6 FIPS 197, §7 사례 3 · 공식 개요 3.6 “Cryptographic methods (e.g., symmetric …)” · 기존 문제 Q01 주제</div>
+<h2 id="s4"><span class="n">4</span>블록 암호 운영 모드</h2>
+<p>같은 알고리즘이라도 모드에 따라 안전성이 크게 달라집니다.</p>
+<div class="tw"><table>
+<tr><th>모드</th><th>특징</th></tr>
+<tr><td><b>ECB</b></td><td>블록마다 독립 암호화. <b>같은 평문 → 같은 암호문.</b> 패턴이 드러나 <b>쓰지 않는다</b></td></tr>
+<tr><td><b>CBC</b></td><td>이전 블록과 XOR. IV 필요. 순차 처리</td></tr>
+<tr><td><b>CTR</b></td><td>카운터를 암호화해 스트림처럼 사용. 병렬 처리 가능</td></tr>
+<tr><td><b>GCM</b></td><td>CTR + 인증. <b>기밀성과 무결성을 함께 제공(AEAD)</b></td></tr>
+</table></div>
+<p><b>원문 사례 — ECB 모드가 드러낸 이미지.</b> 개발자가 이미지 파일을 AES-ECB로 암호화했는데, 암호화된 파일을 이미지로 표시하자 원본의 윤곽이 그대로 보였습니다. 같은 평문 블록이 같은 암호문 블록이 되므로 반복 패턴이 남은 것입니다. GCM으로 바꿔 기밀성과 무결성을 함께 확보했습니다.</p>
+<p>원본은 <b>GCM 같은 AEAD 모드가 현대의 기본 선택</b>이라고 정리합니다. 암호화와 무결성 검증을 따로 구현하면 실수하기 쉽기 때문입니다.</p>
+<p><b>IV / Nonce</b>는 같은 키로 같은 평문을 암호화해도 다른 암호문이 나오게 하는 값이며, <b>재사용하면 안 됩니다.</b> 원본은 CTR·GCM에서 nonce를 재사용하면 키 노출로 이어질 수 있다고 경고합니다.</p>
+<div class="box add"><p><span class="tag">보충</span>ECB가 위험한 이유를 한 문장으로 하면 “암호화했는데 같은 것끼리 같아 보인다”입니다. 데이터베이스의 같은 값(예: 같은 진단 코드)이 같은 암호문이 되면, 내용은 몰라도 “이 두 환자는 같은 진단”이라는 정보가 샙니다. IV와 nonce는 매번 다른 출발점을 줘서 이 문제를 없앱니다. 그래서 재사용하면 ECB와 비슷한 패턴 노출이 생기고, CTR·GCM에서는 그보다 더 나쁜 결과가 됩니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>모드와 nonce의 잘못된 사용을 노리는 공격은 <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D3.6.md §3 블록 암호 운영 모드, §7 사례 1</div>
+<h2 id="s5"><span class="n">5</span>비대칭키 암호와 타원곡선</h2>
+<h3 id="s5-dir">방향이 핵심이다</h3>
+<p><b>공개키와 개인키 쌍</b>을 씁니다.</p>
+<div class="tw"><table>
+<tr><th>목적</th><th>사용하는 키</th></tr>
+<tr><td><b>기밀성</b>(암호화)</td><td><b>받는 사람의 공개키</b>로 암호화 → 받는 사람의 개인키로 복호화</td></tr>
+<tr><td><b>부인방지·진정성</b>(서명)</td><td><b>보내는 사람의 개인키</b>로 서명 → 보내는 사람의 공개키로 검증</td></tr>
+</table></div>
+<p>원본의 요약은 <b>암호화는 받는 사람의 공개키로, 서명은 보내는 사람의 개인키로</b>입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>방향은 “누구만 할 수 있어야 하는가”로 생각하면 헷갈리지 않습니다. 암호화에서 지키고 싶은 것은 “받는 사람만 열 수 있다”이므로, 받는 사람만 가진 개인키로 열리게 하려면 그 짝인 받는 사람의 공개키로 잠급니다. 서명에서 지키고 싶은 것은 “보낸 사람만 만들 수 있다”이므로, 보낸 사람만 가진 개인키로 서명하고 누구나 가진 공개키로 확인합니다. 개인키는 언제나 “그 사람만 할 수 있는 일”에 쓰입니다.</p></div>
+<h3 id="s5-algo">주요 알고리즘</h3>
+<div class="tw"><table>
+<tr><th>알고리즘</th><th>기반</th><th>용도</th></tr>
+<tr><td><b>RSA</b></td><td>소인수분해</td><td>암호화·서명</td></tr>
+<tr><td><b>Diffie-Hellman</b></td><td>이산대수</td><td><b>키 교환 전용</b>(암호화 불가)</td></tr>
+<tr><td><b>ECC</b></td><td>타원곡선 이산대수</td><td>암호화·서명·키 교환</td></tr>
+<tr><td>ElGamal</td><td>이산대수</td><td>암호화·서명</td></tr>
+<tr><td>DSA / ECDSA</td><td>이산대수</td><td><b>서명 전용</b></td></tr>
+</table></div>
+<p>단점은 대칭키보다 <b>수백~수천 배 느리다</b>는 것입니다. 그래서 대량 데이터를 직접 암호화하지 않습니다.</p>
+<h3 id="s5-ecc">타원곡선 암호 (ECC)</h3>
+<p>공식 개요 3.6이 암호 방식의 예로 elliptic curves를 따로 듭니다. ECC는 <b>같은 보안 강도를 훨씬 짧은 키로</b> 달성합니다.</p>
+<div class="tw"><table>
+<tr><th>보안 강도</th><th>RSA 키 길이</th><th>ECC 키 길이</th></tr>
+<tr><td>128비트 수준</td><td>3072비트</td><td><b>256비트</b></td></tr>
+<tr><td>192비트 수준</td><td>7680비트</td><td>384비트</td></tr>
+</table></div>
+<p>키·서명 크기가 작고 연산이 빠르며 전력 소비가 적어 <b>모바일, IoT, 임베디드 환경에 특히 적합</b>합니다.</p>
+<div class="box warn"><p><span class="tag">확인 필요</span>위 표에서 보듯 <b>키 길이의 숫자만으로 알고리즘 사이의 강도를 비교할 수 없습니다.</b> RSA 3072비트와 ECC 256비트가 비슷한 강도입니다. 알고리즘을 고를 때는 용도(서명인지 키 합의인지)를 먼저 구분하고, 조직이 승인한 강도·구현·호환성과 키 수명을 함께 봅니다. 표의 대응값은 원본의 수치이며 NIST SP 800-57의 비교표와 같은 계열의 값입니다.</p></div>
+<div class="src">원문 위치: D3.6.md §3 비대칭키 암호, 타원곡선 암호, §5 둘째 표 · 공식 개요 3.6 “asymmetric, elliptic curves”</div>
+<h2 id="s6"><span class="n">6</span>하이브리드 구조와 순방향 비밀성</h2>
+<p>실제 시스템은 <b>대칭과 비대칭을 함께</b> 씁니다.</p>
+<div class="flow">
+<div class="nd"><b>1. 비대칭</b>세션키(대칭키)를 안전하게 교환·합의</div><div class="ar">→</div>
+<div class="nd"><b>2. 대칭</b>이후 대량 데이터를 빠르게 암호화</div>
+</div>
+<p>TLS가 바로 이 구조입니다. 비대칭의 키 분배 해결과 대칭의 속도를 함께 취합니다.</p>
+<h3 id="s6-pfs">완전 순방향 비밀성 (PFS)</h3>
+<p><b>PFS(Perfect Forward Secrecy)</b>는 세션마다 <b>임시(ephemeral) 키 쌍</b>을 써서, 장기 개인키가 나중에 유출되어도 <b>과거 세션을 복호화할 수 없게</b> 합니다. <b>DHE, ECDHE</b>가 이를 제공합니다. 정적 RSA 키 교환은 PFS를 제공하지 않아, 개인키가 유출되면 저장해 둔 과거 트래픽이 모두 복호화됩니다. 원본은 이것이 <b>“지금 수집하고 나중에 복호화한다(harvest now, decrypt later)”</b> 공격에 대한 방어이기도 하다고 설명합니다.</p>
+<p><b>원문 사례 — PFS가 없어 과거 트래픽이 복호화된 경우.</b> 서버 개인키가 유출되자 공격자는 수년간 모아 둔 암호화 트래픽을 모두 복호화했습니다. 정적 RSA 키 교환이라 세션키가 서버 개인키로 보호되고 있었기 때문입니다. ECDHE 기반 PFS를 적용한 뒤로는 장기 키가 유출되어도 과거 세션을 풀 수 없게 되었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>차이는 “세션키를 무엇으로 감쌌는가”입니다. 정적 RSA에서는 세션키를 서버의 장기 공개키로 암호화해 보내므로, 그 장기 개인키가 모든 과거 세션키의 열쇠가 됩니다. ECDHE에서는 양쪽이 세션마다 새 임시 키로 세션키를 합의하고 끝나면 버리므로, 장기 키는 “상대가 진짜 서버인가”를 확인하는 서명에만 쓰입니다. 장기 키가 털려도 과거의 임시 키는 이미 사라졌습니다. 그래서 설계 검토에서는 데이터 보호(대칭), 세션키 합의(임시 키), 상대 인증(장기 키 서명)을 각각 따로 확인합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>TLS·IPSec·VPN의 실제 구성은 <a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D3.6-Q05</div>
+<p>서버의 장기 개인키가 유출된 후 공격자가 수년간 수집해 둔 TLS 트래픽을 복호화했다. 이를 막았을 성질은?</p><ol type="A"><li>서버에서 OCSP 스테이플링 활성화.</li><li>ECDHE 같은 임시 키 교환을 사용하는 완전 순방향 비밀성.</li><li>클라이언트 측 인증서 고정.</li><li>서버 인증서의 더 긴 RSA 키 길이.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 정적 RSA 키 교환에서는 세션키가 서버 개인키로 보호되어 개인키가 유출되면 저장된 과거 트래픽을 모두 복호화할 수 있다. DHE/ECDHE 는 세션마다 임시 키 쌍을 사용해 장기 키가 유출되어도 과거 세션을 복호화할 수 없게 한다.</p><ul><li>A · OCSP 스테이플링은 폐기 상태 확인 방식이다.</li><li>C · 인증서 고정은 중간자 공격 대응이며 과거 트래픽 보호와 무관하다.</li><li>D · 키를 늘려도 유출되면 같은 문제가 발생한다.</li></ul><div class="src">원문 위치 · D3.6-Q05</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.6.md §3 하이브리드 암호 시스템, §7 사례 2 · 기존 문제 Q05 주제</div>
+<h2 id="s7"><span class="n">7</span>해시, MAC, 디지털 서명</h2>
+<h3 id="s7-hash">해시 함수</h3>
+<p>임의 길이 입력을 고정 길이 출력으로 바꾸는 <b>단방향</b> 함수이며 복원할 수 없습니다. 요구 속성은 셋입니다.</p>
+<ul>
+<li><b>역상 저항성</b> — 해시값에서 입력을 찾을 수 없다</li>
+<li><b>제2 역상 저항성</b> — 주어진 입력과 같은 해시를 갖는 다른 입력을 찾을 수 없다</li>
+<li><b>충돌 저항성</b> — 같은 해시를 갖는 임의의 두 입력을 찾을 수 없다</li>
+</ul>
+<p><b>생일 공격(Birthday Attack)</b>은 충돌을 찾는 공격입니다. 생일 역설 때문에 <b>n비트 해시의 충돌 저항성은 n/2비트</b>에 불과합니다. 256비트 해시의 충돌 저항성은 128비트 수준입니다.</p>
+<div class="tw"><table>
+<tr><th>알고리즘</th><th>상태</th></tr>
+<tr><td>MD5</td><td><b>파기</b> — 충돌이 쉽게 생성된다</td></tr>
+<tr><td>SHA-1</td><td><b>파기</b> — 충돌 공격이 실증되었다</td></tr>
+<tr><td><b>SHA-2</b> (SHA-256/384/512)</td><td>현행</td></tr>
+<tr><td><b>SHA-3</b></td><td>현행, 다른 구조(스펀지)</td></tr>
+</table></div>
+<h3 id="s7-three">무엇을 확인해야 하는가에 따라 고른다</h3>
+<div class="tw"><table>
+<tr><th>수단</th><th>무결성</th><th>진정성(누가)</th><th>부인방지</th><th>키</th></tr>
+<tr><td>해시</td><td>○ (해시값을 믿을 수 있는 경로로 받을 때)</td><td>✕</td><td>✕</td><td>없음</td></tr>
+<tr><td><b>MAC / HMAC</b></td><td>○</td><td>○ (키를 공유한 상대 중 하나)</td><td><b>✕</b></td><td>대칭키</td></tr>
+<tr><td><b>디지털 서명</b></td><td>○</td><td>○</td><td><b>○</b></td><td>개인키 서명 / 공개키 검증</td></tr>
+</table></div>
+<p>디지털 서명은 <b>메시지 해시 → 송신자 개인키로 서명</b>하는 구조입니다. 원본은 MAC·HMAC가 부인방지를 제공하지 않는다는 점을 강조합니다.</p>
+<p><b>비밀번호 저장</b>에는 일반 해시가 아니라 전용 함수를 씁니다. bcrypt, scrypt, Argon2, PBKDF2처럼 <b>일부러 느리고 솔트를 쓰는</b> 함수여야 무차별 대입에 견딥니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>배포 파일을 보호하는 수단을 고를 때 ① “내용이 바뀌었는가”만 확인하면 되나 → 신뢰할 경로로 받은 해시와 비교 ② “키를 공유한 상대가 보냈는가”까지 확인하나 → MAC(단, 공유한 두 주체 중 누가 만들었는지는 구별 못 함) ③ “누구나 발행자와 무결성을 검증하고, 발행자가 부인할 수 없어야” 하나 → 디지털 서명. 소프트웨어 배포처럼 받는 쪽이 불특정 다수면 ③이 답입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>해시·MAC·서명이 CIA와 부인방지 중 무엇을 제공하는지는 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>, 해싱과 토큰화·암호화의 비교는 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>, 생일 공격과 비밀번호 해시 공격은 <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a>에서 다룹니다. 원본은 디지털 서명 표준으로 FIPS 186을 들며, 현행판은 FIPS 186-5(2023년 2월)입니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D3.6-Q14</div>
+<p>해싱과 암호화를 구분하는 것은?</p><ol type="A"><li>둘 다 입력과 같은 길이의 출력을 만든다.</li><li>해싱이 기밀성을, 암호화가 무결성을 보호한다.</li><li>해싱은 키를 쓰고 암호화는 쓰지 않는다.</li><li>암호화는 올바른 키로 되돌릴 수 있도록 설계되고 해싱은 무결성 검증에 쓰이는 고정 길이 값을 만드는 단방향 함수다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 암호화의 목적은 되돌리는 것이고 해싱의 목적은 되돌릴 수 없는 것이다. 그래서 비밀번호 저장에는 해싱을 쓰고 통신 내용 보호에는 암호화를 쓴다. 해시는 입력 길이와 무관하게 고정 길이 출력을 만들며 같은 입력은 항상 같은 해시를 내므로 변경 여부를 검증할 수 있다.</p><ul><li>A · 해시는 고정 길이 출력을 만든다.</li><li>B · 보호 속성이 뒤바뀌었다.</li><li>C · 키 사용 설명이 뒤바뀌었다.</li></ul><div class="src">원문 위치 · D3.6-Q14</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.6.md §3 해시와 메시지 인증, §6 FIPS 186 · 기존 문제 Q14 주제</div>
+<h2 id="s8"><span class="n">8</span>양자 컴퓨팅의 영향</h2>
+<h3 id="s8-why">대칭과 비대칭에 미치는 영향이 다르다</h3>
+<p>원본이 이 단원에서 <b>가장 중요한 구분</b>으로 꼽는 부분입니다.</p>
+<div class="tw"><table>
+<tr><th>대상</th><th>양자 알고리즘</th><th>영향</th><th>대응</th></tr>
+<tr><td><b>RSA, DH, ECC</b></td><td><b>Shor</b></td><td><b>사실상 완전 무력화</b></td><td><b>알고리즘 교체(PQC)</b></td></tr>
+<tr><td><b>AES 등 대칭키</b></td><td><b>Grover</b></td><td>탐색 속도가 제곱근으로 단축 → <b>유효 강도 절반</b></td><td><b>키 길이 확대(AES-256)</b></td></tr>
+<tr><td>해시</td><td>Grover</td><td>저항성 일부 감소</td><td>충분한 출력 길이</td></tr>
+</table></div>
+<p>원본의 결론입니다. <b>비대칭 암호는 교체가 필요하다. 대칭 암호는 키 길이를 늘리면 된다.</b> AES-128은 유효 64비트가 되지만 AES-256은 유효 128비트로 여전히 안전합니다.</p>
+<h3 id="s8-pqc">PQC와 QKD</h3>
+<div class="tw"><table>
+<tr><th>기술</th><th>성격</th><th>인프라</th></tr>
+<tr><td><b>PQC</b> Post-Quantum Cryptography 양자 내성 암호</td><td>양자 컴퓨터로도 풀기 어려운 <b>수학 문제</b>에 기반한 알고리즘. 고전 컴퓨터에서 동작</td><td>기존 인프라</td></tr>
+<tr><td><b>QKD</b> Quantum Key Distribution 양자 키 분배</td><td><b>양자 물리</b>로 키를 분배. 도청하면 양자 상태가 교란되어 <b>도청 사실이 탐지된다</b></td><td>전용 광 인프라, 거리 제약</td></tr>
+</table></div>
+<p>원본은 <b>QKD는 암호화 알고리즘이 아니라 키 분배 방식</b>이며 PQC와도 다르다고 주의시킵니다. 공식 개요는 QKD를 PKI 항목의 예로 듭니다.</p>
+<p><b>원문 사례 — 양자 대비 전환 계획.</b> 보호 기간이 20년인 의료 기록을 다루는 조직이 대칭은 AES-128 → AES-256, 비대칭은 RSA-2048 → NIST 표준 PQC 알고리즘으로 전환하는 로드맵을 세우고, 알고리즘을 설정으로 분리하고 인증서 인벤토리를 만들어 암호 민첩성을 확보했습니다. 원본은 “지금 수집하고 나중에 복호화” 위협 때문에 <b>보호 기간이 긴 데이터일수록 전환이 시급하다</b>고 정리합니다.</p>
+<div class="box warn"><p><span class="tag">확인 필요</span>원본은 “NIST가 2024년 PQC 표준을 발표했다(격자 기반 등)”까지만 적습니다. 2024년 표준은 FIPS 203(ML-KEM, 키 확립), FIPS 204(ML-DSA, 서명), FIPS 205(SLH-DSA, 서명)입니다(일반 지식에 근거). 그 뒤 <b>NIST는 2026년 10월 27일 IR 8547(양자 내성 암호 표준으로의 전환) 최종판을 발행</b>했습니다(NIST CSRC 문서 이력: 2024-11-12 초안, 2026-10-27 최종). 2차 자료가 전하는 최종판 표에 따르면 RSA·ECDSA·ECDH 같은 양자 취약 공개키 알고리즘은 <b>키 크기와 관계없이 2030년 이후 사용 중단 권고(deprecated), 2035년 이후 허용 안 함(disallowed)</b>이며, 2024년 초안에서 2035년까지 허용되던 RSA-3072·P-256 등도 2030년 이후 중단 권고로 바뀌었습니다(Cloud Security Alliance 연구 노트, postquantum.com 보도). 최종 발행 사실은 NIST CSRC에서 확인했고, 알고리즘별 일정표는 NIST 원문 PDF가 아니라 위 2차 자료로 확인한 것입니다. 시험 개요(2024판) 기준 수험서는 이 일정을 다루지 않을 수 있습니다.</p></div>
+<div class="box ex"><p><span class="tag">가상 예시</span>장비가 수집해 회사로 보내는 데이터 중 오래 비밀이어야 하는 것(설계 정보, 환자 관련 정보)이 있고 장비 수명이 15년이라면, 이 장비들은 2035년 이후에도 현장에 있습니다. 지금 RSA 키 교환으로 보낸 트래픽은 누군가 모아 두었다가 나중에 풀 수 있습니다. 그래서 새로 설계하는 장비는 ① 통신 키 합의부터 양자 내성 방식(또는 기존 방식과 섞은 하이브리드)으로 바꿀 수 있게 하고 ② 대칭 암호는 AES-256을 쓰며 ③ 펌웨어 서명 알고리즘을 나중에 바꿀 수 있게 설계합니다. 이것이 2절의 암호 민첩성이 실제로 필요한 장면입니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>양자 대비를 묻는 상황에서는 ① 대상이 대칭인지 비대칭인지 먼저 가리고 ② 대칭이면 키 길이 확대(AES-256), 비대칭이면 PQC로 전환을 고르며 ③ PQC(수학 기반 알고리즘)와 QKD(물리 기반 키 분배)를 섞은 선택지를 경계합니다. “보호 기간이 긴 데이터”가 나오면 지금 수집해 나중에 복호화하는 위협을 떠올립니다.</p></div>
+<div class="src">원문 위치: D3.6.md §3 양자 컴퓨팅의 영향, §5 셋째·넷째 표, §6 NIST PQC 표준(2024), §7 사례 4 · 공식 개요 3.6 “quantum”, “Public key infrastructure (PKI) (e.g., quantum key distribution)” · 외부 확인: CSA 연구 노트·postquantum.com(IR 8547 최종판, 2차 자료)</div>
+<h2 id="s9"><span class="n">9</span>키 관리</h2>
+<p>원본의 문장은 <b>암호의 성패는 키 관리에 달려 있다</b>입니다.</p>
+<div class="tw"><table>
+<tr><th>원칙</th><th>내용</th></tr>
+<tr><td><b>용도 분리</b></td><td>암호화 키와 서명 키를 분리</td></tr>
+<tr><td><b>주기적 교체</b></td><td>노출 시 피해 범위 제한</td></tr>
+<tr><td><b>안전한 보관</b></td><td>HSM, KMS. 소스코드·설정 파일 금지</td></tr>
+<tr><td><b>지식 분할</b> Split knowledge</td><td>키를 나눠 여러 사람이 보관</td></tr>
+<tr><td><b>이중 통제</b> Dual control</td><td>두 명이 동시에 참여해야 사용</td></tr>
+<tr><td><b>키 에스크로</b></td><td>복구를 위한 제3자 보관</td></tr>
+<tr><td><b>소멸</b> Zeroization</td><td>사용 후 메모리에서 제거</td></tr>
+</table></div>
+<p>원본은 <b>지식 분할과 이중 통제가 함께 쓰인다</b>고 설명합니다. 키를 조각내 나눠 갖고(지식 분할), 쓰려면 모두 모여야 합니다(이중 통제).</p>
+<div class="box add"><p><span class="tag">보충</span>용도 분리가 필요한 이유는 키마다 수명과 보관 요구가 다르기 때문입니다. 암호화 키는 잃으면 데이터를 못 읽으므로 에스크로(복구 사본)가 필요할 수 있지만, 서명 키를 남이 보관하면 그 사람이 서명을 위조할 수 있어 부인방지가 무너집니다. 그래서 서명 키는 보통 에스크로하지 않습니다. 또 키를 교체해도 이전 키로 암호화된 보관 자료를 읽어야 한다면 이전 키를 복호화 전용으로 남겨 두는 계획이 필요하고, 더 이상 읽어서는 안 되는 자료라면 보존 정책에 따라 키를 파기합니다(암호 소거).</p></div>
+<div class="box warn"><p><span class="tag">용어 주의</span>원본 D3.6의 ‘분할 지식’, D1.8의 ‘2인 통제’는 이 교재에서 각각 <b>지식 분할(Split Knowledge)</b>, <b>이중 통제(Dual Control)</b>로 통일합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>직무 분리·이중 통제와의 관계는 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>, HSM과 키 소멸은 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>, 암호 소거는 <a class="xr" href="D2.4.html">D2.4 데이터 생애주기</a>, 장기 보존 데이터의 키 에스크로는 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>, 운영 중 키·인증서 관리는 <a class="xr" href="D7.5.html">D7.5 자원 보호</a>에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D3.6-Q10</div>
+<p>키를 여러 보관자가 나눠 보관하고 사용하려면 모두 모여야 한다. 이 조합이 나타내는 통제는?</p><ol type="A"><li>키 에스크로와 인증서 고정</li><li>지식 분할과 이중 통제</li><li>암호 민첩성과 소멸</li><li>순방향 비밀성과 키 교체</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 B.</b> 지식 분할(split knowledge)은 키를 조각내어 여러 사람이 나눠 보관하는 것이고 이중 통제(dual control)는 사용하려면 둘 이상이 동시에 참여해야 하는 것이다. 두 통제는 함께 쓰이며 D1.8 의 직무 분리·이중 통제와 같은 원리다.</p><ul><li>A · 키 에스크로는 복구를 위한 제3자 보관이다.</li><li>C · 암호 민첩성은 교체 용이성, 소멸은 사용 후 제거다.</li><li>D · 순방향 비밀성과 키 교체는 별개의 개념이다.</li></ul><div class="src">원문 위치 · D3.6-Q10</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D3.6.md §3 키 관리 · 공식 개요 3.6 “Cryptographic life cycle (e.g., keys …)” · 기존 문제 Q10 주제</div>
+<h2 id="s10"><span class="n">10</span>공개키 기반구조 (PKI)</h2>
+<h3 id="s10-why">왜 필요한가</h3>
+<p>비대칭 암호는 “받는 사람의 공개키로 암호화”하라고 하지만, 그 공개키가 <b>정말 그 사람의 것인지</b>는 어떻게 알까요. 공격자가 자기 공개키를 남의 것이라고 속이면 암호화는 공격자를 위해 하게 됩니다. PKI는 공개키와 주체를 묶어 보증하는 체계입니다.</p>
+<div class="tw"><table>
+<tr><th>요소</th><th>역할</th></tr>
+<tr><td><b>CA</b> 인증기관</td><td>인증서 발급·서명·폐기</td></tr>
+<tr><td><b>RA</b> 등록기관</td><td>신원 확인과 등록 요청 처리</td></tr>
+<tr><td>인증서 저장소</td><td>인증서와 폐기 목록 게시</td></tr>
+<tr><td>최종 개체</td><td>인증서를 쓰는 주체</td></tr>
+</table></div>
+<h3 id="s10-chain">인증서 체인</h3>
+<div class="flow">
+<div class="nd"><b>루트 CA</b>자체 서명, 신뢰 앵커</div><div class="ar">→</div>
+<div class="nd"><b>중간 CA</b></div><div class="ar">→</div>
+<div class="nd"><b>최종 개체 인증서</b></div>
+</div>
+<p>원본은 <b>루트 CA는 오프라인으로 보관</b>하는 것이 원칙이라고 합니다. 루트가 침해되면 그 아래 전체 신뢰가 무너지기 때문입니다.</p>
+<h3 id="s10-rev">폐기 확인과 검증 항목</h3>
+<div class="tw"><table>
+<tr><th>방식</th><th>특징</th></tr>
+<tr><td><b>CRL</b> 폐기 목록</td><td>주기적으로 내려받는다. <b>크기가 커지고 시차가 생긴다</b></td></tr>
+<tr><td><b>OCSP</b> 온라인 상태 확인</td><td>실시간 조회. <b>프라이버시 문제와 가용성 의존</b></td></tr>
+<tr><td><b>OCSP Stapling</b></td><td>서버가 응답을 미리 받아 첨부. 둘의 단점을 보완</td></tr>
+</table></div>
+<p>인증서를 검증할 때 확인할 것: <b>서명 유효성과 신뢰 체인, 유효 기간, 폐기 여부, 용도(Key Usage)와 이름 일치</b>.</p>
+<p><b>원문 사례 — 인증서 검증을 생략한 모바일 앱.</b> 앱이 TLS를 썼지만 개발 편의로 넣은 코드 때문에 인증서 검증이 꺼진 채 운영에 나갔습니다. 공격자가 자체 서명 인증서로 중간자 공격을 해 모든 통신을 평문으로 보았습니다. 원본의 결론은 <b>TLS는 인증서 검증이 작동해야 의미가 있다. 암호화 자체보다 상대가 진짜인지 확인하는 것이 핵심이다</b>입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>검증 항목 중 “이름 일치”가 자주 빠집니다. 신뢰하는 CA가 발급한 유효한 인증서라도, 장비가 접속하려는 서버 이름과 인증서에 적힌 이름이 다르면 그 인증서는 “다른 서버가 진짜”라는 것만 증명합니다. 서명·체인·기간·폐기만 보고 이름을 안 보면, 공격자가 정상 발급받은 자기 도메인 인증서로도 중간자 공격이 가능합니다. 사설 CA를 쓰는 장비라면 그 루트 인증서를 어떻게 배포하고 교체할지도 설계에 들어가야 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>TLS와 VPN의 구성은 <a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a>, 인증서 기반 사용자·기기 인증은 <a class="xr" href="D5.6.html">D5.6 인증 시스템</a>, 중간자 공격은 <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a>·<a class="xr" href="D4.1.html">D4.1 네트워크 아키텍처</a>에서 다룹니다. 원본은 RFC 5280(X.509 인증서와 CRL)과 RFC 6960(OCSP)을 듭니다.</p></div>
+<div class="src">원문 위치: D3.6.md §3 공개키 기반구조, §6 RFC 5280·6960, §7 사례 5 · 공식 개요 3.6 “Public key infrastructure (PKI)”</div>
+<h2 id="s11"><span class="n">11</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>새 장비의 암호 설계 초안이다. ㉠ 대량 로그는 RSA로 직접 암호화한다. ㉡ 펌웨어 무결성은 장비와 서버가 공유한 키로 만든 HMAC로 검증하고, 이것으로 제조사의 부인방지도 확보한다. ㉢ 통신은 정적 RSA 키 교환을 쓴다. ㉣ 양자 대비로 AES-128을 RSA-4096으로 바꾼다. 바르게 고친 것은?</p>
+<ol type="A">
+<li>㉠ 대칭 암호(AES-GCM)로 데이터를, 비대칭으로 세션키 합의 / ㉡ 부인방지가 필요하면 제조사 개인키 서명 / ㉢ ECDHE로 PFS 확보 / ㉣ 대칭은 AES-256, 비대칭은 PQC로 전환 계획</li>
+<li>㉠ 그대로 / ㉡ 그대로 / ㉢ 그대로 / ㉣ 그대로</li>
+<li>㉠ ECB 모드로 속도 확보 / ㉡ MD5로 교체 / ㉢ RSA 키 길이만 늘림 / ㉣ QKD 도입</li>
+<li>㉠ 해시로 암호화 / ㉡ 해시만 사용 / ㉢ OCSP 사용 / ㉣ AES-128 유지</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b></p>
+<ul>
+<li>㉠ 비대칭은 느려서 대량 데이터에 쓰지 않습니다. 하이브리드 구조(6절)와 AEAD 모드(4절).</li>
+<li>㉡ MAC는 키를 공유한 쪽 누구나 만들 수 있으므로 부인방지가 안 됩니다(7절).</li>
+<li>㉢ 정적 RSA 키 교환은 장기 키 유출 시 과거 트래픽이 모두 풀립니다(6절).</li>
+<li>㉣ 양자 대비는 대칭과 비대칭을 따로 봐야 합니다. RSA는 키 길이와 관계없이 Shor 알고리즘에 취약합니다(8절).</li>
+</ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">12</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>TLS가 대칭키와 공개키 기술을 함께 사용하는 이유를 어떻게 설명하나요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>연결에서 상대의 신원을 확인하고 세션 키를 합의할 때 공개키 기술을 쓸 수 있습니다. 연결 후 많은 데이터를 보호할 때는 합의한 비밀로 효율적인 대칭키 암호를 사용합니다. 두 단계의 실패 조건이 다릅니다.</p></div></details></div>
+<h2 id="summary"><span class="n">13</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>암호는 기밀성·무결성·진정성·부인방지를 제공, <b>가용성은 제공하지 않는다.</b> 케르크호프스 원칙: <b>비밀은 키에</b>. 자체 제작 암호 금지.</li>
+<li>수명주기: 요구 → 알고리즘 → 생성 → 분배 → 저장 → 사용 → 교체 → 폐기 → 복구. 기준은 <b>보호 기간</b>. <b>암호 민첩성</b>.</li>
+<li>대칭: 빠름, 부인방지 불가, 키 분배 과제. <b>키 수 n(n−1)/2</b>(100명 4,950개) vs 비대칭 <b>2n</b>. AES 현행, DES 폐기, 3DES 폐기 권고.</li>
+<li>모드: <b>ECB는 패턴 노출로 금지</b>, CBC, CTR, <b>GCM = AEAD(기밀성 + 무결성)</b>. IV/nonce 재사용 금지.</li>
+<li><b>암호화는 받는 사람의 공개키, 서명은 보내는 사람의 개인키.</b> DH = 키 교환 전용, DSA/ECDSA = 서명 전용.</li>
+<li><b>ECC: 같은 강도를 짧은 키로</b>(RSA 3072 ≈ ECC 256). 모바일·IoT에 적합.</li>
+<li>하이브리드: 비대칭으로 세션키 합의 → 대칭으로 데이터. <b>PFS = 세션마다 임시 키(DHE/ECDHE)</b>, 정적 RSA는 PFS 없음.</li>
+<li>해시: 역상·제2 역상·충돌 저항성. <b>생일 공격 → 충돌 저항성 n/2비트.</b> MD5·SHA-1 파기, SHA-2·SHA-3 현행.</li>
+<li><b>MAC/HMAC는 부인방지 없음</b>, 디지털 서명은 무결성·진정성·부인방지. 비밀번호는 bcrypt·scrypt·Argon2·PBKDF2.</li>
+<li><b>Shor → RSA·DH·ECC 무력화 → PQC로 교체. Grover → 대칭 유효 강도 절반 → AES-256.</b> <b>PQC = 수학 알고리즘, QKD = 물리 기반 키 분배</b>.</li>
+<li>키 관리: 용도 분리, 주기적 교체, HSM/KMS 보관, <b>지식 분할 + 이중 통제</b>, 에스크로, 소멸.</li>
+<li>PKI: CA(발급·폐기), RA(신원 확인), <b>루트 CA 오프라인</b>. 폐기 확인: CRL / OCSP / OCSP Stapling. 검증: 서명·체인, 기간, 폐기, 용도·<b>이름 일치</b>. 검증 생략은 중간자 공격을 부른다.</li>
+</ol>
+</div>
+<div class="src">원문 위치: D3.6.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 “계산 문제로 자주 나온다”, “시험 단골” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다. 원본 §6의 FIPS 140-2/140-3(암호 모듈)은 <a class="xr" href="D3.4.html">D3.4 시스템 보안 기능</a>에 있습니다.</div>
+<h2 id="glossary"><span class="n">14</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Kerckhoffs's Principle</span> <span class="term-ko">· 케르크호프스 원칙</span></h3>
+<p>시스템의 안전성은 알고리즘의 비밀이 아니라 키의 비밀에 의존해야 한다는 원칙.</p>
+<h3 id="glossary-2"><span lang="en">Crypto-agility</span> <span class="term-ko">· 암호 민첩성</span></h3>
+<p>알고리즘이 깨졌을 때 신속히 교체할 수 있도록 하는 설계 속성.</p>
+<h3 id="glossary-3"><span lang="en">Symmetric / Asymmetric</span> <span class="term-ko">· 대칭 / 비대칭</span></h3>
+<p>같은 키를 공유하는 방식과 공개키·개인키 쌍을 쓰는 방식.</p>
+<h3 id="glossary-4"><span lang="en">ECB / CBC / CTR / GCM — Electronic Codebook / Cipher Block Chaining / Counter / Galois/Counter Mode</span> <span class="term-ko">· 전자 코드북 / 암호 블록 연쇄 / 카운터 / 갈루아 카운터 모드</span></h3>
+<p>블록 암호 운영 모드. ECB 는 패턴이 드러나 사용 금지, GCM 은 기밀성과 무결성을 함께 제공한다.</p>
+<h3 id="glossary-5"><span lang="en">AEAD — Authenticated Encryption with Associated Data</span> <span class="term-ko">· 연관 데이터가 있는 인증 암호</span></h3>
+<p>암호화와 무결성 검증을 함께 수행하는 방식. GCM 이 대표적이다.</p>
+<h3 id="glossary-6"><span lang="en">IV / Nonce</span> <span class="term-ko">· 초기화 벡터 / 논스</span></h3>
+<p>같은 키로 같은 평문을 암호화해도 다른 결과가 나오게 하는 값. 재사용하면 안 된다.</p>
+<h3 id="glossary-7"><span lang="en">Diffie-Hellman</span> <span class="term-ko">· 디피–헬먼 키 합의</span></h3>
+<p>키 교환 전용 알고리즘. 데이터를 직접 암호화하지 않는다.</p>
+<h3 id="glossary-8"><span lang="en">ECC — Elliptic Curve Cryptography</span> <span class="term-ko">· 타원곡선 암호</span></h3>
+<p>짧은 키로 동등한 보안 강도를 제공하는 비대칭 암호. 모바일·IoT 에 적합하다.</p>
+<h3 id="glossary-9"><span lang="en">Hybrid Cryptosystem</span> <span class="term-ko">· 하이브리드 암호 시스템</span></h3>
+<p>비대칭으로 세션키를 교환하고 대칭으로 데이터를 암호화하는 구조. TLS 가 대표적이다.</p>
+<h3 id="glossary-10"><span lang="en">PFS — Perfect Forward Secrecy</span> <span class="term-ko">· 완전 순방향 비밀성</span></h3>
+<p>세션마다 임시 키를 사용해 장기 키가 유출되어도 과거 세션이 복호화되지 않게 하는 성질. DHE/ECDHE 가 제공한다.</p>
+<h3 id="glossary-11"><span lang="en">Birthday Attack</span> <span class="term-ko">· 생일 공격</span></h3>
+<p>해시 충돌을 찾는 공격. n비트 해시의 충돌 저항성은 n/2 비트다.</p>
+<h3 id="glossary-12"><span lang="en">Split Knowledge / Dual Control</span> <span class="term-ko">· 지식 분할 / 이중 통제</span></h3>
+<p>키를 나눠 보관하고 사용 시 여러 명이 동시에 참여하게 하는 통제.</p>
+<h3 id="glossary-13"><span lang="en">Key Escrow</span> <span class="term-ko">· 키 에스크로</span></h3>
+<p>키 손실에 대비해 제3자가 키를 보관하는 체계.</p>
+<h3 id="glossary-14"><span lang="en">Zeroization</span> <span class="term-ko">· 소멸</span></h3>
+<p>사용 후 메모리나 저장소에서 키를 안전하게 제거하는 것.</p>
+<h3 id="glossary-15"><span lang="en">Shor's Algorithm</span> <span class="term-ko">· 쇼어 알고리즘</span></h3>
+<p>양자 컴퓨터에서 소인수분해와 이산대수를 효율적으로 푸는 알고리즘. RSA·DH·ECC 를 무력화한다.</p>
+<h3 id="glossary-16"><span lang="en">Grover's Algorithm</span> <span class="term-ko">· 그로버 알고리즘</span></h3>
+<p>양자 탐색 알고리즘. 대칭키의 유효 강도를 절반으로 줄인다.</p>
+<h3 id="glossary-17"><span lang="en">PQC — Post-Quantum Cryptography</span> <span class="term-ko">· 양자 내성 암호</span></h3>
+<p>양자 컴퓨터로도 풀기 어려운 문제에 기반한 알고리즘. 고전 컴퓨터에서 동작한다.</p>
+<h3 id="glossary-18"><span lang="en">QKD — Quantum Key Distribution</span> <span class="term-ko">· 양자 키 분배</span></h3>
+<p>양자역학 원리로 키를 분배하는 방식. 도청 시도가 탐지된다. 암호 알고리즘이 아니다.</p>
+<h3 id="glossary-19"><span lang="en">CA / RA — Certification Authority / Registration Authority</span> <span class="term-ko">· 인증 기관 / 등록 기관</span></h3>
+<p>인증기관과 등록기관. CA 는 인증서를 발급·서명하고 RA 는 신원 확인을 담당한다.</p>
+<h3 id="glossary-20"><span lang="en">CRL / OCSP — Certificate Revocation List / Online Certificate Status Protocol</span> <span class="term-ko">· 인증서 폐기 목록 / 온라인 인증서 상태 프로토콜</span></h3>
+<p>인증서 폐기 목록과 온라인 인증서 상태 확인 프로토콜.</p>
+<div class="src">원문 위치 · D3.6.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">15</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-57</strong> — 키 관리 권고. 키 수명주기와 보호 기간</li>
+<li><strong>NIST SP 800-131A</strong> — 알고리즘과 키 길이 전환 지침</li>
+<li><strong>FIPS 197</strong> — AES</li>
+<li><strong>FIPS 186</strong> — 디지털 서명 표준</li>
+<li><strong>FIPS 140-2 / 140-3</strong> — 암호 모듈 보안 요구사항(D3.4 참조)</li>
+<li><strong>NIST PQC 표준 (2024)</strong> — 양자 내성 알고리즘 표준</li>
+<li><strong>RFC 5280</strong> — X.509 인증서와 CRL 프로파일</li>
+<li><strong>RFC 6960</strong> — OCSP</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D3.6.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">지사 50곳이 대칭 암호만으로 서로 안전하게 통신해야 한다. 필요한 고유 대칭키 수는?</a></li>
+<li><a href="#question-2">서버의 장기 개인키가 유출된 후 공격자가 수년간 수집해 둔 TLS 트래픽을 복호화했다. 이를 막았을 성질은?</a></li>
+<li><a href="#question-3">해싱과 암호화를 구분하는 것은?</a></li>
+<li><a href="#question-4">키를 여러 보관자가 나눠 보관하고 사용하려면 모두 모여야 한다. 이 조합이 나타내는 통제는?</a></li>
+<li><a href="#question-5">새 장비의 암호 설계 초안이다. ㉠ 대량 로그는 RSA로 직접 암호화한다. ㉡ 펌웨어 무결성은 장비와 서버가 공유한 키로 만든 HMAC로 검증하고, 이것으로 제조사의 부인방지도 확보한다. ㉢ 통신은 정적 RSA 키 교환을 쓴다. ㉣ 양자 대비로 AES-128을 RSA-4096으로 바꾼다. 바르게 고친 것은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D3.5.html"><small>← 이전 단원</small>3.5 아키텍처별 취약점</a><a href="D3.7.html" style="text-align:right"><small>다음 단원 →</small>3.7 암호 분석 공격</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

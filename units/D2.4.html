@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D2.4 데이터 생애주기 관리 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D2.4">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 6개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 2 자산 보안 › 2.4</div>
+<h1>데이터 생애주기 관리</h1>
+<div class="en">Manage data lifecycle · ISC2 CISSP Exam Outline(2024-04-15 발효) 2.4</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 6개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">데이터는 만들어지고, 저장되고, 쓰이고, 공유되고, 보관되다가 사라집니다. 이 단원은 그 일생의 각 단계에서 누가 무엇을 책임지는지, 그리고 가장 자주 소홀해지는 마지막 단계, 즉 정말로 지우는 방법을 다룹니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a> · <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a></td><td>소유자·관리자·시스템 소유자. 이 단원은 공식 개요가 명시한 데이터 역할 5종으로 넓힌다 (1절)</td></tr>
+<tr><td><a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a></td><td>Controller·Processor·정보주체, 최소 수집, 국경 간 이전의 법적 근거 (1~3절)</td></tr>
+<tr><td><a class="xr" href="D1.5.html">D1.5 조사 유형</a> · <a class="xr" href="D7.1.html">D7.1 조사</a></td><td>소송이 예상되면 삭제를 멈추는 보존 의무(Legal Hold) (5절)</td></tr>
+<tr><td><a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a></td><td>매체 재사용 전 데이터 삭제를 요구했다. 그 방법이 이 단원이다 (7~9절)</td></tr>
+<tr><td><a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a></td><td>자산 보존(EOL/EOS)과 데이터 보존의 차이, 오래 보관할 데이터의 기술적 과제 (5절)</td></tr>
+<tr><td><a class="xr" href="D7.5.html">D7.5 자원 보호</a></td><td>운영 단계의 매체 관리와 정화 수행 (8절)</td></tr>
+<tr><td><a class="xr" href="D3.6.html">D3.6 암호 솔루션</a></td><td>암호 소거가 기대는 키 수명주기 관리 (7절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>데이터 역할 5종</h2>
+<h3 id="s1-why">왜 필요한가</h3>
+<p>데이터에 문제가 생기면 “누가 결정했고 누가 실행했는가”를 따지게 됩니다. 공식 개요 2.4는 데이터 역할 다섯 가지를 명시합니다.</p>
+<div class="tw"><table>
+<tr><th>역할</th><th>하는 일</th></tr>
+<tr><td><b>Owner</b> 소유자</td><td>분류 결정, 접근 승인, 보존 결정</td></tr>
+<tr><td><b>Controller</b> 컨트롤러</td><td>처리의 <b>목적과 수단을 결정</b></td></tr>
+<tr><td><b>Custodian</b> 데이터 관리자</td><td>소유자 지시에 따른 일상 보호 수행</td></tr>
+<tr><td><b>Processor</b> 프로세서</td><td>컨트롤러의 <b>지시에 따라 처리</b></td></tr>
+<tr><td><b>User / Subject</b> 사용자 / 정보주체</td><td>데이터를 이용하는 사람 / 그 데이터가 가리키는 본인</td></tr>
+</table></div>
+<h3 id="s1-pairs">헷갈리는 두 쌍</h3>
+<div class="tw"><table>
+<tr><th>쌍</th><th>어디서 쓰는 구분인가</th><th>기준</th></tr>
+<tr><td>Owner / Custodian</td><td>조직 내부의 책임 구분</td><td>결정 / 수행</td></tr>
+<tr><td>Controller / Processor</td><td>개인정보 보호법의 구분</td><td>목적·수단 결정 / 지시에 따른 처리</td></tr>
+</table></div>
+<p>원본은 <b>클라우드 제공자는 통상 Processor</b>이고 고객 조직이 Controller라고 정리합니다. <b>정보주체(Data Subject)</b>는 그 개인정보가 가리키는 본인이며, GDPR의 접근권·삭제권 같은 권리를 행사하는 주체입니다.</p>
+<div class="box warn"><p><span class="tag">용어 주의</span>원본 D2.4는 Controller를 ‘관리자’, Custodian을 ‘보관자’로 옮기지만, 이 교재는 다른 단원과 맞추어 <b>Custodian = 데이터 관리자</b>, <b>Controller / Processor = 컨트롤러 / 프로세서</b>로 씁니다. 한국 개인정보 보호법의 ‘개인정보처리자’, ‘수탁자’와 일대일로 같은 개념인지는 이 교재에서 확인하지 않았습니다.</p></div>
+<div class="box add"><p><span class="tag">보충</span>두 쌍은 서로 다른 질문에 답하므로 한 조직이 동시에 두 쌍의 역할을 가집니다. 병원이 환자 기록을 외부 클라우드에 보관한다면, 병원은 개인정보 관점에서 Controller이고 클라우드 사업자는 Processor입니다. 병원 안에서는 진료 기록의 업무 책임자가 Owner, 병원 IT팀이 Custodian입니다. “통상 Processor”라는 말에도 조건이 붙습니다. 처리자가 고객 데이터를 자기 목적(예: 자체 제품 개선)으로 쓰기 시작하면 그 처리에 대해서는 스스로 목적을 정하는 쪽이 되므로, 계약과 적용 법을 다시 봐야 합니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>Owner·Custodian은 <a class="xr" href="D1.3.html">D1.3 보안 거버넌스</a>과 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>에서, System Owner는 <a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a>에서 나왔습니다. Controller·Processor·정보주체와 GDPR의 권리는 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>에서 다뤘습니다. 처리자를 선정하고 감독하는 일은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>의 공급자 관리와 같은 일입니다.</p></div>
+<div class="src">원문 위치: D2.4.md §3 데이터 역할, §4 Data Controller / Data Processor·Data Subject, §5 첫 표 · 공식 개요 2.4 “Data roles (i.e., owners, controllers, custodians, processors, users/subjects)” · 기존 문제 주제(역할 구분)</div>
+<h2 id="s2"><span class="n">2</span>수집</h2>
+<h3 id="s2-why">왜 필요한가</h3>
+<p>원본의 출발점은 이것입니다. <b>보유하지 않는 데이터는 유출될 수 없다.</b> 그래서 생애주기의 첫 단계인 수집에서 통제를 시작합니다. 원본은 이를 <b>데이터 최소화 원칙</b>으로 요약합니다. 필요한 것만 모으고, 필요한 기간만 갖고, 끝나면 확실히 없앤다.</p>
+<div class="flow">
+<div class="nd"><b>생성·수집</b></div><div class="ar">→</div>
+<div class="nd"><b>저장</b></div><div class="ar">→</div>
+<div class="nd"><b>사용</b></div><div class="ar">→</div>
+<div class="nd"><b>공유</b></div><div class="ar">→</div>
+<div class="nd"><b>보관</b></div><div class="ar">→</div>
+<div class="nd"><b>파기</b></div>
+</div>
+<h3 id="s2-how">수집 단계의 네 원칙</h3>
+<ul>
+<li><b>최소 수집(Data Minimization)</b> — 목적 달성에 필요한 최소한만 모은다. “나중에 쓸지도 모르니 일단 모은다”가 가장 흔하고 위험한 관행이다.</li>
+<li><b>목적 제한(Purpose Limitation)</b> — 수집할 때 밝힌 목적 외로 쓰지 않는다. 다른 목적으로 쓰려면 새로운 적법 근거가 필요하다.</li>
+<li><b>동의와 적법 근거</b> — 동의는 여러 근거 중 하나다. 동의를 받는다면 자유롭고 구체적이며 명확한 의사표시여야 한다.</li>
+<li><b>수집 시점의 분류</b> — 수집하는 순간 분류가 정해져야 이후 통제가 적용된다. 나중에 분류하려 하면 이미 부적절한 곳에 저장되어 있다.</li>
+</ul>
+<div class="box ex"><p><span class="tag">가상 예시</span>장비 사용 기록을 회사로 보내는 기능을 설계한다고 합시다. 고장 분석에 필요한 것은 오류 코드, 부품 상태, 소프트웨어 버전, 발생 시각입니다. 화면에 표시되던 검사 대상자 이름과 번호를 “혹시 필요할지 몰라서” 함께 보내면, 회사는 개인정보를 수집하는 Controller(또는 병원의 Processor)가 되고 보존 기간, 접근 통제, 국외 이전 검토, 삭제 요청 대응이 모두 따라옵니다. 처음부터 보내지 않으면 이 모든 의무가 생기지 않습니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>적법 근거의 종류와 동의의 조건은 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>, 수집 시점의 분류 기준은 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>에서 다룹니다. 설계 단계부터 수집 범위를 줄이는 것은 <a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a>의 설계 단계 프라이버시(Privacy by Design)입니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D2.4-Q13</div>
+<p>어떤 서비스가 사용자가 특정 국가의 성인인지만 확인해야 하는데 양식이 생년월일과 주민등록번호, 전체 주소를 수집한다. 적용되는 원칙은?</p><ol type="A"><li>데이터 최소화. 명시된 목적이 요구하는 것만 수집해야 하므로 성인 여부 표시와 국가만으로 충분하다. 침해 영향과 준수 부담이 모두 줄어든다.</li><li>데이터가 많으면 서비스 품질이 개선되므로 데이터 가용성.</li><li>항목이 많으면 교차 확인이 가능하므로 데이터 무결성.</li><li>항목을 나중에 삭제할 수 있으므로 데이터 보존.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 수집하지 않은 데이터는 유출될 수 없고 보호할 비용도 들지 않는다. 목적이 성인 여부 확인이면 생년월일 전체가 아니라 성인 여부라는 판정 결과만 보관하면 된다. "나중에 쓸 수도 있으니" 수집하는 관행이 침해 시 피해 범위와 규제 노출을 키우는 가장 흔한 원인이다.</p><ul><li>B · 가용성은 다른 보안 속성이다.</li><li>C · 무결성과 무관한 쟁점이다.</li><li>D · 보존은 수집 이후 단계의 문제다.</li></ul><div class="src">원문 위치 · D2.4-Q13</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.4.md §2, §3 수집, §4 Data Minimization·Purpose Limitation · 공식 개요 2.4 “Data collection” · 기존 문제 Q13 주제</div>
+<h2 id="s3"><span class="n">3</span>소재지: 데이터는 어디에 있는가</h2>
+<p><b>데이터가 어디에 있는지 모르면 보호할 수 없습니다.</b> 원본이 추적하라고 하는 위치는 다섯 종류입니다.</p>
+<div class="tw"><table>
+<tr><th>위치</th><th>예</th></tr>
+<tr><td>1차 저장소</td><td>운영 데이터베이스, 파일 서버</td></tr>
+<tr><td>복제본</td><td>백업, 재해복구 사이트, 읽기 전용 복제본</td></tr>
+<tr><td>파생본</td><td>분석용 추출, <b>개발·테스트 환경 복사본</b>, 보고서</td></tr>
+<tr><td>최종 사용자 사본</td><td>로컬 다운로드, 이메일 첨부, 개인 저장소</td></tr>
+<tr><td>클라우드·SaaS</td><td>제공자가 어느 리전에 저장하는지</td></tr>
+</table></div>
+<p><b>개발·테스트 환경이 흔한 공백입니다.</b> 운영 데이터를 그대로 복사해 쓰면서 통제는 느슨한 경우가 많습니다. 원본의 해법은 <b>마스킹 또는 합성 데이터</b>입니다.</p>
+<p><b>원문 사례 — 개발 환경의 운영 데이터.</b> 개발팀이 디버깅을 위해 운영 데이터베이스를 그대로 복사해 썼습니다. 개발 환경은 인터넷에 노출되어 있었고 접근 통제가 약했습니다. 원본은 이것을 <b>데이터 소재지 관리의 실패</b>로 봅니다.</p>
+<p><b>원문 사례 — 삭제했는데 남아 있던 데이터.</b> 고객의 삭제 요청에 따라 운영 데이터베이스에서 레코드를 지웠는데, 6개월 뒤 백업에서 복원하자 그 고객 데이터가 되살아났습니다. 삭제는 <b>모든 사본</b>에 적용되어야 하고, 백업·재해복구 사이트·분석 환경·로그까지 포함한 <b>데이터 맵</b>이 없으면 완전한 삭제가 불가능합니다. 백업에서 즉시 지우기 어렵다면 <b>보존 주기가 지나면 자동으로 사라지게</b> 하고, <b>복원할 때 다시 지우는 절차</b>를 정해 둡니다.</p>
+<p><b>데이터 소재지(Data Residency)</b>는 법적 쟁점이기도 합니다. 국경 간 이전 규제와 현지화 요구가 아키텍처를 제약합니다.</p>
+<div class="box think"><p><span class="tag">판단 순서</span>“이 데이터를 지웠다”고 말하기 전에 ① 데이터 맵에서 그 데이터가 있는 모든 위치를 꺼내고(1차·복제·파생·사용자 사본·클라우드) ② 위치마다 지웠는지, 지울 수 없다면 언제 자동으로 사라지는지를 확인하고 ③ 백업처럼 남아 있는 곳은 복원 시 재삭제 절차가 있는지 봅니다. 셋 중 하나라도 답이 없으면 “지웠다”가 아니라 “운영본에서 지웠다”입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>국경 간 이전과 현지화는 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>, 사본도 원본과 같은 등급의 통제를 받는다는 원칙은 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>, 백업 설계는 <a class="xr" href="D7.10.html">D7.10 복구 전략</a>에서 다룹니다. 마스킹·토큰화 같은 기법은 <a class="xr" href="D2.6.html">D2.6 데이터 보안 통제</a>의 데이터 보호 통제입니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D2.4-Q07</div>
+<p>고객의 삭제 요청에 따라 운영 데이터베이스에서 레코드를 삭제했다. 6개월 뒤 백업 복원으로 해당 데이터가 되살아났다. 가장 누락되었을 가능성이 높은 것은?</p><ol type="A"><li>운영 데이터베이스의 더 긴 보존 기간.</li><li>데이터베이스 관리자에 대한 다중요소 인증.</li><li>백업, 복제본, 파생 사본을 포괄하는 문서화된 데이터 맵.</li><li>운영 데이터베이스를 위한 더 강력한 암호화 알고리즘.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 삭제는 모든 사본에 적용되어야 한다. 백업, 재해복구 사이트, 분석 환경, 로그까지 포함한 데이터 맵이 없으면 완전한 삭제가 불가능하다. 백업 즉시 삭제가 어려우면 보존 주기 경과 후 자동 소멸과 복원 시 재삭제 절차를 정의한다.</p><ul><li>A · 보존 기간 연장은 삭제 요청과 상충한다.</li><li>B · MFA 는 접근 통제이며 삭제 범위를 넓히지 않는다.</li><li>D · 암호화 강도는 사본 추적 문제와 무관하다.</li></ul><div class="src">원문 위치 · D2.4-Q07</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.4.md §3 소재지, §4 Data Residency, §7 사례 2, 사례 4 · 공식 개요 2.4 “Data location” · 기존 문제 Q07 주제</div>
+<h2 id="s4"><span class="n">4</span>유지</h2>
+<p>저장된 데이터는 시간이 지나면서 틀려지고, 낡고, 늘어납니다. 원본이 드는 유지 활동입니다.</p>
+<ul>
+<li><b>정확성</b> — 틀린 데이터는 잘못된 의사결정을 만든다. <b>무결성(변경되지 않았음)과 정확성(사실과 맞음)은 다르다.</b></li>
+<li><b>최신성</b> — 오래된 접근 권한, 퇴사자 정보</li>
+<li><b>접근 권한 주기 검토</b> — 권한 누적 방지</li>
+<li><b>중복 제거</b> — 사본이 늘수록 공격면이 늘어난다</li>
+<li><b>정정 요청 처리</b> — 정보주체의 정정권 대응</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>정확성을 유지하는 일에는 동기화 확인도 들어갑니다. 고객 주소를 원본 시스템에서 고쳤다고 해서 그 주소를 받아 쓰는 다른 시스템, 백업, 외부 처리자의 사본까지 바뀐 것은 아닙니다. 정정 요청을 처리했다면 그 값을 쓰는 곳들이 언제 갱신되는지까지 확인해야 정정이 끝난 것입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>무결성과 정확성의 차이는 <a class="xr" href="D1.2.html">D1.2 보안 개념 (CIA 등)</a>에서 자세히 다뤘습니다(무결성 통제는 권한 없는 변경을 잡고, 사실과 맞는지는 입력 검증과 업무 통제의 영역). 권한 누적은 <a class="xr" href="D1.8.html">D1.8 인적 보안</a>, 접근 권한 주기 검토는 <a class="xr" href="D5.5.html">D5.5 프로비저닝 생애주기</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D2.4.md §3 유지 · 공식 개요 2.4 “Data maintenance”</div>
+<h2 id="s5"><span class="n">5</span>보존</h2>
+<h3 id="s5-why">왜 필요한가</h3>
+<p>원본의 핵심 문장은 <b>보존 기간은 길수록 안전한 것이 아니다</b>입니다. 많은 조직이 “혹시 모르니 다 남겨 두자”를 안전한 선택으로 여기지만, 남겨 둔 데이터는 모두 보호해야 할 대상이고, 유출되면 피해가 됩니다.</p>
+<h3 id="s5-how">보존 기간을 정하는 요소</h3>
+<ul>
+<li><b>법정 보존 의무</b> — 세법, 회계, 산업 규제</li>
+<li>계약상 요구</li>
+<li>업무상 필요</li>
+<li><b>개인정보 보호 요구</b> — 목적 달성 후 지체 없이 파기</li>
+<li>소송 대비 — 단, 소송이 예상되면 <b>보존 의무(Legal Hold)</b>로 삭제를 멈춘다</li>
+</ul>
+<h3 id="s5-over">과잉 보존의 위험</h3>
+<ul>
+<li>유출 시 피해 범위가 커진다</li>
+<li>개인정보 보호 규제 위반이 될 수 있다. 목적 달성 후 <b>보유 자체가 위반</b></li>
+<li>소송 시 전자증거 개시(eDiscovery) 비용이 커진다</li>
+<li>저장·관리 비용</li>
+</ul>
+<p>보존 기간이 서로 다를 때는 <b>가장 긴 법정 의무를 따르되</b>, 그 의무가 적용되지 않는 데이터는 분리해 더 짧게 보존합니다. 그리고 원본은 <b>자동 삭제가 핵심</b>이라고 강조합니다. 수동 삭제에 의존하면 지켜지지 않으므로 보존 정책을 시스템 수준에서 강제합니다.</p>
+<p><b>원문 사례 — 과잉 보존이 키운 피해.</b> 침해 사고로 유출된 데이터에 10년 전 탈퇴한 회원 정보가 들어 있었습니다. 법정 보존 의무는 5년이었습니다. 보유할 이유가 없는 데이터를 보유한 것 자체가 규제 위반이었고, 피해 규모와 과징금을 키웠습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>“가장 긴 법정 의무를 따르되 분리한다”는 말을 풀면 이렇습니다. 같은 고객 데이터라도 거래 기록은 세법상 오래 보존해야 하고, 마케팅 수신 동의 정보는 목적이 끝나면 지워야 할 수 있습니다. 둘을 한 테이블에 섞어 두면 긴 쪽에 맞춰 전부 남기게 되고, 짧은 쪽은 과잉 보존이 됩니다. 보존 기간이 다른 데이터를 따로 저장하는 것은 <a class="xr" href="D2.1.html">D2.1 자산 식별과 분류</a>에서 본 “민감 데이터를 분리하면 비용이 준다”와 같은 설계 원리입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>자산 보존(EOL/EOS)과 데이터 보존의 차이, 오래 보관해야 하는 데이터의 매체 수명과 포맷 노후화는 <a class="xr" href="D2.5.html">D2.5 자산 보존 (EOL·EOS)</a>, 보존 의무(Legal Hold)는 <a class="xr" href="D1.5.html">D1.5 조사 유형</a>와 <a class="xr" href="D7.1.html">D7.1 조사</a>에서 다룹니다. 두 의무는 방향이 반대입니다. 보존 기간은 “기간이 지나면 지운다”, 보존 의무는 “지우지 마라”이고, 보존 의무가 걸리면 자동 삭제를 그 범위에서 멈춰야 합니다. 개인정보 파기 의무와 과징금은 <a class="xr" href="D1.4.html">D1.4 법률·규제·컴플라이언스</a>에서 다뤘습니다.</p></div>
+<div class="quiz" id="question-3">
+<div class="qh">이해 확인 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>회사의 고객 데이터베이스 보존 정책은 “탈퇴 후 5년 보관 후 삭제”이고, 담당자가 매년 말 수작업으로 지운다. 감사에서 7년 전 탈퇴자 데이터가 대량으로 발견되었다. 담당자는 바뀐 지 2년 되었다. 가장 적절한 개선은?</p>
+<ol type="A">
+<li>보존 기간을 10년으로 늘려 규정 위반을 없앤다.</li>
+<li>새 담당자에게 매년 삭제를 잊지 말라고 교육한다.</li>
+<li>보존 기간이 지난 레코드가 시스템에서 자동으로 삭제되게 하고, 소송 보존 대상은 예외로 묶는 기능을 둔다.</li>
+<li>오래된 데이터를 암호화해서 그대로 둔다.</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 C.</b> 담당자가 바뀌자 수작업 삭제가 끊긴 전형입니다. 원본이 말하는 대로 보존 정책은 시스템 수준에서 자동으로 강제해야 하고, 보존 의무가 걸린 데이터는 그 자동 삭제에서 빼는 장치가 함께 있어야 합니다.</p>
+<ul><li>A: 보유 근거 없이 기간만 늘리면 과잉 보존이 정책이 됩니다.</li>
+<li>B: 사람의 기억에 기대는 방식이 이미 실패했습니다.</li>
+<li>D: 암호화는 유출 시 피해를 줄일 수 있지만, 보유할 이유가 없는 데이터를 갖고 있는 문제는 남습니다.</li></ul>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.4.md §3 보존, §4 Retention Period, §7 사례 3 · 공식 개요 2.4 “Data retention” · 기존 문제 주제(과잉 보존, legal hold)</div>
+<h2 id="s6"><span class="n">6</span>잔류: 지웠는데 왜 남는가</h2>
+<h3 id="s6-easy">쉬운 설명</h3>
+<p><b>데이터 잔류(Data Remanence)</b>는 삭제 처리 후에도 매체에 데이터가 남아 복구할 수 있는 상태입니다. 원본이 드는 원인입니다.</p>
+<div class="tw"><table>
+<tr><th>원인</th><th>설명</th></tr>
+<tr><td>논리적 삭제</td><td>파일 삭제는 <b>포인터만 제거</b>하고 데이터 블록은 남는다</td></tr>
+<tr><td>포맷</td><td>빠른 포맷은 파일 시스템 구조만 초기화한다</td></tr>
+<tr><td>슬랙 공간 Slack Space</td><td>할당 단위 안의 미사용 영역에 이전 데이터가 남는다</td></tr>
+<tr><td>저널·스냅샷</td><td>파일 시스템 저널, 섀도 복사본</td></tr>
+<tr><td><b>SSD 웨어 레벨링</b> Wear Leveling</td><td>컨트롤러가 수명을 고르게 하려고 물리 블록을 재배치해, <b>덮어쓰기가 원래 블록에 닿지 않을 수 있다</b></td></tr>
+<tr><td>오버프로비저닝</td><td>SSD의 예비 영역에 데이터가 남는다</td></tr>
+<tr><td>백업·복제본</td><td>원본을 지워도 사본이 남는다</td></tr>
+</table></div>
+<div class="box add"><p><span class="tag">보충</span>책의 목차에서 한 장을 지워도 그 장의 종이는 책 안에 그대로 있는 것과 같습니다. 파일 삭제는 목차(파일 시스템의 포인터)를 지우는 일입니다. HDD에서는 같은 자리에 새 데이터를 덮어쓰면 이전 내용이 사라지지만, SSD는 컨트롤러가 “덮어쓰기” 요청을 다른 빈 블록에 기록하고 이전 블록은 나중에 정리합니다. 그래서 운영체제에서 덮어써도 원래 블록이 남을 수 있고, 운영체제가 접근할 수 없는 예비 영역도 있습니다. 원본이 <b>SSD에서는 전통적인 덮어쓰기를 신뢰할 수 없다</b>고 하는 이유입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>잔류는 공격자에게는 복구 기회, 조사자에게는 증거입니다. 삭제된 파일과 슬랙 공간에서 증거를 복구하는 디지털 포렌식은 <a class="xr" href="D7.1.html">D7.1 조사</a>에서 다룹니다. 백업·복제본에 남는 문제는 3절의 데이터 맵과 같은 이야기입니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D2.4-Q19</div>
+<p>데이터 잔존(data remanence)이란?</p><ol type="A"><li>법적 의무를 충족하기 위해 의도적으로 보존된 데이터.</li><li>보존 기간을 초과한 데이터.</li><li>가용성을 위해 여러 시스템에 복제된 데이터.</li><li>제거를 시도한 뒤에도 매체에 남는 데이터의 잔여 표현. 그래서 삭제는 정화와 같지 않다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 파일을 삭제하면 운영체제가 참조만 지우고 내용은 디스크에 남는다. 복구 도구로 상당 부분 되살릴 수 있다. 이 때문에 매체를 재사용하거나 폐기할 때 삭제가 아니라 소거·정화·파괴 중 적절한 방법을 적용해야 한다. SSD 는 마모 평준화 때문에 덮어쓰기가 보장되지 않아 암호 소거나 파괴가 선호된다.</p><ul><li>A · 의도적 보존은 보존 정책의 영역이다.</li><li>B · 기간 초과는 폐기 대상 상태다.</li><li>C · 복제는 가용성 설계다.</li></ul><div class="src">원문 위치 · D2.4-Q19</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.4.md §3 잔류, §4 Data Remanence·Slack Space·Wear Leveling · 공식 개요 2.4 “Data remanence” · 기존 문제 Q19 주제</div>
+<h2 id="s7"><span class="n">7</span>파기: Clear, Purge, Destroy</h2>
+<h3 id="s7-easy">쉬운 설명</h3>
+<p>매체 정화(Sanitization)는 NIST SP 800-88의 세 방법으로 구분합니다. 원본은 이 셋을 <b>반드시 구분해야 한다</b>고 강조합니다.</p>
+<div class="tw"><table>
+<tr><th>방법</th><th>무엇을 막는가</th><th>매체 재사용</th><th>원본이 드는 기법</th></tr>
+<tr><td><b>Clear</b></td><td>일반적인 복구 시도(표준 인터페이스로 읽기)</td><td>같은 환경에서 재사용 가능</td><td>논리적 덮어쓰기, 공장 초기화</td></tr>
+<tr><td><b>Purge</b></td><td><b>실험실 수준의 복구</b>까지</td><td>재사용 가능</td><td>디가우징, <b>암호 소거</b>, 펌웨어 보안 삭제(Secure Erase) 명령</td></tr>
+<tr><td><b>Destroy</b></td><td>물리적으로 복구 불가능</td><td><b>재사용 불가</b></td><td>분쇄, 소각, 분말화, 용융, 파쇄</td></tr>
+</table></div>
+<h3 id="s7-crypto">암호 소거</h3>
+<p><b>암호 소거(Cryptographic Erase, Crypto-shredding)</b>는 암호화된 데이터의 <b>키를 파기</b>해 복호화를 불가능하게 만드는 방식입니다. 원본은 클라우드에서 특히 유용하다고 합니다. 물리 매체에 접근할 수 없어도 키만 파기하면 되기 때문입니다. 전제는 <b>처음부터 암호화되어 있어야</b> 한다는 것입니다.</p>
+<p><b>원문 사례 — 암호 소거가 유일한 수단이었던 경우.</b> 클라우드 제공자의 물리 매체에 접근할 수 없어 전통적 파기를 할 수 없었습니다. 저장 시점부터 고객 관리 키로 암호화해 두었기 때문에, 계약 종료 시 키를 파기하는 것으로 복구 불가능한 상태를 만들 수 있었습니다. 원본의 결론은 <b>암호 소거는 사전 암호화가 전제이며 나중에 결정할 수 없다</b>입니다.</p>
+<div class="box add"><p><span class="tag">보충</span>암호 소거가 실제로 효과가 있는지는 키가 정말 사라졌는지에 달려 있습니다. 키 백업, 키 관리 서비스의 복구 기능, 다른 곳에 남은 평문 사본이 있으면 키 하나를 지워도 데이터는 살아 있습니다. 그래서 암호 소거를 계획할 때는 그 키의 모든 사본과 평문 사본의 유무를 확인하고, 실행 후 결과를 검증해야 합니다(키와 사본의 위치를 확인하라는 일반적 원칙에 따른 보충).</p></div>
+<div class="box warn"><p><span class="tag">확인 필요</span><b>NIST SP 800-88은 개정되었습니다.</b> 원본은 Rev. 1(2014)을 기준으로 쓰였습니다. NIST는 2025년 9월 26일 <b>Rev. 2</b>를 최종 발행했고 Rev. 1을 대체했습니다(NIST CSRC 문서 이력). NIST 초안 공지는 이번 개정이 조직 차원의 <b>매체 정화 프로그램 수립</b>에 초점을 옮겼다고 밝힙니다. 업계 해설들은 Clear·Purge·Destroy 세 방법은 유지되었고, 매체별 구체 기법은 IEEE 2883 같은 외부 표준을 참조하도록 바뀌었으며, 디가우징의 위상이 낮아졌다고 전합니다. 이 세부 사항은 NIST 원문이 아니라 2차 자료로 확인한 것입니다. 시험 개요(2024판)와 기존 수험서가 Rev. 1의 틀로 설명할 수 있으므로, 이 교재는 원본의 세 방법 구분을 그대로 두고 개정 사실만 알립니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>키를 어디에 두고 어떻게 폐기하는지는 <a class="xr" href="D3.6.html">D3.6 암호 솔루션</a>의 키 수명주기 관리, 고객 관리 키와 클라우드 종료 전략은 <a class="xr" href="D8.4.html">D8.4 도입 소프트웨어 평가</a>에서 다룹니다. Rev. 2 개정 사실은 운영 단계의 매체 관리를 다루는 <a class="xr" href="D7.5.html">D7.5 자원 보호</a>에서도 이 절로 연결합니다.</p></div>
+<div class="src">원문 위치: D2.4.md §3 파기 — NIST SP 800-88, §4 Clear / Purge / Destroy·Cryptographic Erase, §5 둘째 표, §6 NIST SP 800-88 Rev.1, §7 사례 5 · 공식 개요 2.4 “Data destruction” · 외부 확인: NIST CSRC SP 800-88 Rev. 2 페이지(발행일·대체 관계), 업계 해설(IEEE 2883 참조, 디가우징)</div>
+<h2 id="s8"><span class="n">8</span>매체별 적합 방법</h2>
+<p>같은 “파기”라도 매체에 따라 효과가 다릅니다.</p>
+<div class="tw"><table>
+<tr><th>매체</th><th>적합</th><th>부적합</th></tr>
+<tr><td>자기 디스크(HDD)</td><td>덮어쓰기, 디가우징, 물리 파괴</td><td>—</td></tr>
+<tr><td><b>SSD·플래시</b></td><td><b>암호 소거</b>, 물리 파괴</td><td><b>디가우징(효과 없음)</b></td></tr>
+<tr><td>광 매체(CD/DVD)</td><td>물리 파쇄</td><td>덮어쓰기 불가</td></tr>
+<tr><td>종이</td><td>교차 절단 파쇄, 소각</td><td>—</td></tr>
+</table></div>
+<p><b>디가우징은 SSD에 효과가 없습니다.</b> 디가우징은 강한 자기장으로 자기 기록을 지우는 방식인데, SSD는 자기 저장이 아니라 플래시 메모리에 전하로 기록하기 때문입니다. SSD에는 암호 소거나 물리 파괴를 씁니다.</p>
+<p>또 <b>디가우징한 자기 디스크는 대부분 재사용할 수 없습니다.</b> 디스크가 헤드 위치를 잡는 데 쓰는 서보 트랙까지 지워지기 때문입니다. 원본은 이 점에서 디가우징이 실질적으로 폐기에 가깝다고 설명합니다.</p>
+<p><b>원문 사례 — 디가우징한 SSD.</b> 폐기 절차에 따라 모든 저장 매체를 디가우저에 통과시켰는데, 샘플 검증에서 SSD의 데이터가 그대로 복구되었습니다. 조직은 절차를 매체 유형별로 나누고 SSD는 암호 소거 또는 물리 파괴로 바꿨습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>이 사례에서 문제를 찾아낸 것은 <b>샘플 검증</b>입니다. 절차를 수행했다는 기록만 있었다면 아무도 몰랐을 것입니다. 정화는 수행과 검증이 짝입니다. 그리고 장비 안에 저장 매체가 있다는 사실 자체를 놓치기 쉽습니다. 프린터·복합기, 네트워크 장비, 의료 장비, 산업용 컨트롤러에도 저장 장치가 들어 있으므로 폐기 목록은 “PC와 서버”가 아니라 “저장 매체를 가진 모든 장비”여야 합니다.</p></div>
+<div class="box exam"><p><span class="tag">CISSP 관점</span>매체 정화 상황에서는 ① 매체 종류(자기, 플래시, 광, 종이)를 먼저 확인하고 ② 그 매체에 효과가 있는 방법인지 보고(SSD에 디가우징은 무효) ③ 매체를 재사용할지, 조직 밖으로 나가는지 ④ 데이터 등급을 따져 Clear / Purge / Destroy 중 고릅니다. 원본은 디가우징과 SSD의 조합을 가장 흔한 함정으로 꼽습니다.</p></div>
+<div class="quiz" id="question-5"><div class="qh">원본 연습문제 · D2.4-Q01</div>
+<p>조직이 폐기 대상 저장 매체를 모두 디가우저에 통과시켰다. 이후 샘플 검증에서 SSD 로부터 읽을 수 있는 데이터가 복구되었다. 이 결과의 원인은?</p><ol type="A"><li>디가우징은 자기 매체에만 작용하며 플래시 메모리에는 효과가 없다.</li><li>드라이브가 암호화되어 있어 디가우징이 작동하지 않았다.</li><li>디가우징은 처리 중 드라이브에 전원이 공급되어야 한다.</li><li>디가우저의 자기장 세기가 부족하게 설정되었다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 디가우징은 자기 저장 방식의 매체에만 작용한다. SSD 는 플래시 메모리라 자기장의 영향을 받지 않아 데이터가 그대로 남는다. SSD 에는 암호 소거(cryptographic erase) 또는 물리 파괴를 사용해야 한다.</p><ul><li>B · 암호화는 디가우징 효과와 무관하며 오히려 암호 소거의 전제가 된다.</li><li>C · 디가우징은 전원 공급과 무관하게 수행된다.</li><li>D · 세기 문제가 아니라 저장 원리가 다르다.</li></ul><div class="src">원문 위치 · D2.4-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D2.4.md §3 매체별 적합 방법, §4 Degaussing, §5 셋째 표, §7 사례 1 · 기존 문제 Q01 주제</div>
+<h2 id="s9"><span class="n">9</span>파기 선택 기준과 증빙</h2>
+<h3 id="s9-how">무엇을 보고 방법을 고르는가</h3>
+<p>원본은 네 가지를 함께 보라고 합니다.</p>
+<div class="flow">
+<div class="nd"><b>데이터 분류 등급</b></div><div class="ar">+</div>
+<div class="nd"><b>매체 유형</b></div><div class="ar">+</div>
+<div class="nd"><b>재사용 여부</b></div><div class="ar">+</div>
+<div class="nd"><b>조직 통제를 벗어나는가</b></div>
+</div>
+<p><b>매체가 조직 통제를 벗어난다면 더 강한 방법</b>을 씁니다. 내부 재사용이면 Purge, 외부 반출·폐기면 Destroy를 고려합니다.</p>
+<p><b>파기 증명서(Certificate of Destruction)</b>는 무엇을, 언제, 어떤 방법으로 파기했는지 기록한 증빙이며 외부 업체에 맡길 때 특히 필요합니다. 원본은 <b>위탁해도 책임은 조직에 남는다</b>고 강조합니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>현장에서 회수한 장비 30대를 처리해야 합니다. 그중 20대는 정비 후 다른 병원에 재설치하고, 10대는 폐기 업체로 보냅니다. 장비 안의 SSD에는 검사 기록이 남아 있을 수 있습니다. 재설치할 20대는 장비는 다시 쓰지만 매체가 조직 밖(다른 병원)으로 나가므로, 원본 기준으로는 Destroy를 고려할 상황입니다. 장비를 재사용하면서 이 기준을 맞추는 방법은 저장 장치만 새것으로 바꾸고 기존 SSD를 파괴하는 것입니다. 저장 장치를 그대로 쓰겠다면 Purge(장비가 저장 암호화를 쓰고 있었다면 암호 소거, 아니면 제조사의 보안 삭제 명령)와 샘플 복구 시험을 하되, 그 수준이 데이터 등급에 비해 충분한지 소유자가 판단하고 기록으로 남깁니다. 폐기할 10대는 업체가 물리 파괴하고, 장비 일련번호별 파기 증명서를 받습니다. 증명서를 받았다고 책임이 업체로 넘어가지 않으므로, 업체 선정과 현장 확인 기록도 남깁니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>업체를 고르고 계약에 파기 의무와 증명을 넣는 일은 <a class="xr" href="D1.11.html">D1.11 공급망 위험 관리</a>(종료 시 데이터 반환·파기)에서 다뤘습니다. 정보시스템을 퇴역시킬 때의 절차는 <a class="xr" href="D3.10.html">D3.10 정보시스템 생애주기</a>, 운영 중 매체 관리는 <a class="xr" href="D7.5.html">D7.5 자원 보호</a>, 종이 문서의 세단은 <a class="xr" href="D2.2.html">D2.2 자산 취급 요구사항</a>에 있습니다.</p></div>
+<div class="src">원문 위치: D2.4.md §3 파기 선택 기준과 증빙, §4 Certificate of Destruction · 기존 문제 주제(파기 증명서, 위탁 책임)</div>
+<h2 id="s10"><span class="n">10</span>종합 이해 확인</h2>
+<div class="quiz" id="question-6">
+<div class="qh">종합 · 자작 상황 문제</div>
+<p>한 회사가 클라우드 서비스를 해지하면서 다음 계획을 세웠다. ㉠ 서비스 업체에 물리 디스크를 디가우징해 달라고 요청한다. ㉡ 운영 데이터베이스의 개인정보는 지우지만 분석용으로 추출해 둔 사본은 “혹시 몰라서” 10년 보관한다. ㉢ 해지 후 남은 사내 노트북 SSD는 파일 삭제 후 재배포한다. 가장 적절한 평가는?</p>
+<ol type="A">
+<li>세 계획 모두 문제없다.</li>
+<li>㉠ 고객이 물리 매체에 접근할 수 없는 클라우드에서는 사전 암호화와 키 파기가 현실적인 수단이다 / ㉡ 파생본도 삭제 대상이며 근거 없는 장기 보존은 과잉 보존이다 / ㉢ 파일 삭제는 포인터만 지우므로 SSD에는 암호 소거 등 Purge 수준이 필요하다</li>
+<li>㉠ 디가우징이 SSD에도 가장 강한 방법이다 / ㉡ 사본은 원본과 별개라 관계없다 / ㉢ 빠른 포맷이면 충분하다</li>
+<li>㉠ 업체가 Processor이므로 회사는 책임이 없다 / ㉡ 보존은 길수록 안전하다 / ㉢ 재배포 대신 반드시 소각해야 한다</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 B.</b></p>
+<ul>
+<li>㉠ 원문 사례 5. 클라우드 업체의 디스크는 고객이 직접 처리할 수 없고 여러 고객이 공유할 수 있습니다. 게다가 매체가 SSD라면 디가우징은 효과가 없습니다(7·8절).</li>
+<li>㉡ 데이터 맵에 파생본이 포함되어야 하고(3절), 근거 없는 보존은 과잉 보존입니다(5절).</li>
+<li>㉢ 잔류의 원인(6절)과 SSD의 덮어쓰기 한계 때문에 파일 삭제로는 부족합니다. 재사용이 목적이므로 Destroy까지 갈 필요는 없지만 Purge 수준이 필요합니다.</li>
+</ul>
+<p>D가 틀린 이유: 처리를 맡겨도 Controller의 책임은 남고, 재사용할 매체를 반드시 소각할 이유는 없습니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">11</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>운영본을 삭제한 데이터가 복구 시험 뒤 되살아났다면 무엇을 놓친 것인가요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>운영본과 별개인 백업 사본의 보존과 복원 후 재삭제 규칙을 놓쳤을 수 있습니다. 사본의 위치·보존 사유·정화 방법과 결과를 하나의 생애주기로 관리합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">12</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>데이터 역할 5종: <b>Owner / Controller / Custodian / Processor / User·Subject</b>.</li>
+<li><b>Owner = 결정, Custodian = 수행</b>(조직 내부) / <b>Controller = 목적·수단 결정, Processor = 지시에 따른 처리</b>(개인정보 법). 클라우드 제공자는 통상 Processor.</li>
+<li><b>보유하지 않는 데이터는 유출될 수 없다.</b> 수집: 최소 수집 + 목적 제한 + 적법 근거 + 수집 시점 분류.</li>
+<li>소재지: 1차 저장소 + 복제본 + 파생본 + 사용자 사본 + 클라우드. <b>개발·테스트 환경</b>이 흔한 공백 → 마스킹·합성 데이터.</li>
+<li><b>데이터 맵 없이는 완전한 삭제가 불가능.</b> 백업은 자동 소멸 + 복원 시 재삭제.</li>
+<li>유지: 정확성(무결성과 다름), 최신성, 권한 검토, 중복 제거, 정정 요청.</li>
+<li><b>보존은 길수록 좋은 것이 아니다.</b> 과잉 보존 = 규제 위반 + 피해 확대 + eDiscovery 비용. <b>자동 삭제로 강제</b>, 소송 예상 시 보존 의무로 삭제 중단.</li>
+<li><b>잔류</b>: 논리 삭제는 포인터만 제거. 슬랙 공간, 저널·스냅샷, <b>SSD 웨어 레벨링</b>, 오버프로비저닝, 백업.</li>
+<li><b>Clear(일반 복구 방어) &lt; Purge(실험실 복구 방어) &lt; Destroy(물리 파괴, 재사용 불가)</b>.</li>
+<li>Purge 기법: 디가우징, <b>암호 소거</b>, 펌웨어 보안 삭제. <b>암호 소거는 사전 암호화가 전제</b>, 클라우드에서 특히 유용.</li>
+<li><b>디가우징은 SSD에 무효.</b> SSD는 암호 소거 또는 물리 파괴. <b>디가우징한 HDD는 대부분 재사용 불가.</b></li>
+<li>방법 선택: 분류 등급 + 매체 유형 + 재사용 여부 + 조직 통제 이탈. 위탁 시 <b>파기 증명서</b>, 책임은 조직에 남는다.</li>
+<li>NIST SP 800-88은 2025년 9월 <b>Rev. 2</b>로 개정되었다(세 방법은 유지).</li>
+</ol>
+</div>
+<div class="src">원문 위치: D2.4.md §8 CISSP 시험 관점, §9 핵심 암기 요약(15항목). 원본의 “가장 자주 출제되는 함정” 같은 출제 단정 표현은 판단 기준으로 바꿔 적었습니다. 원본 §6의 ISO/IEC 27002:2022(정보 삭제, 매체 폐기, 데이터 마스킹), NIST SP 800-53 MP·SI 통제군, DoD 5220.22-M(과거 널리 인용된 덮어쓰기 기준, 지금은 SP 800-88이 기준)은 여기에 적어 둡니다.</div>
+<h2 id="glossary"><span class="n">13</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Data Controller / Data Processor</span> <span class="term-ko">· 데이터 컨트롤러 / 데이터 프로세서</span></h3>
+<p>Controller 는 처리의 목적과 수단을 결정하고, Processor 는 Controller 의 지시에 따라 처리한다. 클라우드 제공자는 통상 Processor 다.</p>
+<h3 id="glossary-2"><span lang="en">Data Subject</span> <span class="term-ko">· 정보주체</span></h3>
+<p>개인정보가 가리키는 본인. 접근권·삭제권 등을 행사하는 주체다.</p>
+<h3 id="glossary-3"><span lang="en">Data Minimization</span> <span class="term-ko">· 데이터 최소화</span></h3>
+<p>목적 달성에 필요한 최소한만 수집하는 원칙.</p>
+<h3 id="glossary-4"><span lang="en">Purpose Limitation</span> <span class="term-ko">· 목적 제한</span></h3>
+<p>수집 시 밝힌 목적 외로 사용하지 않는 원칙.</p>
+<h3 id="glossary-5"><span lang="en">Data Residency</span> <span class="term-ko">· 데이터 소재지</span></h3>
+<p>데이터가 물리적으로 저장되는 국가·지역. 법적 제약의 대상이 된다.</p>
+<h3 id="glossary-6"><span lang="en">Retention Period</span> <span class="term-ko">· 보존 기간</span></h3>
+<p>데이터를 보유하는 기간. 법정 의무, 계약, 업무 필요, 개인정보 보호 요구를 함께 고려한다.</p>
+<h3 id="glossary-7"><span lang="en">Data Remanence</span> <span class="term-ko">· 데이터 잔류</span></h3>
+<p>삭제 처리 후에도 매체에 데이터가 남아 복구 가능한 상태.</p>
+<h3 id="glossary-8"><span lang="en">Slack Space</span> <span class="term-ko">· 슬랙 공간</span></h3>
+<p>할당 단위 내 미사용 영역. 이전 데이터가 잔존할 수 있다.</p>
+<h3 id="glossary-9"><span lang="en">Wear Leveling</span> <span class="term-ko">· 웨어 레벨링</span></h3>
+<p>SSD 컨트롤러가 수명 균등화를 위해 물리 블록을 재배치하는 기능. 덮어쓰기가 원본 블록에 닿지 않을 수 있다.</p>
+<h3 id="glossary-10"><span lang="en">Clear / Purge / Destroy</span> <span class="term-ko">· 논리적 소거 / 정화 / 파괴</span></h3>
+<p>NIST SP 800-88 의 정화 단계. 일반 복구 방어 / 실험실 복구 방어 / 물리 파괴.</p>
+<h3 id="glossary-11"><span lang="en">Degaussing</span> <span class="term-ko">· 디가우징</span></h3>
+<p>강력한 자기장으로 자기 매체 데이터를 파괴하는 기법. <strong>SSD 에는 효과가 없다.</strong></p>
+<h3 id="glossary-12"><span lang="en">Cryptographic Erase / Crypto-shredding</span> <span class="term-ko">· 암호 소거</span></h3>
+<p>암호화된 데이터의 키를 파기해 복호화 불가능하게 만드는 방식. 사전 암호화가 전제다.</p>
+<h3 id="glossary-13"><span lang="en">Certificate of Destruction</span> <span class="term-ko">· 파기 증명서</span></h3>
+<p>파기 대상·일시·방법을 기록한 증빙. 외부 위탁 시 필수다.</p>
+<div class="src">원문 위치 · D2.4.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">14</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong><a href="https://csrc.nist.gov/pubs/sp/800/88/r2/final">NIST SP 800-88 Rev. 2</a></strong> — 매체 정화 지침. Clear / Purge / Destroy 와 매체별 방법</li>
+<li><strong>ISO/IEC 27002:2022</strong> — 정보 삭제, 매체 폐기, 데이터 마스킹 통제</li>
+<li><strong>GDPR</strong> — 보관 기간 제한, 삭제권, Controller/Processor 구분</li>
+<li><strong>NIST SP 800-53 MP / SI 통제군</strong> — 매체 정화와 정보 처리</li>
+<li><strong>DoD 5220.22-M</strong> — 과거 널리 인용된 덮어쓰기 기준. 현재는 SP 800-88 이 표준</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D2.4.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 6개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">어떤 서비스가 사용자가 특정 국가의 성인인지만 확인해야 하는데 양식이 생년월일과 주민등록번호, 전체 주소를 수집한다. 적용되는 원칙은?</a></li>
+<li><a href="#question-2">고객의 삭제 요청에 따라 운영 데이터베이스에서 레코드를 삭제했다. 6개월 뒤 백업 복원으로 해당 데이터가 되살아났다. 가장 누락되었을 가능성이 높은 것은?</a></li>
+<li><a href="#question-3">회사의 고객 데이터베이스 보존 정책은 “탈퇴 후 5년 보관 후 삭제”이고, 담당자가 매년 말 수작업으로 지운다. 감사에서 7년 전 탈퇴자 데이터가 대량으로 발견되었다. 담당자는 바뀐 지 2년 되었다. 가장 적절한 개선은?</a></li>
+<li><a href="#question-4">데이터 잔존(data remanence)이란?</a></li>
+<li><a href="#question-5">조직이 폐기 대상 저장 매체를 모두 디가우저에 통과시켰다. 이후 샘플 검증에서 SSD 로부터 읽을 수 있는 데이터가 복구되었다. 이 결과의 원인은?</a></li>
+<li><a href="#question-6">한 회사가 클라우드 서비스를 해지하면서 다음 계획을 세웠다. ㉠ 서비스 업체에 물리 디스크를 디가우징해 달라고 요청한다. ㉡ 운영 데이터베이스의 개인정보는 지우지만 분석용으로 추출해 둔 사본은 “혹시 몰라서” 10년 보관한다. ㉢ 해지 후 남은 사내 노트북 SSD는 파일 삭제 후 재배포한다. 가장 적절한 평가는?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D2.3.html"><small>← 이전 단원</small>2.3 안전한 프로비저닝</a><a href="D2.5.html" style="text-align:right"><small>다음 단원 →</small>2.5 자산 보존 (EOL·EOS)</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

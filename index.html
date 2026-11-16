@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<title>CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="units/" data-unit="">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  
+  <a class="ttl" href="index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="index.html">⌂ 첫 화면 (전체 목차)</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<h1>CISSP 이해형 교재</h1>
+<div class="en">ISC2 CISSP Exam Outline (2024-04-15 발효) 기준 · 제작 완료 62 / 62 단원</div>
+<p class="lead">개념이 왜 필요한지, 무슨 뜻인지, 어디에 쓰이는지, 다른 단원과 어떻게 이어지는지를 설명하는 교재입니다. 위 검색창은 만들어진 모든 단원을 한꺼번에 찾습니다.</p>
+<h2 id="study">공부 순서</h2>
+<ol class="steps">
+<li>본문과 비교표에서 각 개념이 해결하는 문제를 확인합니다. 익숙하지 않은 용어는 연결된 절에서 앞 개념을 찾아봅니다.</li>
+<li>아래 목차에서 단원 옆 <b>문제</b>를 누르면 연습문제 목록이 열립니다. 문항을 선택하고 지문을 읽은 뒤 해설을 펼쳐 판단 근거를 확인합니다.</li>
+<li>핵심 요약을 읽기 전에 ‘핵심 개념을 내 말로 설명하기’를 풀어 봅니다. 근거까지 말하기 어려웠던 개념은 해당 절로 돌아갑니다.</li>
+</ol>
+<p class="src">이 교재는 2024년 발효 개요를 기준으로 합니다. ISC2는 2027년 4월 15일부터 새 개요를 적용합니다. <a href="https://www.isc2.org/certifications/cissp/cissp-certification-exam-outline">ISC2 공식 시험 개요</a></p>
+<div class="box sum"><p><span class="tag">읽는 법</span>본문은 출처에 따라 다섯 가지로 구분됩니다.</p>
+<ul>
+<li><b>표시 없는 본문</b> — 원본 정리 파일(<code>content/</code>)의 내용을 풀어 쓴 것. 각 절 끝에 원문 위치가 있습니다.</li>
+<li><b style="color:var(--add)">보충</b> — 원본에 없어 이해를 돕기 위해 더한 설명</li>
+<li><b style="color:var(--ex)">가상 예시</b> — 지어낸 상황. 실제 회사나 제품의 사실이 아닙니다.</li>
+<li><b style="color:var(--link)">연결</b> — 다른 단원의 개념과 어떻게 이어지는지. 원본의 해당 단원 내용에 근거합니다.</li>
+<li><b style="color:var(--warn)">확인 필요</b> — 원본 서술이 단순하거나 자료마다 달라 그대로 확정하지 않은 부분</li>
+</ul>
+<p>‘자작 상황 문제’는 교재용으로 새로 만들었고 ‘원본 연습문제’는 저장소의 문제에서 골랐습니다. 실제 시험 문항은 싣지 않았습니다.</p></div>
+<div class="dom"><h2 id="D1">D1 보안 및 위험 관리 <span class="w">시험 비중 16% · 12 / 12 단원</span></h2><ul class="ul">
+<li class="unit-links"><a href="units/D1.1.html"><small>1.1</small>전문가 윤리</a><a class="unit-glossary" href="units/D1.1.html#glossary" aria-label="전문가 윤리 용어">용어</a><a class="unit-questions" href="units/D1.1.html#questions" aria-label="전문가 윤리 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D1.2.html"><small>1.2</small>보안 개념 (CIA 등)</a><a class="unit-glossary" href="units/D1.2.html#glossary" aria-label="보안 개념 (CIA 등) 용어">용어</a><a class="unit-questions" href="units/D1.2.html#questions" aria-label="보안 개념 (CIA 등) 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D1.3.html"><small>1.3</small>보안 거버넌스</a><a class="unit-glossary" href="units/D1.3.html#glossary" aria-label="보안 거버넌스 용어">용어</a><a class="unit-questions" href="units/D1.3.html#questions" aria-label="보안 거버넌스 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D1.4.html"><small>1.4</small>법률·규제·컴플라이언스</a><a class="unit-glossary" href="units/D1.4.html#glossary" aria-label="법률·규제·컴플라이언스 용어">용어</a><a class="unit-questions" href="units/D1.4.html#questions" aria-label="법률·규제·컴플라이언스 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D1.5.html"><small>1.5</small>조사 유형</a><a class="unit-glossary" href="units/D1.5.html#glossary" aria-label="조사 유형 용어">용어</a><a class="unit-questions" href="units/D1.5.html#questions" aria-label="조사 유형 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D1.6.html"><small>1.6</small>정책·표준·절차·지침</a><a class="unit-glossary" href="units/D1.6.html#glossary" aria-label="정책·표준·절차·지침 용어">용어</a><a class="unit-questions" href="units/D1.6.html#questions" aria-label="정책·표준·절차·지침 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D1.7.html"><small>1.7</small>업무연속성 요구사항</a><a class="unit-glossary" href="units/D1.7.html#glossary" aria-label="업무연속성 요구사항 용어">용어</a><a class="unit-questions" href="units/D1.7.html#questions" aria-label="업무연속성 요구사항 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D1.8.html"><small>1.8</small>인적 보안</a><a class="unit-glossary" href="units/D1.8.html#glossary" aria-label="인적 보안 용어">용어</a><a class="unit-questions" href="units/D1.8.html#questions" aria-label="인적 보안 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D1.9.html"><small>1.9</small>위험 관리</a><a class="unit-glossary" href="units/D1.9.html#glossary" aria-label="위험 관리 용어">용어</a><a class="unit-questions" href="units/D1.9.html#questions" aria-label="위험 관리 연습문제 9개">문제 9개</a></li>
+<li class="unit-links"><a href="units/D1.10.html"><small>1.10</small>위협 모델링</a><a class="unit-glossary" href="units/D1.10.html#glossary" aria-label="위협 모델링 용어">용어</a><a class="unit-questions" href="units/D1.10.html#questions" aria-label="위협 모델링 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D1.11.html"><small>1.11</small>공급망 위험 관리</a><a class="unit-glossary" href="units/D1.11.html#glossary" aria-label="공급망 위험 관리 용어">용어</a><a class="unit-questions" href="units/D1.11.html#questions" aria-label="공급망 위험 관리 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D1.12.html"><small>1.12</small>인식·교육·훈련</a><a class="unit-glossary" href="units/D1.12.html#glossary" aria-label="인식·교육·훈련 용어">용어</a><a class="unit-questions" href="units/D1.12.html#questions" aria-label="인식·교육·훈련 연습문제 6개">문제 6개</a></li>
+</ul></div>
+<div class="dom"><h2 id="D2">D2 자산 보안 <span class="w">시험 비중 10% · 6 / 6 단원</span></h2><ul class="ul">
+<li class="unit-links"><a href="units/D2.1.html"><small>2.1</small>자산 식별과 분류</a><a class="unit-glossary" href="units/D2.1.html#glossary" aria-label="자산 식별과 분류 용어">용어</a><a class="unit-questions" href="units/D2.1.html#questions" aria-label="자산 식별과 분류 연습문제 7개">문제 7개</a></li>
+<li class="unit-links"><a href="units/D2.2.html"><small>2.2</small>자산 취급 요구사항</a><a class="unit-glossary" href="units/D2.2.html#glossary" aria-label="자산 취급 요구사항 용어">용어</a><a class="unit-questions" href="units/D2.2.html#questions" aria-label="자산 취급 요구사항 연습문제 8개">문제 8개</a></li>
+<li class="unit-links"><a href="units/D2.3.html"><small>2.3</small>안전한 프로비저닝</a><a class="unit-glossary" href="units/D2.3.html#glossary" aria-label="안전한 프로비저닝 용어">용어</a><a class="unit-questions" href="units/D2.3.html#questions" aria-label="안전한 프로비저닝 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D2.4.html"><small>2.4</small>데이터 생애주기</a><a class="unit-glossary" href="units/D2.4.html#glossary" aria-label="데이터 생애주기 용어">용어</a><a class="unit-questions" href="units/D2.4.html#questions" aria-label="데이터 생애주기 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D2.5.html"><small>2.5</small>자산 보존 (EOL·EOS)</a><a class="unit-glossary" href="units/D2.5.html#glossary" aria-label="자산 보존 (EOL·EOS) 용어">용어</a><a class="unit-questions" href="units/D2.5.html#questions" aria-label="자산 보존 (EOL·EOS) 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D2.6.html"><small>2.6</small>데이터 보안 통제</a><a class="unit-glossary" href="units/D2.6.html#glossary" aria-label="데이터 보안 통제 용어">용어</a><a class="unit-questions" href="units/D2.6.html#questions" aria-label="데이터 보안 통제 연습문제 7개">문제 7개</a></li>
+</ul></div>
+<div class="dom"><h2 id="D3">D3 보안 아키텍처 및 엔지니어링 <span class="w">시험 비중 13% · 10 / 10 단원</span></h2><ul class="ul">
+<li class="unit-links"><a href="units/D3.1.html"><small>3.1</small>안전한 설계 원칙</a><a class="unit-glossary" href="units/D3.1.html#glossary" aria-label="안전한 설계 원칙 용어">용어</a><a class="unit-questions" href="units/D3.1.html#questions" aria-label="안전한 설계 원칙 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D3.2.html"><small>3.2</small>보안 모델</a><a class="unit-glossary" href="units/D3.2.html#glossary" aria-label="보안 모델 용어">용어</a><a class="unit-questions" href="units/D3.2.html#questions" aria-label="보안 모델 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D3.3.html"><small>3.3</small>통제 선택 (RMF·CC)</a><a class="unit-glossary" href="units/D3.3.html#glossary" aria-label="통제 선택 (RMF·CC) 용어">용어</a><a class="unit-questions" href="units/D3.3.html#questions" aria-label="통제 선택 (RMF·CC) 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D3.4.html"><small>3.4</small>시스템 보안 기능</a><a class="unit-glossary" href="units/D3.4.html#glossary" aria-label="시스템 보안 기능 용어">용어</a><a class="unit-questions" href="units/D3.4.html#questions" aria-label="시스템 보안 기능 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D3.5.html"><small>3.5</small>아키텍처별 취약점</a><a class="unit-glossary" href="units/D3.5.html#glossary" aria-label="아키텍처별 취약점 용어">용어</a><a class="unit-questions" href="units/D3.5.html#questions" aria-label="아키텍처별 취약점 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D3.6.html"><small>3.6</small>암호 솔루션</a><a class="unit-glossary" href="units/D3.6.html#glossary" aria-label="암호 솔루션 용어">용어</a><a class="unit-questions" href="units/D3.6.html#questions" aria-label="암호 솔루션 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D3.7.html"><small>3.7</small>암호 분석 공격</a><a class="unit-glossary" href="units/D3.7.html#glossary" aria-label="암호 분석 공격 용어">용어</a><a class="unit-questions" href="units/D3.7.html#questions" aria-label="암호 분석 공격 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D3.8.html"><small>3.8</small>사이트·설비 설계 원칙</a><a class="unit-glossary" href="units/D3.8.html#glossary" aria-label="사이트·설비 설계 원칙 용어">용어</a><a class="unit-questions" href="units/D3.8.html#questions" aria-label="사이트·설비 설계 원칙 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D3.9.html"><small>3.9</small>사이트·설비 보안 통제</a><a class="unit-glossary" href="units/D3.9.html#glossary" aria-label="사이트·설비 보안 통제 용어">용어</a><a class="unit-questions" href="units/D3.9.html#questions" aria-label="사이트·설비 보안 통제 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D3.10.html"><small>3.10</small>정보시스템 생애주기</a><a class="unit-glossary" href="units/D3.10.html#glossary" aria-label="정보시스템 생애주기 용어">용어</a><a class="unit-questions" href="units/D3.10.html#questions" aria-label="정보시스템 생애주기 연습문제 5개">문제 5개</a></li>
+</ul></div>
+<div class="dom"><h2 id="D4">D4 통신 및 네트워크 보안 <span class="w">시험 비중 13% · 3 / 3 단원</span></h2><ul class="ul">
+<li class="unit-links"><a href="units/D4.1.html"><small>4.1</small>네트워크 아키텍처</a><a class="unit-glossary" href="units/D4.1.html#glossary" aria-label="네트워크 아키텍처 용어">용어</a><a class="unit-questions" href="units/D4.1.html#questions" aria-label="네트워크 아키텍처 연습문제 6개">문제 6개</a></li>
+<li class="unit-links"><a href="units/D4.2.html"><small>4.2</small>네트워크 구성요소</a><a class="unit-glossary" href="units/D4.2.html#glossary" aria-label="네트워크 구성요소 용어">용어</a><a class="unit-questions" href="units/D4.2.html#questions" aria-label="네트워크 구성요소 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D4.3.html"><small>4.3</small>안전한 통신 채널</a><a class="unit-glossary" href="units/D4.3.html#glossary" aria-label="안전한 통신 채널 용어">용어</a><a class="unit-questions" href="units/D4.3.html#questions" aria-label="안전한 통신 채널 연습문제 5개">문제 5개</a></li>
+</ul></div>
+<div class="dom"><h2 id="D5">D5 식별 및 접근 관리 <span class="w">시험 비중 13% · 6 / 6 단원</span></h2><ul class="ul">
+<li class="unit-links"><a href="units/D5.1.html"><small>5.1</small>물리적·논리적 접근 통제</a><a class="unit-glossary" href="units/D5.1.html#glossary" aria-label="물리적·논리적 접근 통제 용어">용어</a><a class="unit-questions" href="units/D5.1.html#questions" aria-label="물리적·논리적 접근 통제 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D5.2.html"><small>5.2</small>식별·인증 전략</a><a class="unit-glossary" href="units/D5.2.html#glossary" aria-label="식별·인증 전략 용어">용어</a><a class="unit-questions" href="units/D5.2.html#questions" aria-label="식별·인증 전략 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D5.3.html"><small>5.3</small>연합 식별</a><a class="unit-glossary" href="units/D5.3.html#glossary" aria-label="연합 식별 용어">용어</a><a class="unit-questions" href="units/D5.3.html#questions" aria-label="연합 식별 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D5.4.html"><small>5.4</small>인가 메커니즘</a><a class="unit-glossary" href="units/D5.4.html#glossary" aria-label="인가 메커니즘 용어">용어</a><a class="unit-questions" href="units/D5.4.html#questions" aria-label="인가 메커니즘 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D5.5.html"><small>5.5</small>프로비저닝 생애주기</a><a class="unit-glossary" href="units/D5.5.html#glossary" aria-label="프로비저닝 생애주기 용어">용어</a><a class="unit-questions" href="units/D5.5.html#questions" aria-label="프로비저닝 생애주기 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D5.6.html"><small>5.6</small>인증 시스템</a><a class="unit-glossary" href="units/D5.6.html#glossary" aria-label="인증 시스템 용어">용어</a><a class="unit-questions" href="units/D5.6.html#questions" aria-label="인증 시스템 연습문제 5개">문제 5개</a></li>
+</ul></div>
+<div class="dom"><h2 id="D6">D6 보안 평가 및 테스트 <span class="w">시험 비중 12% · 5 / 5 단원</span></h2><ul class="ul">
+<li class="unit-links"><a href="units/D6.1.html"><small>6.1</small>평가·테스트·감사 전략</a><a class="unit-glossary" href="units/D6.1.html#glossary" aria-label="평가·테스트·감사 전략 용어">용어</a><a class="unit-questions" href="units/D6.1.html#questions" aria-label="평가·테스트·감사 전략 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D6.2.html"><small>6.2</small>보안 통제 테스트</a><a class="unit-glossary" href="units/D6.2.html#glossary" aria-label="보안 통제 테스트 용어">용어</a><a class="unit-questions" href="units/D6.2.html#questions" aria-label="보안 통제 테스트 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D6.3.html"><small>6.3</small>보안 프로세스 데이터</a><a class="unit-glossary" href="units/D6.3.html#glossary" aria-label="보안 프로세스 데이터 용어">용어</a><a class="unit-questions" href="units/D6.3.html#questions" aria-label="보안 프로세스 데이터 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D6.4.html"><small>6.4</small>결과 분석과 보고</a><a class="unit-glossary" href="units/D6.4.html#glossary" aria-label="결과 분석과 보고 용어">용어</a><a class="unit-questions" href="units/D6.4.html#questions" aria-label="결과 분석과 보고 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D6.5.html"><small>6.5</small>보안 감사</a><a class="unit-glossary" href="units/D6.5.html#glossary" aria-label="보안 감사 용어">용어</a><a class="unit-questions" href="units/D6.5.html#questions" aria-label="보안 감사 연습문제 5개">문제 5개</a></li>
+</ul></div>
+<div class="dom"><h2 id="D7">D7 보안 운영 <span class="w">시험 비중 13% · 15 / 15 단원</span></h2><ul class="ul">
+<li class="unit-links"><a href="units/D7.1.html"><small>7.1</small>조사</a><a class="unit-glossary" href="units/D7.1.html#glossary" aria-label="조사 용어">용어</a><a class="unit-questions" href="units/D7.1.html#questions" aria-label="조사 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.2.html"><small>7.2</small>로깅·모니터링</a><a class="unit-glossary" href="units/D7.2.html#glossary" aria-label="로깅·모니터링 용어">용어</a><a class="unit-questions" href="units/D7.2.html#questions" aria-label="로깅·모니터링 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.3.html"><small>7.3</small>구성 관리</a><a class="unit-glossary" href="units/D7.3.html#glossary" aria-label="구성 관리 용어">용어</a><a class="unit-questions" href="units/D7.3.html#questions" aria-label="구성 관리 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.4.html"><small>7.4</small>기본 보안 운영 개념</a><a class="unit-glossary" href="units/D7.4.html#glossary" aria-label="기본 보안 운영 개념 용어">용어</a><a class="unit-questions" href="units/D7.4.html#questions" aria-label="기본 보안 운영 개념 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.5.html"><small>7.5</small>자원 보호</a><a class="unit-glossary" href="units/D7.5.html#glossary" aria-label="자원 보호 용어">용어</a><a class="unit-questions" href="units/D7.5.html#questions" aria-label="자원 보호 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.6.html"><small>7.6</small>사고 관리</a><a class="unit-glossary" href="units/D7.6.html#glossary" aria-label="사고 관리 용어">용어</a><a class="unit-questions" href="units/D7.6.html#questions" aria-label="사고 관리 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.7.html"><small>7.7</small>탐지·예방 수단</a><a class="unit-glossary" href="units/D7.7.html#glossary" aria-label="탐지·예방 수단 용어">용어</a><a class="unit-questions" href="units/D7.7.html#questions" aria-label="탐지·예방 수단 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.8.html"><small>7.8</small>패치·취약점 관리</a><a class="unit-glossary" href="units/D7.8.html#glossary" aria-label="패치·취약점 관리 용어">용어</a><a class="unit-questions" href="units/D7.8.html#questions" aria-label="패치·취약점 관리 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.9.html"><small>7.9</small>변경 관리</a><a class="unit-glossary" href="units/D7.9.html#glossary" aria-label="변경 관리 용어">용어</a><a class="unit-questions" href="units/D7.9.html#questions" aria-label="변경 관리 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.10.html"><small>7.10</small>복구 전략</a><a class="unit-glossary" href="units/D7.10.html#glossary" aria-label="복구 전략 용어">용어</a><a class="unit-questions" href="units/D7.10.html#questions" aria-label="복구 전략 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.11.html"><small>7.11</small>재해 복구 프로세스</a><a class="unit-glossary" href="units/D7.11.html#glossary" aria-label="재해 복구 프로세스 용어">용어</a><a class="unit-questions" href="units/D7.11.html#questions" aria-label="재해 복구 프로세스 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.12.html"><small>7.12</small>DRP 테스트</a><a class="unit-glossary" href="units/D7.12.html#glossary" aria-label="DRP 테스트 용어">용어</a><a class="unit-questions" href="units/D7.12.html#questions" aria-label="DRP 테스트 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.13.html"><small>7.13</small>업무연속성 계획·훈련</a><a class="unit-glossary" href="units/D7.13.html#glossary" aria-label="업무연속성 계획·훈련 용어">용어</a><a class="unit-questions" href="units/D7.13.html#questions" aria-label="업무연속성 계획·훈련 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.14.html"><small>7.14</small>물리적 보안</a><a class="unit-glossary" href="units/D7.14.html#glossary" aria-label="물리적 보안 용어">용어</a><a class="unit-questions" href="units/D7.14.html#questions" aria-label="물리적 보안 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D7.15.html"><small>7.15</small>인원 안전</a><a class="unit-glossary" href="units/D7.15.html#glossary" aria-label="인원 안전 용어">용어</a><a class="unit-questions" href="units/D7.15.html#questions" aria-label="인원 안전 연습문제 5개">문제 5개</a></li>
+</ul></div>
+<div class="dom"><h2 id="D8">D8 소프트웨어 개발 보안 <span class="w">시험 비중 10% · 5 / 5 단원</span></h2><ul class="ul">
+<li class="unit-links"><a href="units/D8.1.html"><small>8.1</small>SDLC 보안</a><a class="unit-glossary" href="units/D8.1.html#glossary" aria-label="SDLC 보안 용어">용어</a><a class="unit-questions" href="units/D8.1.html#questions" aria-label="SDLC 보안 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D8.2.html"><small>8.2</small>개발 생태계 보안 통제</a><a class="unit-glossary" href="units/D8.2.html#glossary" aria-label="개발 생태계 보안 통제 용어">용어</a><a class="unit-questions" href="units/D8.2.html#questions" aria-label="개발 생태계 보안 통제 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D8.3.html"><small>8.3</small>소프트웨어 보안 효과성</a><a class="unit-glossary" href="units/D8.3.html#glossary" aria-label="소프트웨어 보안 효과성 용어">용어</a><a class="unit-questions" href="units/D8.3.html#questions" aria-label="소프트웨어 보안 효과성 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D8.4.html"><small>8.4</small>도입 소프트웨어 평가</a><a class="unit-glossary" href="units/D8.4.html#glossary" aria-label="도입 소프트웨어 평가 용어">용어</a><a class="unit-questions" href="units/D8.4.html#questions" aria-label="도입 소프트웨어 평가 연습문제 5개">문제 5개</a></li>
+<li class="unit-links"><a href="units/D8.5.html"><small>8.5</small>안전한 코딩</a><a class="unit-glossary" href="units/D8.5.html#glossary" aria-label="안전한 코딩 용어">용어</a><a class="unit-questions" href="units/D8.5.html#questions" aria-label="안전한 코딩 연습문제 5개">문제 5개</a></li>
+</ul></div>
+<p class="src">제작 기록(원본 대응표, 보강·확인 기록)은 학습 본문과 분리해 <code>_records/</code> 폴더에 있습니다.</p>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

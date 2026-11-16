@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D7.9 변경 관리 프로세스의 이해와 참여 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D7.9">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 5개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 7 보안 운영 › 7.9</div>
+<h1>변경 관리 프로세스의 이해와 참여</h1>
+<div class="en">Understand and participate in change management processes · ISC2 CISSP Exam Outline(2024-04-15 발효) 7.9</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 5개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">원본은 이 단원을 한 문장으로 시작합니다. <b>변경 관리는 변경을 막는 것이 아니라 변경의 위험을 관리하는 것이다.</b> 장애의 상당 부분이 변경 직후에 일어나고, 그래서 사고 조사에서 가장 먼저 묻는 질문이 “최근 무엇을 바꿨는가”입니다. 공식 개요 7.9는 변경 관리를 “이해하고 <b>참여</b>”하라고 씁니다. 보안 전문가가 변경 관리의 장애물이 아니라 참여자가 되어야 한다는 뜻입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D7.3.html">D7.3 구성 관리</a></td><td>구성 관리. 상태를 정의하고, 이 단원은 그 상태가 바뀌는 과정을 통제 (1절, 3절, 6절)</td></tr>
+<tr><td><a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a></td><td>요청자·승인자 분리 (2절, 7절)</td></tr>
+<tr><td><a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a> · <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a></td><td>방화벽 규칙 변경, 패치와 긴급 변경 (5절, 6절)</td></tr>
+<tr><td><a class="xr" href="D8.1.html">D8.1 SDLC 보안</a> · <a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a></td><td>개발 수명주기와 파이프라인. 7절의 자동화 환경을 참조 (7절)</td></tr>
+<tr><td><a class="xr" href="D6.5.html">D6.5 보안 감사</a></td><td>자기 승인과 설계 결함, 변경 통제의 감사 (2절)</td></tr>
+</table></div>
+<h2 id="s1"><span class="n">1</span>변경 관리의 목적</h2>
+<div class="tw"><table>
+<tr><th>목적</th><th>내용</th></tr>
+<tr><td><b>가용성 보호</b></td><td>계획되지 않은 변경이 장애의 주요 원인</td></tr>
+<tr><td><b>보안 상태 유지</b></td><td>변경이 통제를 약화시키지 않게</td></tr>
+<tr><td><b>추적성</b></td><td>무엇이 언제 왜 바뀌었는지</td></tr>
+<tr><td><b>책임추적성</b></td><td>누가 승인하고 수행했는지</td></tr>
+<tr><td>조율</td><td>상충하는 변경과 영향 범위 조정</td></tr>
+</table></div>
+<p>구성 관리와의 관계: <b>구성 관리가 “어떤 상태여야 하는가”를 정의하고, 변경 관리가 “그 상태를 바꾸는 과정”을 통제</b>합니다. 변경 기록이 없으면 “최근 무엇을 바꿨는가”에 답할 수 없고 복구 시간이 길어집니다.</p>
+<div class="box add"><p><span class="tag">보충</span>변경 관리의 1차 목적을 “변경을 줄이는 것”이나 “장애 책임자를 찾는 것”으로 오해하기 쉽습니다. 목적은 변경이 <b>검토·승인·시험·문서화된 상태로 일어나게</b> 해서 위험을 줄이는 것입니다. 의료기기 설계 변경 관리가 “변경 금지”가 아니라 “검증된 변경”을 요구하는 것과 같은 생각입니다.</p></div>
+<div class="quiz" id="question-1"><div class="qh">원본 연습문제 · D7.9-Q11</div>
+<p>변경 관리 프로세스의 1차적 목적은?</p><ol type="A"><li>운영 시스템에 대한 모든 변경을 막기 위해.</li><li>변경이 장애를 일으켰을 때 책임을 지우기 위해.</li><li>변경을 늦춰 더 적게 이루어지게 하기 위해.</li><li>변경이 검토·승인·시험·문서화되고 되돌릴 수 있게 하여 의도한 변경이 의도하지 않은 보안이나 가용성 영향을 일으키지 않게 하기 위해.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 변경은 업무에 필요하므로 막는 것이 목적이 아니다. 목적은 변경이 안전하게 이루어지게 하는 것이며 검토와 시험으로 예상치 못한 영향을 줄이고 되돌릴 수 있게 해 실패 시 복구를 보장한다. 변경을 어렵게 만들면 우회 경로가 생겨 통제 밖 변경이 늘어난다.</p><ul><li>A · 변경 금지는 업무를 마비시킨다.</li><li>B · 책임 추궁은 목적이 아니다.</li><li>C · 지연이 목적이 아니다.</li></ul><div class="src">원문 위치 · D7.9-Q11</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.9.md §2 · 공식 개요 7.9 “Understand and participate in change management processes” · 기존 문제 Q11 주제</div>
+<h2 id="s2"><span class="n">2</span>요청, 영향 분석, 승인</h2>
+<ol class="steps">
+<li><b>요청</b>: 무엇을 왜 바꾸는가</li>
+<li><b>영향 분석</b>: 무엇에 영향을 주는가, 보안 영향은</li>
+<li><b>승인</b>: 권한 있는 주체의 결정</li>
+<li>계획과 일정: 창구, 순서, 담당자, 롤백 계획</li>
+<li><b>구현</b>: 승인된 범위 안에서만</li>
+<li><b>검증</b>: 의도대로 되었는가, 부작용은</li>
+<li><b>종결</b>: 기록, 문서 갱신, 구성 기준선 반영</li>
+</ol>
+<p><b>요청</b>에는 변경 내용·사유·일정, 영향 범위 초안, <b>되돌릴 방법</b>, 긴급도와 위험도 자가 평가가 들어갑니다.</p>
+<h3 id="s2-impact">영향 분석 — 품질을 결정하는 단계</h3>
+<p>NIST SP 800-53 CM-4가 요구하는 항목입니다.</p>
+<div class="tw"><table>
+<tr><th>분석 항목</th><th>질문</th></tr>
+<tr><td>의존 관계</td><td>이 시스템에 의존하는 것은? (<b>CMDB가 근거</b>)</td></tr>
+<tr><td><b>보안 영향</b></td><td>통제가 약화되는가, 새 공격 표면이 생기는가, <b>로깅이 끊기는가</b></td></tr>
+<tr><td>가용성 영향</td><td>중단 시간, 영향 사용자, 성능</td></tr>
+<tr><td>데이터 영향</td><td>손실 가능성, 마이그레이션 위험</td></tr>
+<tr><td>준수 영향</td><td>규제·계약 요구와 충돌하는가</td></tr>
+<tr><td><b>복구 영향</b></td><td>백업과 DR 절차가 여전히 유효한가 — <b>변경 후 백업이 작동하지 않는 사례가 흔함</b></td></tr>
+<tr><td>다른 변경과의 충돌</td><td>같은 창구에 겹치는 변경</td></tr>
+</table></div>
+<p>원본이 꼽는 핵심 질문 두 개: <b>“이 변경이 실패하면 무엇이 일어나는가”</b>와 <b>“되돌릴 수 있는가”</b>.</p>
+<p><b>원문 사례 — 영향 분석이 놓친 백업 중단.</b> DB 저장 경로 변경이 승인되고 성공적으로 끝났는데, 3개월 뒤 복구가 필요해졌을 때 백업 작업이 이전 경로를 참조하고 있어 3개월간 백업이 없었습니다. 실패 알림도 없었습니다. 영향 분석에 “백업과 DR 절차가 여전히 유효한가”를 필수로 넣고, 변경 후 검증에 백업 성공 확인을 포함했습니다.</p>
+<h3 id="s2-approve">승인과 CAB</h3>
+<ul>
+<li><b>승인 권한은 위험 수준에 따라</b>: 낮은 위험은 담당 관리자, 높은 위험은 <b>변경 자문 위원회(CAB)</b>.</li>
+<li><b>요청자와 승인자 분리</b>: 자기 승인은 통제가 아닙니다.</li>
+<li>보안 영향이 있는 변경은 보안 승인.</li>
+<li><b>승인은 범위를 포함</b>합니다. 범위를 넘는 작업은 별도 승인.</li>
+</ul>
+<p>CAB는 IT 운영, 애플리케이션, 네트워크, 보안, 업무 담당, 필요하면 공급자로 구성됩니다.</p>
+<div class="box link"><p><span class="tag">연결</span>CMDB와 의존 관계는 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>의 2절, 자기 승인 사례는 <a class="xr" href="D6.5.html">D6.5 보안 감사</a>의 2절, 직무 분리는 <a class="xr" href="D7.4.html">D7.4 기본 보안 운영 개념</a>의 3절에서 다룹니다.</p></div>
+<div class="quiz" id="question-2"><div class="qh">원본 연습문제 · D7.9-Q01</div>
+<p>데이터베이스 저장 경로 변경이 승인되고 성공적으로 완료되었다. 3개월 후 복원이 필요해졌을 때 백업 작업이 이전 경로를 참조하며 그 기간 내내 조용히 실패했음이 발견되었다. 프로세스에서 빠진 것은?</p><ol type="A"><li>영향 분석의 복구 영향 항목과 변경 후 백업이 여전히 성공하는지에 대한 검증.</li><li>분기 중 저장 경로 변경을 금지하는 동결 기간.</li><li>변경 요청서의 두 번째 승인자.</li><li>더 철저한 구현을 위한 더 긴 변경 창구.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 A.</b> 영향 분석에는 백업과 재해 복구 절차가 변경 후에도 유효한지를 확인하는 복구 영향 항목이 포함되어야 한다. 또한 변경 후 검증에 백업 성공 확인을 넣어야 하며 백업 실패 알림이 없으면 공백이 장기간 드러나지 않는다.</p><ul><li>B · 동결은 변경을 미루는 것이며 영향 분석을 대체하지 않는다.</li><li>C · 승인자 수가 아니라 분석 항목 누락이 원인이다.</li><li>D · 구현은 성공했으므로 시간 문제가 아니다.</li></ul><div class="src">원문 위치 · D7.9-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.9.md §3 단계 — 요청, 영향 분석, 승인, §7 사례 1 · 기존 문제 Q01 주제</div>
+<h2 id="s3"><span class="n">3</span>구현, 검증, 종결</h2>
+<div class="tw"><table>
+<tr><th>단계</th><th>요점</th></tr>
+<tr><td><b>구현</b></td><td><b>승인된 범위 안에서만</b>(“하는 김에”가 사고 원인), 작업 기록, <b>중단 기준</b>(예상 시간 초과 시 롤백), 단계적 적용</td></tr>
+<tr><td><b>검증</b></td><td>기능 검증, 부작용 확인, <b>보안 검증(로깅·백업·모니터링이 계속 동작하는가)</b>, 일정 기간 모니터링</td></tr>
+<tr><td><b>종결</b></td><td>실제 수행 내용 기록, 문서 갱신(다이어그램, 구성 문서, 절차), <b>구성 기준선 반영</b>(안 하면 다음 배포가 이전 상태로), CMDB 갱신</td></tr>
+</table></div>
+<p><b>원문 사례 — 승인 범위를 넘은 작업.</b> 방화벽 규칙 하나 추가가 승인되었는데, 작업자가 “하는 김에” 불필요해 보이는 규칙 몇 개를 함께 삭제했습니다. 그중 하나가 연 1회 결산 배치의 경로여서 결산 때 장애가 났습니다. 정리 작업은 히트 카운트 분석과 소유자 확인을 거친 별도 변경으로 다뤄야 합니다.</p>
+<div class="box link"><p><span class="tag">연결</span>방화벽 규칙 정리는 <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a>의 2절, 구성 기준선 반영은 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>의 3절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.9.md §3 단계 — 구현, 검증, 종결, §7 사례 2</div>
+<h2 id="s4"><span class="n">4</span>롤백과 되돌릴 수 없는 변경</h2>
+<p><b>롤백 계획 없는 변경은 승인하지 않는다</b>는 원칙이 일반적입니다. 그리고 <b>롤백 절차를 실제로 시험했는가</b>가 중요합니다. 문서상 롤백은 작동하지 않을 수 있습니다.</p>
+<p><b>되돌릴 수 없는 변경</b>(데이터 마이그레이션, 스키마 변경, 암호화 적용, 매체 폐기)에는 사전 백업과 백업 검증, 단계적 적용과 병행 운영, 더 엄격한 사전 검증, 그리고 <b>중단 기준과 전환 판단 시점(point of no return)</b>의 명시가 필요합니다.</p>
+<p><b>원문 사례 — 작동하지 않은 롤백 계획.</b> 요청서에 롤백 계획이 있었지만 실패 시 작동하지 않았습니다. 한 번도 시험되지 않았고 중간 단계의 의존성을 고려하지 않았습니다. 원본은 <b>문서상 롤백은 롤백이 아니다</b>라고 정리합니다. 고위험 변경에는 롤백 절차의 사전 시험을 승인 조건으로 만들었습니다.</p>
+<p><b>원문 사례 — 되돌릴 수 없는 마이그레이션.</b> 데이터 마이그레이션 중 변환 오류가 났는데 이미 원본 테이블을 삭제한 뒤였고 백업은 전날 것이어서 하루 분 거래가 사라졌습니다. 원본 보존 기간, 병행 운영 기간, 중단 기준, 전환 판단 시점을 변경 계획의 필수 항목으로 만들었습니다.</p>
+<div class="box add"><p><span class="tag">보충</span>코드를 이전 버전으로 내려도, 그동안 새 형식으로 저장된 거래는 남아 있을 수 있습니다. 그래서 롤백은 “프로그램 버전”만이 아니라 “업무 데이터 상태”를 기준으로 계획해야 합니다. 승인 전에 스냅샷이나 사본으로 돌아갈 수 있는 시점과, 그 뒤 생긴 거래를 어떻게 반영할지를 정해 둡니다.</p></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D7.9-Q04</div>
+<p>변경 요청서에 롤백 계획이 문서화되어 있었으나 변경 실패 시 롤백이 작동하지 않았다. 한 번도 시험되지 않았고 중간 단계의 의존성을 빠뜨렸기 때문이다. 요구해야 할 것은?</p><ol type="A"><li>모든 변경에 대한 더 긴 승인 검토 기간.</li><li>롤백 계획을 요청자가 아니라 승인자가 작성하도록 요구하는 것.</li><li>위험 등급이 높은 변경에 대해 롤백 절차의 사전 시험을 승인 조건으로 삼는 것.</li><li>실패 위험이 있는 모든 변경을 금지하는 것.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> 문서상 롤백은 실제 롤백이 아니다. 시험되지 않은 절차는 의존성과 중간 상태를 고려하지 않아 작동하지 않는다. 위험 등급이 높은 변경에는 롤백 절차의 사전 시험을 승인 조건으로 만들어야 실패 시 복구가 보장된다.</p><ul><li>A · 검토 기간 연장이 절차 작동을 보장하지 않는다.</li><li>B · 작성 주체가 아니라 검증 여부가 문제다.</li><li>D · 모든 변경에는 실패 위험이 있어 금지는 비현실적이다.</li></ul><div class="src">원문 위치 · D7.9-Q04</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.9.md §3 롤백과 되돌릴 수 없는 변경, §7 사례 4, 사례 5 · 기존 문제 Q04 주제</div>
+<h2 id="s5"><span class="n">5</span>변경 유형과 절차의 무게</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>특성</th><th>처리</th></tr>
+<tr><td><b>표준 변경</b></td><td>반복적, 위험 낮음, 절차 확립(계정 생성, 정기 패치, 디스크 증설)</td><td><b>사전 승인된 절차</b>로 수행, 기록만</td></tr>
+<tr><td><b>일반 변경</b></td><td>통상 위험</td><td>정규 승인 절차</td></tr>
+<tr><td><b>긴급 변경</b></td><td>장애 복구, 보안 사고 대응, 실제 악용 중인 취약점 패치</td><td><b>축약 승인, 사후 보완</b>(정식 기록·승인·영향 분석)</td></tr>
+</table></div>
+<p>원본은 <b>표준 변경 범주를 적절히 정의하는 것이 변경 관리의 지속 가능성을 결정한다</b>고 말합니다. 모든 변경을 CAB에 올리면 병목이 생기고 사람들이 절차를 우회합니다. 또 <b>긴급 변경 비율이 높으면 신호</b>입니다. 계획 부족이거나, 정규 절차가 너무 느려 긴급 경로가 남용되고 있다는 뜻이므로 비율을 지표로 관리합니다.</p>
+<div class="tw"><table>
+<tr><th>상태</th><th>증상</th></tr>
+<tr><td><b>과도</b></td><td>승인 병목, 우회 증가, 긴급 변경 남용, <b>작은 변경을 묶어 큰 변경으로</b></td></tr>
+<tr><td><b>부족</b></td><td>원인 불명 장애, 설정 일탈, 추적 불가, 감사 지적</td></tr>
+</table></div>
+<p>원본이 강조하는 역효과: 절차가 무거우면 변경을 모아 한 번에 적용하는데, <b>큰 변경은 실패 확률이 높고 원인 특정이 어렵습니다.</b> 현대 운영의 관점은 <b>작고 빈번한 변경이 더 안전하다</b>는 것이고, 이를 위해 자동화된 검증과 빠른 롤백이 필요합니다.</p>
+<p><b>원문 사례 — 긴급 변경 비율 41%.</b> 정규 승인에 평균 9영업일이 걸려 사람들이 긴급 경로를 우회 수단으로 쓰고 있었습니다. 표준 변경 범주를 넓히고 위험 등급별 승인 권한을 하향 위임해 정규 경로를 2일로 줄였습니다.</p>
+<p><b>원문 사례 — 변경을 묶어 키운 위험.</b> 분기마다 변경 47건을 한 번에 적용했다가 장애가 나자 무엇이 원인인지 특정할 수 없어 전체를 롤백했습니다. 자동화된 검증과 빠른 롤백을 갖춘 뒤 주기를 주간으로 줄이고 묶음 크기를 제한했습니다.</p>
+<div class="box ex"><p><span class="tag">가상 예시</span>외부 접속 장애를 줄이려고 당일 라우팅 정책을 바꿔야 하는데, 정기 변경 승인 회의는 다음 주입니다. 사전에 정한 긴급 승인자의 승인을 받고, 적용 시각·결정권자·되돌릴 기준을 기록한 뒤 적용합니다. 다음 정기 회의에서 그 기록을 근거로 정식 영향 분석과 사후 승인을 완성합니다. 긴급 변경은 절차를 건너뛰는 것이 아니라 순서와 깊이를 조정하는 것입니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span>긴급 패치 판단 기준은 <a class="xr" href="D7.8.html">D7.8 패치·취약점 관리</a>의 6절, 사고 대응 중 긴급 변경은 <a class="xr" href="D7.6.html">D7.6 사고 관리</a>의 10절에서 다룹니다.</p></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D7.9-Q08</div>
+<p>무거운 승인 절차 때문에 팀들이 변경 47건을 분기 단위 릴리스 하나로 묶었다. 배포 후 장애가 발생해 전체 묶음을 롤백해야 했다. 이것이 보여주는 것은?</p><ol type="A"><li>10건 이상의 변경을 포함한 릴리스에는 롤백을 시도해서는 안 된다.</li><li>분기 단위 릴리스 주기가 운영 시스템에 가장 안전한 접근이다.</li><li>지속적 배포를 허용하기 위해 승인 절차를 제거해야 한다.</li><li>크게 묶인 변경은 실패 확률이 높고 근본 원인 특정을 어렵게 한다. 자동화된 검증과 빠른 롤백을 갖춘 작고 빈번한 변경이 더 안전하다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 절차가 무거우면 사람들이 변경을 모아 한 번에 적용하게 되고 그 결과 실패 확률이 높아지고 원인 특정이 어려워진다. 자동화된 검증과 빠른 롤백을 전제로 작고 빈번한 변경으로 전환하는 것이 현대 운영의 관점이다.</p><ul><li>A · 묶음이 클 때 오히려 전체 롤백이 유일한 수단이 된다.</li><li>B · 긴 주기는 묶음 크기를 키워 위험을 늘린다.</li><li>C · 승인 제거가 아니라 절차 경량화와 자동 검증이 답이다.</li></ul><div class="src">원문 위치 · D7.9-Q08</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="src">원문 위치: D7.9.md §3 변경 유형, 변경 관리가 과도할 때와 부족할 때, §7 사례 3, 사례 8 · 기존 문제 Q08 주제</div>
+<h2 id="s6"><span class="n">6</span>보안 전문가의 참여와 승인되지 않은 변경</h2>
+<h3 id="s6-role">보안 전문가의 역할</h3>
+<ul>
+<li>보안 영향 분석 제공, 보안 요구사항 제시, 보안 영향이 큰 변경의 승인 참여</li>
+<li><b>표준 변경 범주 정의 참여</b>: 어떤 변경이 보안 검토 없이 가능한지</li>
+<li>변경 후 보안 통제 작동 검증</li>
+<li><b>승인되지 않은 변경 탐지</b>: 설정 일탈 탐지로</li>
+<li><b>보안 자신의 변경도 같은 절차</b>: 방화벽 규칙, 탐지 규칙, 차단 정책은 가용성에 직접 영향</li>
+</ul>
+<p>원본의 경고: <b>보안이 변경 관리의 장애물로 인식되면 사람들이 우회한다.</b> 보안 검토가 필요한 범위를 명확히 하고 나머지는 빠르게 통과시키는 것이 실질적인 보안 수준을 높입니다.</p>
+<p><b>원문 사례 — 보안이 우회된 이유.</b> 보안 검토가 모든 변경에 필수였고 평균 5일이 걸리자, 개발팀이 “설정 변경은 변경이 아니다”라는 해석으로 상당수 작업을 절차 밖에서 했습니다. 검토 범위를 외부 노출, 인증·인가, 데이터 분류, 암호화, 로깅 관련으로 한정하고 나머지는 자동 통과, 검토 대상은 2일 내 응답으로 바꿨습니다.</p>
+<h3 id="s6-unauth">승인되지 않은 변경</h3>
+<p>위험: 원인 불명 장애, 임시로 끈 통제가 그대로 남음, 설정 일탈 누적, 감사 지적, 그리고 <b>악의적 변경의 은폐</b>(승인되지 않은 변경이 일상이면 공격자의 변경이 눈에 띄지 않음). 탐지: <b>구성 기준선과의 자동 비교</b>(가장 효과적), 파일 무결성 모니터링, 변경 로그와 승인 기록의 대조, 특권 명령 실행 기록 검토.</p>
+<p>원본은 <b>원인 분석이 중요하다</b>고 말합니다. 승인되지 않은 변경이 많다면 절차가 너무 느리거나, 긴급 경로가 없거나, 표준 변경 범주가 부족하거나, 책임이 불명확한 것입니다. 처벌만으로는 해결되지 않습니다.</p>
+<p><b>원문 사례 — 승인되지 않은 변경이 일상이던 조직.</b> 설정 일탈 탐지를 도입하자 월평균 400건의 승인되지 않은 변경이 나왔고, 상당수는 정당한 업무였지만 절차 밖이었습니다. 문제는 공격자의 변경도 이 소음 속에 묻혀 있었다는 점입니다. 원인 분석을 먼저 하고 절차를 현실화한 뒤, 승인 없는 변경을 예외로 만들어 경보 가치를 회복했습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>설정 일탈과 탐지는 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>의 5절, 보안 도구 규칙 변경은 <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a>의 10절에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.9.md §3 보안 전문가의 역할, 승인되지 않은 변경, §7 사례 6, 사례 7</div>
+<h2 id="s7"><span class="n">7</span>자동화 환경에서의 변경 관리</h2>
+<div class="tw"><table>
+<tr><th>요소</th><th>변경 관리에서의 의미</th></tr>
+<tr><td><b>코드형 인프라</b></td><td>변경 = 코드 커밋. <b>코드 검토가 변경 승인</b>, <b>버전 관리가 변경 기록</b></td></tr>
+<tr><td><b>배포 파이프라인</b></td><td>자동 검증(테스트, 정책 코드, 스캔)이 통제가 됨</td></tr>
+<tr><td>추적성</td><td>누가 무엇을 언제 바꿨는지 자동 기록</td></tr>
+<tr><td><b>파이프라인 자체의 변경</b></td><td><b>통제되어야 함.</b> 파이프라인을 바꿀 수 있으면 모든 통제를 우회 가능</td></tr>
+<tr><td>직무 분리</td><td>코드 작성자와 승인자 분리, 운영 배포 권한 분리</td></tr>
+</table></div>
+<p><b>원문 사례 — 파이프라인 변경이 통제되지 않은 경우.</b> IaC로 변경을 코드 커밋으로 통제했지만 배포 파이프라인 설정 자체는 변경 통제 대상이 아니었고, 한 개발자가 파이프라인에서 보안 스캔 단계를 제거한 것을 3개월간 아무도 몰랐습니다. 파이프라인 정의를 코드로 관리해 변경 통제 대상에 넣고, 보안 단계 제거에 경보를 걸었습니다.</p>
+<div class="box link"><p><span class="tag">연결</span>IaC와 policy as code는 <a class="xr" href="D7.3.html">D7.3 구성 관리</a>의 6절, 개발 수명주기와 CI/CD 보안은 <a class="xr" href="D8.1.html">D8.1 SDLC 보안</a>·<a class="xr" href="D8.2.html">D8.2 개발 생태계 보안 통제</a>에서 다룹니다.</p></div>
+<div class="src">원문 위치: D7.9.md §3 자동화 환경에서의 변경 관리, §7 사례 9</div>
+<h2 id="s8"><span class="n">8</span>종합 이해 확인</h2>
+<div class="quiz" id="question-5">
+<div class="qh">종합 · 자작 상황 문제 (실제 시험 문제 아님)</div>
+<p>변경 관리 점검 결과다. ㉠ DB 경로 변경 뒤 백업이 3개월간 조용히 실패했다. ㉡ 전체 변경의 41%가 긴급 변경이다. ㉢ 롤백 계획은 문서에만 있고 시험된 적이 없다. ㉣ 배포 파이프라인 설정은 변경 통제 대상이 아니다. 가장 적절한 대책 묶음은?</p>
+<ol type="A">
+<li>㉠ 영향 분석에 복구 영향 필수화, 변경 후 백업 성공 확인 / ㉡ 표준 변경 범주 확대와 위험별 승인 위임으로 정규 경로 단축 / ㉢ 고위험 변경은 롤백 사전 시험을 승인 조건으로 / ㉣ 파이프라인 정의를 코드로 관리해 변경 통제에 포함, 보안 단계 제거 경보</li>
+<li>㉠ 백업 담당자 징계 / ㉡ 긴급 변경 금지 / ㉢ 롤백 문서 상세화 / ㉣ 파이프라인 접근 전면 차단</li>
+<li>㉠ 백업 주기 단축 / ㉡ 모든 변경을 CAB로 / ㉢ 롤백 없이 진행 / ㉣ 개발자 교육</li>
+<li>㉠ 그대로 / ㉡ 긴급 승인자 추가 / ㉢ 변경을 분기별로 묶어 롤백 횟수 감소 / ㉣ 그대로</li>
+</ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div>
+<p><b>정답 A.</b> ㉠ 2절(복구 영향), ㉡ 5절(긴급 비율이 높으면 절차 설계 문제 — B·C처럼 막거나 더 무겁게 하면 우회가 늘어남), ㉢ 4절(문서상 롤백은 롤백이 아님), ㉣ 7절(파이프라인을 바꿀 수 있으면 모든 통제 우회). D의 “분기별 묶음”은 5절의 역효과입니다.</p>
+</div></details>
+<a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">9</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>실패 시 이전 코드를 배포해도 원래 상태로 돌아오지 않는 예는 무엇인가요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>데이터 형식이 이미 바뀌었을 때는 코드와 데이터의 버전이 달라질 수 있습니다. 복원 사본과 전환 중 기록의 재처리, 승인·중단 조건을 함께 시험합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">10</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li>변경 관리 = <b>변경을 막는 것이 아니라 변경의 위험을 관리</b>. 가용성, 보안 상태, 추적성, 책임추적성, 조율.</li>
+<li><b>구성 관리 = 상태 정의, 변경 관리 = 상태를 바꾸는 과정.</b> “최근 무엇을 바꿨는가.”</li>
+<li>단계: 요청 → <b>영향 분석</b> → 승인 → 계획 → 구현 → 검증 → 종결(기준선·CMDB 반영).</li>
+<li>영향 분석: 의존 관계, 보안(로깅 단절), 가용성, 데이터, 준수, <b>복구(백업이 계속 되는가)</b>. 핵심 질문: 실패하면? 되돌릴 수 있나?</li>
+<li>승인: 위험별 권한(CAB), <b>요청자 ≠ 승인자</b>, 보안 승인, <b>승인은 범위를 포함</b>.</li>
+<li>구현은 승인 범위 안에서만(“하는 김에” 금지), 중단 기준. 검증에 로깅·백업·모니터링 포함.</li>
+<li>롤백 계획 없으면 승인 안 함, <b>롤백은 시험해야 롤백</b>. 되돌릴 수 없는 변경은 백업 검증, 병행 운영, <b>전환 판단 시점</b>.</li>
+<li>표준(사전 승인) / 일반 / <b>긴급(축약 승인, 사후 보완)</b>. 긴급 비율이 높으면 절차 문제. <b>작고 빈번한 변경이 더 안전.</b></li>
+<li>보안은 참여자: 범위 명확화, 표준 변경 정의, 자기 변경도 같은 절차. 장애물이 되면 우회된다.</li>
+<li>승인되지 않은 변경: 기준선 비교로 탐지, <b>원인 분석이 먼저</b>, 일상화되면 악의적 변경이 묻힌다.</li>
+<li>자동화: 코드 검토 = 승인, 버전 관리 = 기록. <b>파이프라인 자체의 변경도 통제.</b></li>
+</ol>
+</div>
+<div class="src">원문 위치: D7.9.md §8 CISSP 시험 관점, §9 핵심 암기 요약. 원본의 출제 단정 표현은 판단 기준으로 바꿔 적었습니다.</div>
+<h2 id="glossary"><span class="n">11</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">Change Management</span> <span class="term-ko">· 변경 관리</span></h3>
+<p>변경의 위험을 관리하기 위해 요청부터 종결까지 통제하는 프로세스.</p>
+<h3 id="glossary-2"><span lang="en">Impact Analysis</span> <span class="term-ko">· 영향 분석</span></h3>
+<p>변경이 시스템, 보안, 가용성, 준수, 복구에 미치는 영향을 평가하는 단계.</p>
+<h3 id="glossary-3"><span lang="en">CAB (Change Advisory Board)</span> <span class="term-ko">· 변경 자문 위원회</span></h3>
+<p>영향이 큰 변경을 검토하는 협의체.</p>
+<h3 id="glossary-4"><span lang="en">Standard Change</span> <span class="term-ko">· 표준 변경</span></h3>
+<p>반복적이고 위험이 낮아 사전 승인된 절차로 수행하는 변경.</p>
+<h3 id="glossary-5"><span lang="en">Emergency Change</span> <span class="term-ko">· 긴급 변경</span></h3>
+<p>즉시 필요해 축약 승인으로 수행하고 사후 보완하는 변경.</p>
+<h3 id="glossary-6"><span lang="en">Rollback Plan</span> <span class="term-ko">· 롤백 계획</span></h3>
+<p>변경 실패 시 이전 상태로 되돌리는 절차.</p>
+<h3 id="glossary-7"><span lang="en">Point of No Return</span> <span class="term-ko">· 전환 불가 시점</span></h3>
+<p>그 이후로는 되돌릴 수 없게 되는 시점. 명시가 필요하다.</p>
+<h3 id="glossary-8"><span lang="en">Unauthorized Change</span> <span class="term-ko">· 승인되지 않은 변경</span></h3>
+<p>승인 절차를 거치지 않은 변경. 설정 일탈과 장애의 원인이다.</p>
+<h3 id="glossary-9"><span lang="en">Configuration Baseline</span> <span class="term-ko">· 구성 기준선</span></h3>
+<p>승인된 설정 상태. 변경 종결 시 반영해야 한다.</p>
+<h3 id="glossary-10"><span lang="en">Change Window</span> <span class="term-ko">· 변경 창구</span></h3>
+<p>변경을 수행하도록 허용된 시간대.</p>
+<h3 id="glossary-11"><span lang="en">Freeze Period</span> <span class="term-ko">· 변경 동결 기간</span></h3>
+<p>중요 업무 기간에 변경을 금지하는 기간.</p>
+<h3 id="glossary-12"><span lang="en">Infrastructure as Code</span> <span class="term-ko">· 코드형 인프라</span></h3>
+<p>인프라 정의를 코드로 관리해 코드 검토가 변경 승인이 되게 하는 방식.</p>
+<div class="src">원문 위치 · D7.9.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">12</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>NIST SP 800-53 CM-3</strong> — 구성 변경 통제</li>
+<li><strong>NIST SP 800-53 CM-4</strong> — 영향 분석</li>
+<li><strong>NIST SP 800-53 CM-5</strong> — 변경에 대한 접근 제한</li>
+<li><strong>NIST SP 800-128</strong> — 보안 중심 구성 관리</li>
+<li><strong>ISO/IEC 27002:2022 8.32</strong> — 변경 관리</li>
+<li><strong>ITIL 4</strong> — 변경 활성화(Change Enablement)</li>
+<li><strong>COBIT 2019</strong> — 변경 관리 거버넌스</li>
+<li><strong>SOX / PCI DSS</strong> — 변경 통제 증빙 요구</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D7.9.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 5개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#question-1">변경 관리 프로세스의 1차적 목적은?</a></li>
+<li><a href="#question-2">데이터베이스 저장 경로 변경이 승인되고 성공적으로 완료되었다. 3개월 후 복원이 필요해졌을 때 백업 작업이 이전 경로를 참조하며 그 기간 내내 조용히 실패했음이 발견되었다. 프로세스에서 빠진 것은?</a></li>
+<li><a href="#question-3">변경 요청서에 롤백 계획이 문서화되어 있었으나 변경 실패 시 롤백이 작동하지 않았다. 한 번도 시험되지 않았고 중간 단계의 의존성을 빠뜨렸기 때문이다. 요구해야 할 것은?</a></li>
+<li><a href="#question-4">무거운 승인 절차 때문에 팀들이 변경 47건을 분기 단위 릴리스 하나로 묶었다. 배포 후 장애가 발생해 전체 묶음을 롤백해야 했다. 이것이 보여주는 것은?</a></li>
+<li><a href="#question-5">변경 관리 점검 결과다. ㉠ DB 경로 변경 뒤 백업이 3개월간 조용히 실패했다. ㉡ 전체 변경의 41%가 긴급 변경이다. ㉢ 롤백 계획은 문서에만 있고 시험된 적이 없다. ㉣ 배포 파이프라인 설정은 변경 통제 대상이 아니다. 가장 적절한 대책 묶음은?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D7.8.html"><small>← 이전 단원</small>7.8 패치·취약점 관리</a><a href="D7.10.html" style="text-align:right"><small>다음 단원 →</small>7.10 복구 전략</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>

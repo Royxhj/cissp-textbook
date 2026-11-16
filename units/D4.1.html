@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../assets/icon-192.png">
+<link rel="apple-touch-icon" href="../assets/icon-192.png">
+<title>D4.1 네트워크 아키텍처에 대한 안전한 설계 원칙 적용 — CISSP 이해형 교재</title>
+<style>
+:root{
+  --fs:17px; --bg:#fbfaf7; --panel:#ffffff; --ink:#1f2328; --sub:#5b6470; --line:#e2ddd3;
+  --accent:#1f5f8b; --accent-soft:#e6f0f7; --add:#7a5a00; --add-bg:#fff7dc; --ex:#1d6b45; --ex-bg:#e9f6ee;
+  --warn:#9a3412; --warn-bg:#fdeee6; --exam:#5b3f99; --exam-bg:#f1ecfb; --code:#f3f0e9; --hit:#ffe58a;
+}
+html[data-theme="dark"]{
+  --bg:#15181c; --panel:#1c2026; --ink:#e4e6ea; --sub:#9aa4b1; --line:#30363f;
+  --accent:#7db8e0; --accent-soft:#1d2d3a; --add:#e3c264; --add-bg:#2c2716; --ex:#7fd0a3; --ex-bg:#16281f;
+  --warn:#f0a07c; --warn-bg:#2e1d16; --exam:#b9a2ee; --exam-bg:#241e33; --code:#23282f; --hit:#6b5a12;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs);scroll-padding-top:4.2rem;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.8;
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+button,input{font:inherit;color:inherit}
+/* 상단 바 */
+#bar{position:sticky;top:0;z-index:30;display:flex;gap:.5rem;align-items:center;padding:.5rem .8rem;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+#bar .ttl{font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#q{flex:1 1 8rem;min-width:0;padding:.4rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg)}
+.ib{border:1px solid var(--line);background:var(--bg);border-radius:.5rem;padding:.3rem .6rem;cursor:pointer;white-space:nowrap;font-size:.85rem}
+.ib:hover{border-color:var(--accent)}
+.glossary-button{text-decoration:none;color:var(--accent);font-weight:600}
+#menuBtn{display:none}
+#prog{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;z-index:40}
+#results{position:fixed;top:3.2rem;left:50%;transform:translateX(-50%);width:min(44rem,94vw);max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:.7rem;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:35;display:none}
+#results.on{display:block}
+#results .r{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:.6rem .9rem;cursor:pointer}
+#results .r:hover,#results .r:focus{background:var(--accent-soft)}
+#results .w{font-size:.75rem;color:var(--sub)}
+#results .s{font-size:.9rem}
+#results mark{background:var(--hit);color:inherit}
+#results .none{padding:.8rem .9rem;color:var(--sub)}
+/* 레이아웃 */
+#wrap{display:grid;grid-template-columns:17rem minmax(0,1fr);max-width:78rem;margin:0 auto}
+#side{position:sticky;top:3.1rem;align-self:start;height:calc(100vh - 3.1rem);overflow:auto;padding:1rem .8rem 3rem;border-right:1px solid var(--line);font-size:.85rem}
+#side h4{margin:1rem 0 .3rem;font-size:.75rem;color:var(--sub);letter-spacing:.04em}
+#side ul{list-style:none;margin:0;padding:0}
+#side .side-shortcuts{position:sticky;top:0;z-index:1;background:var(--bg)}
+#side li a,#side li span{display:block;padding:.22rem .5rem;border-radius:.35rem;text-decoration:none;color:var(--ink);line-height:1.45}
+#side li span{color:var(--sub)}
+#side li a:hover{background:var(--accent-soft)}
+#side li a.cur{background:var(--accent-soft);color:var(--accent);font-weight:700;border-left:3px solid var(--accent)}
+#side .l3 a{padding-left:1.3rem;font-size:.8rem}
+#side details summary{cursor:pointer;padding:.25rem .3rem;font-weight:600}
+#side .here{font-weight:700;color:var(--accent)}
+main{min-width:0;padding:1.5rem 1.4rem 5rem}
+article{max-width:44rem;margin:0 auto}
+h1{font-size:1.65rem;line-height:1.35;margin:.2rem 0 .3rem}
+h2{font-size:1.3rem;margin:3.2rem 0 .8rem;padding-top:.8rem;border-top:2px solid var(--line);line-height:1.4}
+h3{font-size:1.08rem;margin:2rem 0 .5rem;line-height:1.45}
+h2 .n{color:var(--accent);margin-right:.4rem}
+p{margin:.7rem 0}
+.crumb{font-size:.8rem;color:var(--sub)}
+.en{color:var(--sub);font-size:.9rem}
+.lead{font-size:1.02rem;color:var(--sub)}
+code,pre{font-family:Consolas,"D2Coding",monospace;background:var(--code);border-radius:.3rem}
+code{padding:.05rem .3rem;font-size:.9em}
+pre{padding:.8rem 1rem;overflow-x:auto;line-height:1.6;font-size:.88rem;white-space:pre-wrap}
+/* 표: 페이지가 아니라 표 상자만 가로 스크롤 */
+.tw{overflow-x:auto;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:26rem}
+th,td{padding:.5rem .7rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.6}
+th{background:var(--accent-soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+/* 구분 상자 */
+.box{margin:1rem 0;padding:.7rem 1rem;border-radius:.5rem;border-left:4px solid}
+.box>:first-child{margin-top:0}.box>:last-child{margin-bottom:0}
+.box .tag{display:inline-block;font-size:.72rem;font-weight:700;border-radius:.3rem;padding:0 .4rem;margin-right:.4rem;border:1px solid currentColor;vertical-align:.1em}
+.add{background:var(--add-bg);border-color:var(--add)}.add .tag{color:var(--add)}
+.ex{background:var(--ex-bg);border-color:var(--ex)}.ex .tag{color:var(--ex)}
+.warn{background:var(--warn-bg);border-color:var(--warn)}.warn .tag{color:var(--warn)}
+.exam{background:var(--exam-bg);border-color:var(--exam)}.exam .tag{color:var(--exam)}
+.sum{background:var(--accent-soft);border-color:var(--accent)}.sum .tag{color:var(--accent)}
+.src{font-size:.75rem;color:var(--sub);margin-top:1.2rem;border-top:1px dashed var(--line);padding-top:.4rem}
+details.more,details.ans{margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+details.more>summary,details.ans>summary{cursor:pointer;padding:.55rem .9rem;font-weight:600}
+details.more>div,details.ans>div{padding:0 1rem .8rem}
+.quiz{margin:1.2rem 0;padding:1rem;border:1px solid var(--line);border-radius:.6rem;background:var(--panel)}
+.quiz .qh{font-size:.78rem;font-weight:700;color:var(--exam)}
+.quiz ol{margin:.5rem 0;padding-left:1.4rem}
+.quiz ol li{margin:.25rem 0}
+.quiz[id],#questions{scroll-margin-top:5rem}
+.quiz:target{outline:2px solid var(--accent)}
+.question-list li{margin:.6rem 0}
+.question-back{font-size:.85rem;font-weight:600}
+/* 도식 */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.4rem;margin:1rem 0}
+.flow .nd{flex:1 1 9rem;border:1.5px solid var(--accent);border-radius:.6rem;padding:.6rem .7rem;background:var(--panel);font-size:.88rem;line-height:1.5}
+.flow .nd b{display:block;color:var(--accent)}
+.flow .ar{align-self:center;color:var(--sub);font-size:.8rem;text-align:center;flex:0 0 auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:1rem 0}
+.steps li{counter-increment:s;position:relative;padding:.45rem .7rem .45rem 2.6rem;margin:.3rem 0;border:1px solid var(--line);border-radius:.5rem;background:var(--panel)}
+.steps li::before{content:counter(s);position:absolute;left:.6rem;top:.5rem;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:var(--panel);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.bar{display:flex;height:2.4rem;border-radius:.4rem;overflow:hidden;border:1px solid var(--line);font-size:.78rem;font-weight:700;margin:.3rem 0}
+.bar div{display:grid;place-items:center;padding:0 .3rem;text-align:center;line-height:1.2}
+.bar .t{background:var(--warn-bg);color:var(--warn)}.bar .c{background:var(--ex-bg);color:var(--ex)}.bar .r{background:var(--warn);color:#fff}
+.barlab{font-size:.8rem;color:var(--sub);margin-top:.8rem}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.6rem;margin:.8rem 0}
+.calc label{font-size:.8rem;color:var(--sub);display:block}
+.calc input{width:100%;padding:.35rem .5rem;border:1px solid var(--line);border-radius:.4rem;background:var(--bg)}
+#calcOut{font-family:Consolas,monospace;font-size:.88rem;background:var(--code);padding:.7rem 1rem;border-radius:.4rem;white-space:pre-wrap}
+.nav{display:flex;gap:.8rem;margin-top:3rem}
+.nav a,.nav span{flex:1;border:1px solid var(--line);border-radius:.6rem;padding:.7rem .9rem;text-decoration:none;background:var(--panel);font-size:.9rem}
+.nav span{color:var(--sub)}
+.nav small{display:block;color:var(--sub);font-size:.72rem}
+.flash{animation:fl 2.4s ease-out}
+@keyframes fl{0%,40%{background:var(--hit)}100%{background:transparent}}
+#shade{display:none}
+@media (max-width:900px){
+  #wrap{display:block}
+  #menuBtn{display:inline-block}
+  #bar .ttl{display:none}
+  #side{position:fixed;top:0;left:0;z-index:50;width:min(20rem,86vw);height:100vh;background:var(--panel);transform:translateX(-105%);transition:transform .2s}
+  body.open #side{transform:none}
+  body.open #shade{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+  main{padding:1rem .95rem 4rem}
+  h1{font-size:1.4rem}
+  .flow .ar{flex-basis:100%}
+}
+@media (max-width:420px){
+  html{scroll-padding-top:5.6rem}
+  #bar{flex-wrap:wrap;gap:.3rem;padding-inline:.45rem}
+  #bar .ib{padding-inline:.35rem}
+  #q{order:1;flex-basis:100%;padding:.2rem .4rem;line-height:1.4}
+  #results{top:5.6rem}
+}
+@media print{#bar,#side,#results,#prog,.nav{display:none}#wrap{display:block}details>*{display:block!important}}
+
+/* 단원 연결 */
+.link{background:var(--link-bg);border-color:var(--link)}.link .tag{color:var(--link)}
+:root{--link:#0f6b73;--link-bg:#e4f4f5}
+html[data-theme="dark"]{--link:#6fd0d8;--link-bg:#12292c}
+a.xr{font-weight:600;text-decoration:underline;text-underline-offset:.15em}
+span.xr{font-weight:600;color:var(--sub);border-bottom:1px dotted var(--sub);cursor:help}
+.think{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sub);}
+.think .tag{color:var(--sub)}
+/* 첫 화면 */
+.dom{margin:1.6rem 0}.dom h2{margin-top:1.6rem}
+.ul{list-style:none;padding:0;margin:.4rem 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:.4rem}
+.ul li>a,.ul li>span{display:block;padding:.5rem .7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--panel);text-decoration:none;font-size:.9rem;line-height:1.45;height:100%}
+.ul li>span{color:var(--sub);background:transparent;border-style:dashed}
+.unit-links{display:flex;gap:.3rem}
+.unit-links>a:first-child{flex:1;min-width:0}
+.ul .unit-glossary,.ul .unit-questions{display:flex;align-items:center;flex:none;color:var(--accent);white-space:nowrap}
+.ul .unit-questions{background:var(--link-bg);color:var(--link);border-color:var(--link);font-weight:700}
+.ul .unit-questions:hover{text-decoration:underline}
+.ul .unit-glossary,.ul .unit-questions{padding-inline:.5rem}
+.ul small{display:block;color:var(--sub);font-size:.72rem}
+.w{color:var(--sub);font-size:.85rem;font-weight:400}
+#side .done{color:var(--ink)}
+#side .side-unit-shortcuts{display:flex;gap:.2rem;padding:0 0 .25rem .5rem}
+#side .side-unit-shortcut{color:var(--accent);text-decoration:underline;font-size:.8rem}
+</style>
+</head>
+<body data-base="" data-unit="D4.1">
+<div id="prog"></div>
+<header id="bar">
+  <button class="ib" id="menuBtn" aria-label="목차 열기">☰ 목차</button>
+  <a class="ib glossary-button" href="#glossary">용어</a>
+  <a class="ttl" href="../index.html" style="color:inherit;text-decoration:none">CISSP 이해형 교재</a>
+  <input id="q" type="search" placeholder="전체 검색: 한글·영문·약어 (예: 잔여위험, ALE, canon)" autocomplete="off" aria-label="본문 검색">
+  <button class="ib" id="fsDn" aria-label="글자 작게">가−</button>
+  <button class="ib" id="fsUp" aria-label="글자 크게">가+</button>
+  <button class="ib" id="thBtn" aria-label="밝기 전환">◐</button>
+</header>
+<div id="results" role="listbox" aria-label="검색 결과"></div>
+<div id="shade"></div>
+<div id="wrap">
+<nav id="side" aria-label="목차">
+  <ul class="side-shortcuts"><li><a href="../index.html">⌂ 첫 화면 (전체 목차)</a></li><li><a id="tocGlossary" href="#glossary">주요 용어 (Glossary)</a></li><li><a id="tocQuestions" href="#questions">연습문제 6개</a></li></ul>
+  <h4 id="tocTitle">이 단원</h4>
+  <ul id="toc"></ul>
+  <h4>도메인별 목차</h4>
+  <div id="dtoc"></div>
+</nav>
+<main><article id="top">
+<div class="crumb">도메인 4 통신 및 네트워크 보안 › 4.1</div>
+<h1>네트워크 아키텍처에 대한 안전한 설계 원칙 적용</h1>
+<div class="en">Apply secure design principles in network architectures · ISC2 CISSP Exam Outline(2024-04-15 발효) 4.1</div>
+<p><a class="xr" href="#glossary">주요 용어 바로가기 · Glossary</a></p>
+<p><a class="xr" href="#questions">연습문제 6개 바로가기</a></p>
+<p class="src" style="border:0;margin:.2rem 0 1rem">표시 없는 본문은 원본 정리 파일의 내용 ·
+<b style="color:var(--add)">보충</b>은 원본에 없어 더한 설명 · <b style="color:var(--ex)">가상 예시</b>는 지어낸 상황 ·
+<b style="color:var(--link)">연결</b>은 다른 단원과의 관계 · <b style="color:var(--warn)">확인 필요</b>는 그대로 확정하지 않은 부분</p><p class="lead">네트워크 보안의 많은 판단은 “이 통제가 어느 계층에서 무엇을 볼 수 있는가”와 “신뢰 경계가 어디에 있는가”로 귀결됩니다. 이 단원은 공식 개요 4.1의 세부 항목(OSI·TCP/IP, IPv4/6, 안전한 프로토콜, 다계층·융합 프로토콜, 전송 아키텍처, 성능 지표, 트래픽 흐름, 세그멘테이션, 엣지, 무선, 셀룰러, CDN, SDN·VPC, 모니터링과 관리. 원본은 이를 18개로 셉니다)를 다룹니다. 원본이 제시하는 네 가지 질문(어느 계층인가, 신뢰 경계가 어디인가, 가시성이 있는가, 가용성은 어떻게 지키는가)을 각 기술에 적용해 보는 것이 이 단원을 읽는 방법입니다.</p>
+<h2 id="map">이 단원의 위치</h2>
+<div class="tw"><table>
+<tr><th>단원</th><th>어떻게 이어지는가</th></tr>
+<tr><td><a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a></td><td>심층 방어·최소권한·기본 거부·제로 트러스트를 네트워크에 적용한다 (10~11절)</td></tr>
+<tr><td><a class="xr" href="D3.6.html">D3.6 암호 솔루션</a> · <a class="xr" href="D3.7.html">D3.7 암호 분석 공격</a></td><td>TLS·IPSec의 암호 원리, 중간자·다운그레이드 공격 (5절)</td></tr>
+<tr><td><a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a></td><td>ICS·IoT·클라우드의 구조적 약점. 융합 프로토콜과 분리 (7절, 17절)</td></tr>
+<tr><td><a class="xr" href="D4.2.html">D4.2 네트워크 구성요소</a></td><td>방화벽·스위치·NAC 등 네트워크 구성 요소의 보안 (8절, 11절)</td></tr>
+<tr><td><a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a></td><td>VPN, 원격 접속, 음성·영상 통신 채널의 구현 (5절, 11절)</td></tr>
+<tr><td><a class="xr" href="D7.2.html">D7.2 로깅·모니터링</a> · <a class="xr" href="D7.7.html">D7.7 탐지·예방 수단</a></td><td>흐름 데이터와 로그 모니터링, IDS/IPS 운영 (18절)</td></tr>
+<tr><td><a class="xr" href="D1.7.html">D1.7 업무연속성 요구사항</a> · <a class="xr" href="D7.10.html">D7.10 복구 전략</a></td><td>가용성 설계와 이중화, 공통 장애 (9절, 15절)</td></tr>
+</table></div>
+<div class="box warn"><p><span class="tag">주의</span>원본 D4.1은 다른 단원과 달리 이미 “왜 그런가”를 설명하는 서술형으로 쓰여 있어, 이 단원은 원본 설명을 살린 기존 초안 본문에 단원 연결·판단 기준·요약 상자를 보강하는 방식으로 정리했습니다. 그래서 본문 일부는 원본의 “~다” 문체를 유지합니다.</p></div>
+<h2 id="core"><span class="n">1</span>핵심 개념</h2>
+<p>네트워크 보안 설계의 출발점은 <strong>계층 구조의 이해</strong>다. 각 계층마다 위협과 통제가 다르므로, <strong>문제가 어느 계층에 있는지 식별하는 것</strong>이 첫 단계다.</p>
+<p>핵심 원칙은 D3.1 과 같다. <strong>심층 방어, 최소권한, 기본 거부, 제로 트러스트</strong>를 네트워크에 적용한다.</p>
+<blockquote>
+<p><strong>가장 중요한 변화: 경계(perimeter)만으로는 부족하다.</strong> 클라우드와 원격 근무로 경계가 흐려졌고, 침해 후 <strong>동서 트래픽을 통한 횡적 이동</strong>이 주요 위협이 되었다.</p>
+</blockquote>
+<p><strong>이 주제를 관통하는 네 가지 질문</strong>이 있다. 세부 항목이 18개로 많지만, 결국 아래 네 가지를 각 기술에 적용하는 것이다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>질문</th>
+<th>무엇을 따지는가</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>어느 계층인가</strong></td>
+<td>통제가 무엇을 볼 수 있고 무엇을 못 보는가</td>
+</tr>
+<tr>
+<td><strong>신뢰 경계가 어디인가</strong></td>
+<td>세그멘테이션, 융합 프로토콜, 제3자 위탁</td>
+</tr>
+<tr>
+<td><strong>가시성이 있는가</strong></td>
+<td>흐름 데이터, 로그, 암호화된 구간의 검사</td>
+</tr>
+<tr>
+<td><strong>가용성은 어떻게 지키는가</strong></td>
+<td>이중화, 용량, QoS, DDoS 대응</td>
+</tr>
+</tbody>
+</table></div>
+<p>예를 들어 CDN 은 <strong>가용성을 얻고 신뢰 경계를 외부로 넓히는</strong> 선택이며, 마이크로세그멘테이션은 <strong>신뢰 경계를 워크로드 단위로 좁히는</strong> 선택이다. 기술을 하나씩 외우기보다 이 틀에 넣어 보는 편이 판단에 더 잘 작동한다.</p>
+<div class="src">원문 위치 · D4.1.md §2 핵심 개념 및 정의</div>
+<h2 id="s1"><span class="n">2</span>OSI 7계층과 각 계층의 역할</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>계층</th>
+<th>데이터 단위</th>
+<th>대표 요소</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>7 응용</strong> Application</td>
+<td>데이터</td>
+<td>HTTP, SMTP, DNS, FTP</td>
+</tr>
+<tr>
+<td><strong>6 표현</strong> Presentation</td>
+<td>데이터</td>
+<td>암호화·압축·인코딩, ASCII, JPEG</td>
+</tr>
+<tr>
+<td><strong>5 세션</strong> Session</td>
+<td>데이터</td>
+<td>세션 수립·유지·종료, RPC</td>
+</tr>
+<tr>
+<td><strong>4 전송</strong> Transport</td>
+<td><strong>세그먼트</strong></td>
+<td><strong>TCP, UDP</strong></td>
+</tr>
+<tr>
+<td><strong>3 네트워크</strong> Network</td>
+<td><strong>패킷</strong></td>
+<td><strong>IP, ICMP, 라우터</strong></td>
+</tr>
+<tr>
+<td><strong>2 데이터링크</strong> Data Link</td>
+<td><strong>프레임</strong></td>
+<td><strong>MAC, ARP, 스위치</strong></td>
+</tr>
+<tr>
+<td><strong>1 물리</strong> Physical</td>
+<td><strong>비트</strong></td>
+<td>케이블, 허브, 리피터</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>암기법</strong>: <code>All People Seem To Need Data Processing</code>(7→1)</p>
+<p><strong>계층별 대표 공격과 통제</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>계층</th>
+<th>공격</th>
+<th>통제</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7</td>
+<td>SQL 삽입, XSS, 피싱</td>
+<td>WAF, 입력 검증</td>
+</tr>
+<tr>
+<td>6</td>
+<td>암호 다운그레이드</td>
+<td>강한 암호군 강제</td>
+</tr>
+<tr>
+<td>5</td>
+<td>세션 하이재킹</td>
+<td>세션 토큰 보호, 재인증</td>
+</tr>
+<tr>
+<td>4</td>
+<td>SYN 플러드, 포트 스캔</td>
+<td>SYN 쿠키, 상태 기반 방화벽</td>
+</tr>
+<tr>
+<td>3</td>
+<td>IP 스푸핑, ICMP 공격</td>
+<td>라우터 ACL, 인그레스 필터링</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td><strong>ARP 스푸핑, MAC 플러딩, VLAN 호핑</strong></td>
+<td><strong>동적 ARP 검사, 포트 보안</strong></td>
+</tr>
+<tr>
+<td>1</td>
+<td>케이블 도청, 물리 절단</td>
+<td>물리 보안, 배선실 통제(<a class="xr" href="D3.9.html">D3.9 사이트·설비 보안 통제</a> 참조)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>2계층 공격이 특히 중요하다.</strong> 암호화된 통신도 ARP 스푸핑으로 경로가 바뀌면 중간자 공격의 발판이 된다.</p>
+<p><strong>캡슐화 — 계층이 실제로 어떻게 쌓이는가</strong></p>
+<p>계층 모델을 외우는 이유는 <strong>통제가 어느 계층에서 동작하는지 알아야 하기 때문</strong>이다. 데이터가 내려갈 때 각 계층은 자기 헤더를 덧붙인다.</p>
+<pre><code>응용 데이터
+→ [TCP 헤더 | 데이터]            세그먼트 (4계층)
+→ [IP 헤더 | TCP 헤더 | 데이터]   패킷   (3계층)
+→ [프레임 헤더 | IP 패킷 | FCS]   프레임  (2계층)
+→ 비트 스트림                     (1계층)
+</code></pre>
+<p>받는 쪽은 역순으로 헤더를 벗긴다(역캡슐화). 여기서 <strong>보안 설계의 핵심 결론</strong>이 나온다.</p>
+<ul>
+<li><strong>통제는 자기가 볼 수 있는 계층까지만 판단한다.</strong> 3계층 라우터 ACL 은 IP 와 포트를 보지만 HTTP 본문은 못 본다. 그래서 7계층 공격을 막으려면 WAF 가 필요하다</li>
+<li><strong>암호화 지점이 검사 지점을 결정한다.</strong> TLS 로 암호화하면 중간의 IDS 는 페이로드를 못 본다. 그래서 복호화 프록시를 두거나, 엔드포인트에서 검사(EDR)해야 한다</li>
+<li><strong>낮은 계층이 뚫리면 상위 계층의 가정이 무너진다.</strong> ARP(2계층)가 스푸핑되면 3계층 라우팅이 공격자를 거치고, 7계층 애플리케이션은 아무 이상도 감지하지 못한다</li>
+</ul>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong> "어느 계층에서 동작하는 통제인가"</strong> 방화벽은 3·4계층(차세대는 7계층까지), 스위치는 2계층, 라우터는 3계층, 프록시와 WAF 는 7계층이다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 OSI 7계층 — 반드시 외워야 할 기본</div>
+<h2 id="s2"><span class="n">3</span>TCP/IP 모델과의 대응</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>TCP/IP (4계층)</th>
+<th>OSI 대응</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>응용 Application</td>
+<td>5·6·7</td>
+</tr>
+<tr>
+<td>전송 Transport</td>
+<td>4</td>
+</tr>
+<tr>
+<td>인터넷 Internet</td>
+<td>3</td>
+</tr>
+<tr>
+<td>네트워크 접근 Link</td>
+<td>1·2</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>실제 구현은 TCP/IP 이고 OSI 는 참조 모델</strong>이다. 판단의 언어로는 OSI 계층이 자주 쓰인다.</p>
+<p><strong>두 모델이 왜 둘 다 필요한가.</strong> OSI 는 <strong>역할을 분석하는 언어</strong>다. "이 통제는 어느 역할을 하는가" 를 7단계로 나눠 따질 수 있다. TCP/IP 는 <strong>실제로 돌아가는 구현</strong>이고, 세션·표현 계층을 따로 두지 않는다. 그래서 TLS 처럼 <strong>OSI 로는 한 계층에 깔끔히 들어가지 않는 것</strong>이 존재한다. TLS 는 전송 계층(4) 위, 응용 계층(7) 아래에서 동작해 흔히 "5~6계층" 또는 "전송 계층 보안" 으로 설명된다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>실무 요소</th>
+<th>TCP/IP</th>
+<th>OSI 로 말하면</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP, DNS, SMTP</td>
+<td>응용</td>
+<td>7</td>
+</tr>
+<tr>
+<td><strong>TLS</strong></td>
+<td>응용 하부</td>
+<td><strong>5~6 (경계 사례)</strong></td>
+</tr>
+<tr>
+<td>TCP, UDP</td>
+<td>전송</td>
+<td>4</td>
+</tr>
+<tr>
+<td><strong>IPSec</strong></td>
+<td>인터넷</td>
+<td><strong>3</strong></td>
+</tr>
+<tr>
+<td>IP, ICMP, 라우팅</td>
+<td>인터넷</td>
+<td>3</td>
+</tr>
+<tr>
+<td>이더넷, ARP, Wi-Fi</td>
+<td>링크</td>
+<td>1~2</td>
+</tr>
+</tbody>
+</table></div>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong> IPSec 은 3계층, TLS 는 4계층 위</strong> 이 차이가 실제 결과를 만든다. IPSec 은 <strong>애플리케이션을 수정하지 않고</strong> 모든 상위 트래픽을 보호하고, TLS 는 <strong>애플리케이션이 직접 호출</strong>해야 하지만 세션 단위로 세밀하게 제어된다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 TCP/IP 모델과의 대응</div>
+<h2 id="s3"><span class="n">4</span>IPv4 와 IPv6</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>항목</th>
+<th>IPv4</th>
+<th>IPv6</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>주소 길이</td>
+<td>32비트</td>
+<td><strong>128비트</strong></td>
+</tr>
+<tr>
+<td>주소 표기</td>
+<td>점십진</td>
+<td>콜론 16진</td>
+</tr>
+<tr>
+<td><strong>브로드캐스트</strong></td>
+<td>있음</td>
+<td><strong>없음 — 멀티캐스트·애니캐스트로 대체</strong></td>
+</tr>
+<tr>
+<td>NAT</td>
+<td>광범위 사용</td>
+<td>원칙적으로 불필요</td>
+</tr>
+<tr>
+<td>IPSec</td>
+<td>선택</td>
+<td><strong>프로토콜에 내장</strong>(사용은 선택)</td>
+</tr>
+<tr>
+<td>주소 자동 구성</td>
+<td>DHCP</td>
+<td>SLAAC 지원</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>주소 전달 방식 네 가지</strong> — 공식 세부 항목에 명시되어 있다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>받는 대상 (쓰임)</th>
+<th>보안 관점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>유니캐스트</strong> Unicast</td>
+<td><strong>1 대 1</strong>, 특정 호스트 하나 (일반 통신 대부분)</td>
+<td>기본 형태</td>
+</tr>
+<tr>
+<td><strong>브로드캐스트</strong> Broadcast</td>
+<td><strong>세그먼트 내 전체</strong> (ARP, DHCP 탐색)</td>
+<td><strong>증폭 공격의 재료.</strong> IPv6 에는 없다</td>
+</tr>
+<tr>
+<td><strong>멀티캐스트</strong> Multicast</td>
+<td><strong>가입한 그룹</strong> (스트리밍, 라우팅 프로토콜)</td>
+<td>그룹 가입 통제 필요</td>
+</tr>
+<tr>
+<td><strong>애니캐스트</strong> Anycast</td>
+<td><strong>같은 주소를 가진 노드 중 가장 가까운 하나</strong> (DNS 루트, CDN)</td>
+<td><strong>DDoS 분산에 유리</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>꼭 짚어 둘 세 가지</strong></p>
+<ul>
+<li><strong>브로드캐스트는 증폭 공격의 재료다.</strong> 스머프(Smurf) 공격은 출발지를 피해자로 위조한 ICMP 를 브로드캐스트 주소로 보내, 세그먼트의 모든 호스트가 피해자에게 응답하게 만든다. 그래서 <strong>라우터에서 방향성 브로드캐스트를 차단</strong>한다</li>
+<li><strong>애니캐스트는 가용성 설계 수단이다.</strong> 같은 IP 를 여러 지역에 두면 공격 트래픽이 가장 가까운 노드로 흩어진다. DNS 루트 서버와 CDN 이 이 방식으로 DDoS 를 견딘다</li>
+<li><strong>IPv6 가 브로드캐스트를 없앤 이유</strong>가 바로 이 비효율과 증폭 위험이다. 대신 <strong>멀티캐스트와 애니캐스트</strong>로 같은 기능을 수행한다</li>
+</ul>
+<p><strong>보안 함의</strong></p>
+<ul>
+<li><strong>IPv6 는 주소 공간이 방대해 스캔이 어렵다</strong> — 공격자에게 불리하지만 자산 발견도 어려워진다</li>
+<li><strong>NAT 가 제공하던 우발적 은폐가 사라진다.</strong> NAT 는 보안 통제가 아니었지만 실질적으로 내부 노출을 줄였다. IPv6 에서는 <strong>방화벽으로 명시적 통제</strong>가 필요하다</li>
+<li><strong>듀얼 스택 환경의 위험</strong> — IPv4 만 방화벽으로 통제하고 <strong>IPv6 는 무방비로 열려 있는 경우</strong>가 흔하다. 터널링(6to4, Teredo)으로 통제를 우회할 수도 있다</li>
+<li>라우터 광고(RA) 스푸핑 같은 IPv6 고유 공격</li>
+</ul>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong> 사용하지 않는 IPv6 는 비활성화하거나, 사용한다면 IPv4 와 동등한 통제를 적용한다.</strong></p></div>
+<div class="src">원문 위치 · D4.1.md §3 IPv4 와 IPv6</div>
+<h2 id="s4"><span class="n">5</span>안전한 프로토콜</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>안전하지 않음</th>
+<th>대체</th>
+<th>계층</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Telnet</td>
+<td><strong>SSH</strong></td>
+<td>응용</td>
+</tr>
+<tr>
+<td>FTP</td>
+<td><strong>SFTP / FTPS</strong></td>
+<td>응용</td>
+</tr>
+<tr>
+<td>HTTP</td>
+<td><strong>HTTPS (TLS)</strong></td>
+<td>응용·표현</td>
+</tr>
+<tr>
+<td>SNMPv1/v2c</td>
+<td><strong>SNMPv3</strong></td>
+<td>응용</td>
+</tr>
+<tr>
+<td>POP3/IMAP 평문</td>
+<td>TLS 적용</td>
+<td>응용</td>
+</tr>
+<tr>
+<td>LDAP</td>
+<td><strong>LDAPS</strong></td>
+<td>응용</td>
+</tr>
+<tr>
+<td>일반 IP</td>
+<td><strong>IPSec</strong></td>
+<td>네트워크</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>IPSec</strong> — 네트워크 계층에서 동작해 <strong>상위 애플리케이션 변경 없이</strong> 보호한다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>구성요소</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AH</strong> (Authentication Header)</td>
+<td>무결성·인증. <strong>암호화 없음</strong></td>
+</tr>
+<tr>
+<td><strong>ESP</strong> (Encapsulating Security Payload)</td>
+<td><strong>암호화</strong> + 무결성·인증</td>
+</tr>
+<tr>
+<td><strong>IKE</strong></td>
+<td>키 교환과 SA 협상</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>모드</th>
+<th>보호 범위</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>전송 모드</strong> (Transport)</td>
+<td>페이로드만 암호화. 종단 간</td>
+</tr>
+<tr>
+<td><strong>터널 모드</strong> (Tunnel)</td>
+<td><strong>IP 헤더 포함 전체</strong> 암호화. VPN 에 사용</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>AH 는 암호화하지 않는다.</strong> 기밀성이 필요하면 ESP 를 쓴다. AH와 ESP는 “암호화가 필요한가”로 구분한다.</p>
+</blockquote>
+<p><strong>SSH</strong> — 원격 셸의 표준이다. 단순한 "암호화된 Telnet" 이 아니라 <strong>인증·터널링·파일 전송</strong>을 함께 제공한다.</p>
+<ul>
+<li><strong>호스트 키로 서버를 인증한다.</strong> 첫 접속 때 지문을 확인하지 않고 그냥 승인하면 중간자 공격을 받아들이는 것이다</li>
+<li><strong>공개키 인증이 비밀번호보다 안전하다.</strong> 비밀번호 인증은 무차별 대입에 노출된다</li>
+<li><strong>포트 포워딩이 양날의 칼이다.</strong> SSH 터널로 방화벽을 우회해 내부 서비스를 외부로 노출할 수 있다. 필요 없으면 <code>AllowTcpForwarding no</code> 로 끈다</li>
+<li>SSHv1 은 설계 결함으로 <strong>사용하지 않는다.</strong> v2 만 쓴다</li>
+</ul>
+<p><strong>TLS</strong> — 전송 계층 위에서 동작하며 기밀성·무결성·서버 인증을 제공한다. 상세는 D3.6 참조.</p>
+<ul>
+<li><strong>TLS 1.2 이상</strong>을 쓰고 SSL 2.0/3.0 과 TLS 1.0/1.1 은 비활성화한다</li>
+<li><strong>TLS 1.3 은 핸드셰이크를 1-RTT 로 줄이고</strong> 취약한 암호군(RC4, CBC 모드 일부, 정적 RSA 키 교환)을 규격에서 제거했다</li>
+<li><strong>인증서 검증을 생략하면 암호화의 의미가 없다.</strong> 암호화는 되지만 누구와 통신하는지 보장되지 않는다</li>
+</ul>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong> 프로토콜 다운그레이드 공격.</strong> 서버가 구버전을 계속 지원하면 공격자가 협상을 끌어내려 약한 암호군을 쓰게 만든다(POODLE, FREAK 류). <strong>대응은 구버전 지원 자체를 제거하는 것</strong>이고, 이것이 "안전한 기본값" 원칙의 전형적 예다.</p></div>
+<p><strong>SNMPv3</strong> — 네트워크 관리 프로토콜. v1/v2c 는 <strong>커뮤니티 스트링을 평문으로</strong> 보내며 기본값이 <code>public</code>/<code>private</code> 인 경우가 많다. v3 가 <strong>인증과 암호화</strong>를 추가했다. 관리 프로토콜은 장비 전체를 장악할 수 있는 통로이므로 여기서 타협하면 안 된다.</p>
+<div class="src">원문 위치 · D4.1.md §3 안전한 프로토콜</div>
+<h2 id="s5"><span class="n">6</span>다계층 프로토콜의 함의</h2>
+<p>TCP/IP 는 <strong>캡슐화를 통해 계층을 쌓는다.</strong> 이 유연성이 보안 문제를 만든다.</p>
+<p><strong>위험</strong></p>
+<ul>
+<li><strong>터널링과 은닉 채널</strong> — 허용된 프로토콜 안에 다른 프로토콜을 숨긴다. <strong>DNS 터널링, ICMP 터널링, HTTP 를 통한 임의 통신</strong>이 대표적이다</li>
+<li>필터 우회 — 방화벽이 상위 계층 내용을 보지 못하면 통과한다</li>
+<li>중첩 캡슐화로 <strong>검사 회피</strong></li>
+<li>프로토콜 변환 지점의 취약점</li>
+</ul>
+<p><strong>터널링이 왜 막기 어려운가</strong></p>
+<p>방화벽은 보통 <strong>포트와 프로토콜로 판단</strong>한다. 그런데 터널링은 <strong>허용된 포트를 그대로 쓴다.</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>터널</th>
+<th>겉보기</th>
+<th>실제</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DNS 터널링</strong></td>
+<td>정상 DNS 질의(UDP/53)</td>
+<td>질의 이름에 데이터를 인코딩해 주고받는다</td>
+</tr>
+<tr>
+<td><strong>ICMP 터널링</strong></td>
+<td>핑(ping)</td>
+<td>ICMP 페이로드에 데이터를 넣는다</td>
+</tr>
+<tr>
+<td><strong>HTTP(S) 터널링</strong></td>
+<td>웹 트래픽(443)</td>
+<td>임의 프로토콜을 HTTP 로 감싼다</td>
+</tr>
+<tr>
+<td>SSH 포트 포워딩</td>
+<td>정상 SSH</td>
+<td>내부 서비스를 외부로 중계</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>DNS 가 특히 악용되는 이유</strong>는 세 가지다. 거의 모든 네트워크가 DNS 를 허용하고, 재귀 질의 구조상 <strong>내부에서 외부로 자동 전달</strong>되며, 많은 조직이 DNS 로그를 보지 않는다.</p>
+<p><strong>대응</strong></p>
+<ul>
+<li><strong>심층 패킷 검사(DPI)</strong> — 포트가 아니라 <strong>실제 내용</strong>으로 프로토콜을 판정한다</li>
+<li><strong>허용 목록 기반 아웃바운드 통제</strong> — "막을 것을 고르는" 대신 "허용할 것만 고른다"</li>
+<li><strong>DNS 질의 모니터링</strong> — 비정상적으로 긴 이름, 높은 질의 빈도, 희귀 도메인. <strong>내부 리졸버 경유를 강제</strong>해 단말이 외부 DNS 를 직접 쓰지 못하게 한다</li>
+<li><strong>프록시 경유 강제</strong> — 검사 지점을 하나로 모은다</li>
+<li>기준선 대비 이상 탐지 — 평소 패턴을 알아야 벗어남이 보인다</li>
+</ul>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> 캡슐화는 <strong>설계상의 기능</strong>이지 결함이 아니다. 그래서 "프로토콜을 고쳐 막는다" 는 답이 아니고, <strong>통제 지점을 상위 계층으로 올리고(DPI·프록시) 아웃바운드를 기본 거부</strong>하는 것이 답이다.</p></div>
+<h3 id="s5-worked">암호화 트래픽을 검사하거나 그대로 전달하는 경계</h3>
+<div class="box ex"><p><span class="tag">가상 예시</span>외부 게이트웨이가 TLS를 종료하고 뒤쪽 애플리케이션으로 요청을 전달합니다. 설계서는 ‘사용자는 TLS로 접속한다’만 기록했습니다.</p></div>
+<div class="box think"><p><span class="tag">판단 순서</span></p><ol class="steps"><li>사용자부터 게이트웨이와 게이트웨이부터 업무 서비스의 구간을 따로 표시합니다.</li><li>어느 지점에서 평문이 생기는지, 누가 그 시스템과 로그에 접근하는지, 다음 구간의 상대는 어떻게 인증하는지 확인합니다.</li><li>파일 전달·점검을 위해 검사하는 위치가 추가되면 그 위치도 신뢰 경계가 됩니다.</li></ol><p><b>조건을 바꿔 보기.</b> TLS를 중간에서 종료하지 않고 전달한다면 중간 장비의 내용 기반 검사는 제한될 수 있습니다. 어떤 속성을 어디서 확인할지 전체 연결을 기준으로 고릅니다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 다계층 프로토콜의 함의</div>
+<h2 id="s6"><span class="n">7</span>융합 프로토콜 (Converged Protocols)</h2>
+<p>전용망에서 쓰이던 프로토콜을 <strong>IP 네트워크 위에서 운반</strong>하는 것이다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>프로토콜</th>
+<th>설명</th>
+<th>보안 고려</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iSCSI</strong></td>
+<td>SCSI 스토리지를 IP 로</td>
+<td>평문 전송 가능. 인증·암호화·전용망 분리</td>
+</tr>
+<tr>
+<td><strong>VoIP</strong></td>
+<td>음성을 IP 로</td>
+<td>도청, 스푸핑. SRTP·TLS, VLAN 분리</td>
+</tr>
+<tr>
+<td><strong>FCoE</strong></td>
+<td>파이버채널을 이더넷으로</td>
+<td>손실 없는 네트워크 요구</td>
+</tr>
+<tr>
+<td><strong>InfiniBand over Ethernet</strong></td>
+<td>고성능 상호연결</td>
+<td>HPC 환경 격리</td>
+</tr>
+<tr>
+<td><strong>Compute Express Link (CXL)</strong></td>
+<td>CPU-장치 간 고속 연결</td>
+<td>물리 신뢰 경계 확장</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>핵심 위험: 전용망을 전제로 설계된 프로토콜이 공용망에 올라온다.</strong> 원래 신뢰된 환경을 가정했기 때문에 <strong>인증과 암호화가 약하거나 없다.</strong> iSCSI 와 산업 프로토콜이 대표적이다(<a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a> 참조).</p>
+<p><strong>왜 이것이 설계 문제인가</strong></p>
+<p>융합의 동기는 비용과 단순화다. 회선 하나로 음성·스토리지·데이터를 모두 운반하면 투자와 운영이 줄어든다. 그러나 <strong>신뢰 경계도 함께 합쳐진다.</strong></p>
+<ul>
+<li>파이버채널 전용망에서 스토리지 트래픽은 <strong>물리적으로 분리된 신뢰 영역</strong>에 있었다. iSCSI 로 바꾸면 업무망의 침해자가 스토리지 트래픽에 닿을 수 있다</li>
+<li>스토리지 프로토콜은 <strong>블록 단위 접근</strong>이다. 파일 권한을 우회해 디스크 내용을 그대로 읽는다는 뜻이고, 그래서 노출의 결과가 더 심각하다</li>
+<li><strong>CXL 같은 메모리·장치 연결 프로토콜</strong>은 신뢰 경계를 CPU 바로 옆까지 확장한다. 물리적으로 신뢰된 범위 안에서만 써야 한다</li>
+</ul>
+<p><strong>대응</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>수단</th>
+<th>적용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>분리</strong></td>
+<td>전용 VLAN, 가능하면 물리 분리. <strong>가장 효과적</strong></td>
+</tr>
+<tr>
+<td><strong>인증</strong></td>
+<td>iSCSI 의 CHAP, 상호 인증 활성화</td>
+</tr>
+<tr>
+<td><strong>암호화</strong></td>
+<td>IPSec 또는 프로토콜 자체 암호화</td>
+</tr>
+<tr>
+<td><strong>접근 통제</strong></td>
+<td>스토리지의 LUN 마스킹·조닝</td>
+</tr>
+</tbody>
+</table></div>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> 융합 프로토콜 문제에서 가장 먼저 떠올릴 답은 <strong>"분리(세그멘테이션)"</strong> 다. 프로토콜 자체를 고칠 수 없으니 <strong>환경을 원래의 가정에 맞춰주는 것</strong>이 올바른 접근이다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 융합 프로토콜 (Converged Protocols)</div>
+<h2 id="s7"><span class="n">8</span>전송 아키텍처</h2>
+<p><strong>세 가지 평면(Plane)</strong>.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>평면</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>데이터 평면</strong> (Data / Forwarding)</td>
+<td><strong>실제 트래픽 전달</strong></td>
+</tr>
+<tr>
+<td><strong>제어 평면</strong> (Control)</td>
+<td>경로 결정, 라우팅 프로토콜</td>
+</tr>
+<tr>
+<td><strong>관리 평면</strong> (Management)</td>
+<td>장비 설정·모니터링</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>관리 평면은 반드시 분리</strong>해야 한다. 데이터 평면과 섞이면 업무 트래픽에서 장비 관리 접근이 가능해진다. <strong>대역 외(out-of-band) 관리</strong>가 원칙이다.</p>
+<p><strong>스위칭 방식</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>저장 후 전달</strong> (Store-and-forward)</td>
+<td>프레임 전체 수신 후 <strong>오류 검사</strong> 하고 전달</td>
+</tr>
+<tr>
+<td><strong>컷스루</strong> (Cut-through)</td>
+<td>목적지 주소만 읽고 즉시 전달. <strong>빠르지만 오류 프레임도 전달</strong></td>
+</tr>
+<tr>
+<td>조각 없음 (Fragment-free)</td>
+<td>앞부분만 검사하는 절충</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>토폴로지</strong> — 공식 세부 항목에 명시되어 있다. 보안·가용성 관점에서 보는 것이 핵심이다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>토폴로지</th>
+<th>가용성</th>
+<th>보안 관점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>버스</strong> Bus (공유 매체)</td>
+<td><strong>매체 하나가 끊기면 전체 중단</strong></td>
+<td>모든 트래픽이 모두에게 보인다(도청 쉬움)</td>
+</tr>
+<tr>
+<td><strong>링</strong> Ring (고리)</td>
+<td>한 지점 단절에 취약(이중 링으로 보완)</td>
+<td>통과 노드가 트래픽을 본다</td>
+</tr>
+<tr>
+<td><strong>스타</strong> Star (중앙 집중)</td>
+<td><strong>중앙 장비가 단일 장애점</strong></td>
+<td>중앙에서 <strong>통제·모니터링이 쉽다</strong></td>
+</tr>
+<tr>
+<td><strong>메시</strong> Mesh (다중 경로)</td>
+<td><strong>가장 높음</strong> — 경로 하나 실패에도 생존</td>
+<td>경로가 많아 통제점 관리가 복잡</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>현대는 대부분 스타(스위치 중심)</strong> 이며 데이터센터는 <strong>리프-스파인</strong>(부분 메시) 구조다. 허브 시대의 버스형이 스위치 기반 스타로 바뀐 것은 성능 때문이지만, <strong>보안상으로도 큰 개선</strong>이었다. 허브는 모든 포트로 프레임을 복제해 도청이 쉬웠고, 스위치는 목적지 포트로만 보낸다.</p>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> 스위치가 도청을 "어렵게" 만들지만 막지는 못한다. <strong>MAC 플러딩</strong>으로 스위치의 MAC 테이블을 넘치게 하면 스위치가 허브처럼 모든 포트로 브로드캐스트하는 상태(fail-open)가 된다. 대응은 <strong>포트 보안(포트별 MAC 수 제한)</strong> 이다.</p></div>
+<p><strong>가용성과 통제의 교환 관계</strong>가 토폴로지 선택에 들어 있다. 메시는 가용성이 높지만 트래픽이 지나는 경로가 많아 <strong>모든 트래픽을 한 곳에서 검사하기 어렵다.</strong> 스타는 통제가 쉽지만 중앙이 단일 장애점이다. 그래서 실무는 <strong>중앙 통제 + 중앙 이중화</strong>로 둘을 모두 얻으려 한다.</p>
+<div class="src">원문 위치 · D4.1.md §3 전송 아키텍처</div>
+<h2 id="s8"><span class="n">9</span>성능 지표</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>지표</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>대역폭</strong> Bandwidth</td>
+<td>이론적 최대 전송 용량</td>
+</tr>
+<tr>
+<td><strong>처리량</strong> Throughput</td>
+<td><strong>실제</strong> 전송량</td>
+</tr>
+<tr>
+<td><strong>지연</strong> Latency</td>
+<td>전달에 걸리는 시간</td>
+</tr>
+<tr>
+<td><strong>지터</strong> Jitter</td>
+<td>지연의 <strong>변동 폭</strong></td>
+</tr>
+<tr>
+<td><strong>SNR</strong></td>
+<td>신호 대 잡음비</td>
+</tr>
+</tbody>
+</table></div>
+<p>1Gbps 회선(대역폭)에서 실제로 400Mbps 밖에 못 쓴다면(처리량), 차이는 프로토콜 오버헤드, 재전송, 혼잡, 장비 처리 한계에서 온다. <strong>대역폭을 늘려도 처리량이 안 늘어나는 경우</strong>가 흔하고, 그때 병목은 회선이 아니다.</p>
+<p><strong>VoIP 와 실시간 통신에서는 지터가 대역폭보다 중요하다.</strong> 대역폭이 충분해도 지터가 크면 통화 품질이 무너진다. 음성은 <strong>일정한 간격으로 도착해야</strong> 재생되기 때문이다. 수신 측은 지터 버퍼로 흔들림을 흡수하지만, 버퍼를 키우면 지연이 늘어 대화가 어색해진다. <strong>지터와 지연은 맞바꿔야 하는 관계</strong>다.</p>
+<p><strong>SNR(신호 대 잡음비)</strong> 은 주로 무선과 물리 매체의 품질 지표다. 낮으면 오류율이 올라가 재전송이 늘고, 결과적으로 <strong>처리량이 떨어진다.</strong> 전파 방해(재밍)는 SNR 을 떨어뜨려 가용성을 공격하는 것이다.</p>
+<p><strong>가용성 공격은 이 지표를 겨냥한다.</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>공격</th>
+<th>겨냥하는 지표</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>볼류메트릭 DDoS</td>
+<td><strong>대역폭</strong> 포화</td>
+</tr>
+<tr>
+<td>자원 소진(SYN 플러드 등)</td>
+<td><strong>처리량</strong> — 회선은 한가한데 장비가 죽는다</td>
+</tr>
+<tr>
+<td>재밍</td>
+<td><strong>SNR</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>이 구분이 대응을 결정한다.</strong> 대역폭 포화는 회선 앞단(ISP·CDN·스크러빙 센터)에서만 막을 수 있고, 내 방화벽을 키워도 소용없다. 반면 자원 소진은 장비 설정(SYN 쿠키, 연결 제한)으로 완화된다.</p>
+<div class="box add"><p><span class="tag">보충</span>회선의 대역폭은 옮길 수 있는 용량을, 처리량은 관측 구간에 실제로 전달된 양을 나타냅니다. 사용자가 느린 원인을 찾을 때는 재전송·지연·장비 한계와 함께 측정해 어느 지점이 병목인지 확인합니다.</p></div>
+<h3 id="s8-clarify">음성 지연을 회선 용량 문제로 단정하면 놓치는 것</h3>
+<div class="box add"><p><span class="tag">보충</span>평균 처리량이 충분해도 패킷이 고르지 않게 도착하면 음성이 끊길 수 있습니다. 대역폭과 실제 처리량, 지연과 지연 변동을 함께 측정하면 병목의 종류가 달라집니다. 장비를 바꾸기 전에 혼잡 시간과 재전송, 경로별 영향을 확인합니다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 성능 지표</div>
+<h2 id="s9"><span class="n">10</span>트래픽 흐름 — 남북과 동서</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th>방향</th>
+<th>특징</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>남북(North-South)</strong></td>
+<td>외부 ↔ 데이터센터</td>
+<td>전통적 경계 방화벽이 통제</td>
+</tr>
+<tr>
+<td><strong>동서(East-West)</strong></td>
+<td>내부 서버 ↔ 서버</td>
+<td><strong>전통적으로 통제가 약함</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>현대 데이터센터 트래픽의 대부분이 동서 트래픽</strong>이다. 가상화와 마이크로서비스 때문이다.</p>
+<p><strong>침해 후 횡적 이동이 동서 트래픽을 타고 일어난다.</strong> 경계만 지키면 한 번 들어온 공격자가 자유롭게 움직인다. 이것이 <strong>마이크로세그멘테이션과 제로 트러스트</strong>가 필요한 이유다(<a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a> 참조).</p>
+<p><strong>왜 동서 트래픽이 통제의 사각지대가 되었는가</strong></p>
+<p>세 가지가 겹쳤다.</p>
+<ul>
+<li><strong>설계상 안 지나간다.</strong> 같은 서브넷 안의 서버끼리는 라우터를 거치지 않으므로 <strong>경계 방화벽을 통과하지 않는다.</strong> 방화벽이 아무리 강해도 볼 수 없는 트래픽이다</li>
+<li><strong>양이 압도적이다.</strong> 가상화·마이크로서비스로 하나의 사용자 요청이 내부에서 수십 번의 서버 간 호출로 쪼개진다. 전부 검사하려면 비용이 급증한다</li>
+<li><strong>"내부는 신뢰" 라는 암묵적 가정</strong> — 경계 모델의 전제가 그대로 남아 있었다</li>
+</ul>
+<p><strong>공격자 관점에서 본 가치</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>단계</th>
+<th>사용하는 흐름</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>초기 침투</td>
+<td>남북 (피싱, 취약 웹 서비스)</td>
+</tr>
+<tr>
+<td><strong>정찰·횡적 이동·권한 상승</strong></td>
+<td><strong>동서</strong></td>
+</tr>
+<tr>
+<td>데이터 수집</td>
+<td>동서</td>
+</tr>
+<tr>
+<td><strong>유출</strong></td>
+<td>남북 (이그레스)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>통제를 어디에 두어야 하는지가 이 표에서 나온다.</strong> 남북만 보면 <strong>침투와 유출 시점만</strong> 볼 기회가 있고, 그 사이에 벌어지는 전 과정이 보이지 않는다. 그래서 <strong>동서 가시성(흐름 데이터)과 동서 통제(마이크로세그멘테이션)</strong> 가 함께 필요하다.</p>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> "내부 서버가 침해된 뒤 공격자가 다른 서버로 이동했다. 무엇이 부족했나" 상황에서 답은 <strong>네트워크 세그멘테이션/마이크로세그멘테이션</strong>이다. 경계 방화벽 강화나 안티바이러스가 아니다.</p></div>
+<div class="box link"><p><span class="tag">연결</span><a class="xr" href="D7.2.html#s3">D7.2 지속적 모니터링과 튜닝</a> · 경계에서 들어오고 나가는 트래픽만 수집하면 구획 사이의 내부 이동과 서비스 간 통신을 설명하기 어렵습니다. 네트워크 흐름도를 기준으로 어떤 경계의 기록이 필요한지 정하면 모니터링 공백을 줄일 수 있습니다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 트래픽 흐름 — 남북과 동서</div>
+<h2 id="s10"><span class="n">11</span>세그멘테이션 — 세 가지 수준</h2>
+<p><strong>물리적 세그멘테이션 (Physical)</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>대역 내 (in-band)</td>
+<td>업무망과 같은 경로로 관리</td>
+</tr>
+<tr>
+<td><strong>대역 외 (out-of-band)</strong></td>
+<td><strong>별도 물리 경로로 관리.</strong> 권장</td>
+</tr>
+<tr>
+<td><strong>에어갭 (air-gapped)</strong></td>
+<td>물리적으로 완전 분리</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>대역 외 관리가 왜 원칙인가</strong></p>
+<p>관리 경로가 업무망과 같으면 두 가지 문제가 동시에 생긴다.</p>
+<ul>
+<li><strong>침해 확산</strong> — 업무망의 침해자가 네트워크 장비 관리 화면에 닿는다. 장비를 잡으면 <strong>네트워크 전체의 트래픽을 보고 바꿀 수 있다</strong></li>
+<li><strong>장애 시 접근 불가</strong> — 네트워크가 죽으면 그 네트워크를 통해 장비에 접속할 수 없다. 복구해야 할 때 손이 닿지 않는다</li>
+</ul>
+<p>두 번째 이유는 보안보다 가용성 문제지만, 실무에서 대역 외 관리를 도입하는 <strong>직접적 동기</strong>가 되는 쪽이다.</p>
+<p><strong>에어갭도 절대적이지 않다.</strong> USB 매체, 공급망, 전자파 부채널로 데이터가 넘어갈 수 있다. 다만 <strong>공격 난이도를 극적으로 높인다.</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>에어갭을 넘는 경로</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>이동식 매체</strong></td>
+<td>USB 가 가장 흔하다. 스턱스넷의 전파 경로였다</td>
+</tr>
+<tr>
+<td><strong>공급망</strong></td>
+<td>장비·소프트웨어가 이미 감염된 상태로 들어온다</td>
+</tr>
+<tr>
+<td><strong>내부자</strong></td>
+<td>사람이 직접 들고 나간다</td>
+</tr>
+<tr>
+<td><strong>부채널</strong></td>
+<td>전자파·소리·열·광학. 속도가 매우 느려 대량 유출에는 비현실적</td>
+</tr>
+</tbody>
+</table></div>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> 에어갭 환경에서 가장 현실적인 위협은 <strong>부채널이 아니라 이동식 매체와 내부자</strong>다. 그래서 에어갭 구간의 통제는 <strong>매체 통제와 인적 통제</strong>가 핵심이고, 기술적 격리만으로는 완성되지 않는다.</p></div>
+<p><strong>논리적 세그멘테이션 (Logical)</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>기술</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VLAN</strong></td>
+<td>2계층 논리 분리. <strong>VLAN 간 통신은 라우팅 필요</strong></td>
+</tr>
+<tr>
+<td><strong>VPN</strong></td>
+<td>공용망 위 암호화 터널</td>
+</tr>
+<tr>
+<td><strong>VRF</strong></td>
+<td>라우팅 테이블 분리</td>
+</tr>
+<tr>
+<td>가상 도메인</td>
+<td>장비 내 논리 분할</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>VLAN 은 보안 경계가 아니라 브로드캐스트 도메인 분리</strong>가 1차 목적이다. 왜 경계로 믿을 수 없는지는 <strong>VLAN 호핑</strong>의 두 가지 방식을 보면 분명해진다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>원리</th>
+<th>대응</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>스위치 스푸핑</strong> Switch spoofing</td>
+<td>공격자 PC 가 <strong>스위치인 척 트렁크 협상(DTP)</strong> 을 해 모든 VLAN 트래픽을 받는다</td>
+<td><strong>트렁크 자동 협상 비활성화</strong>, 접근 포트는 <code>access</code> 로 고정</td>
+</tr>
+<tr>
+<td><strong>이중 태깅</strong> Double tagging</td>
+<td>프레임에 <strong>VLAN 태그를 두 개</strong> 붙인다. 첫 스위치가 바깥 태그(네이티브 VLAN)를 떼면 안쪽 태그가 살아 다른 VLAN 으로 넘어간다</td>
+<td><strong>네이티브 VLAN 을 사용하지 않는 번호로 변경</strong>, 네이티브 VLAN 태깅 강제</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>이중 태깅이 네이티브 VLAN 변경을 요구하는 이유</strong>가 여기 있다. 네이티브 VLAN 은 태그 없이 전달되는 VLAN 이라, 기본값(VLAN 1)을 그대로 두면 공격자가 바깥 태그를 VLAN 1 로 맞추기만 하면 된다.</p>
+<p><strong>VLAN 보안 기본 조치</strong></p>
+<ul>
+<li>네이티브 VLAN 을 <strong>쓰지 않는 번호</strong>로 바꾸고, 사용자 포트에 할당하지 않는다</li>
+<li><strong>트렁크 협상(DTP) 비활성화</strong>, 트렁크 포트에는 필요한 VLAN 만 허용</li>
+<li><strong>미사용 포트는 비활성화</strong>하고 쓰지 않는 VLAN 에 격리</li>
+<li>VLAN 1 을 업무에 쓰지 않는다</li>
+</ul>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong> "VLAN 으로 분리했는데 안전한가"</strong> 라는 물음의 답은 "브로드캐스트 도메인은 분리되지만 <strong>보안 경계로는 부족하다</strong>" 다. 민감 구간은 <strong>라우팅 경계에 방화벽</strong>을 두거나 물리 분리로 올린다.</p></div>
+<p><strong>마이크로세그멘테이션 (Micro-segmentation)</strong></p>
+<p><strong>워크로드 단위로 통신을 제한</strong>한다. 전통적 세그멘테이션이 서브넷 단위라면, 마이크로세그멘테이션은 <strong>개별 서버·컨테이너 단위</strong>다.</p>
+<ul>
+<li>분산 방화벽 — 각 워크로드에 정책 적용</li>
+<li>네트워크 오버레이와 캡슐화(VXLAN 등)</li>
+<li>신원·태그 기반 정책 — IP 가 아니라 워크로드 속성으로 판단</li>
+<li><strong>제로 트러스트 구현의 핵심 수단</strong></li>
+</ul>
+<p><strong>동서 트래픽 통제의 답</strong>이며, 침해 시 영향 범위를 극적으로 줄인다.</p>
+<p><strong>전통적 세그멘테이션과의 결정적 차이는 정책의 기준</strong>이다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th>전통적</th>
+<th>마이크로세그멘테이션</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>정책 기준</td>
+<td><strong>IP 주소와 서브넷</strong></td>
+<td><strong>워크로드의 신원·태그·레이블</strong></td>
+</tr>
+<tr>
+<td>적용 지점</td>
+<td>경계 방화벽, VLAN 간 라우터</td>
+<td><strong>각 워크로드에 붙은 분산 방화벽</strong></td>
+</tr>
+<tr>
+<td>동적 환경</td>
+<td>IP 가 바뀌면 정책이 깨진다</td>
+<td><strong>IP 가 바뀌어도 태그가 따라간다</strong></td>
+</tr>
+<tr>
+<td>기본 자세</td>
+<td>같은 세그먼트 안은 허용</td>
+<td><strong>기본 거부, 필요한 쌍만 허용</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>왜 IP 기반 정책이 현대 환경에서 무너지는가.</strong> 컨테이너와 오토스케일링 환경에서 워크로드의 IP 는 몇 분 단위로 바뀐다. "10.1.2.0/24 를 허용" 이라는 규칙은 그 대역에 어떤 워크로드가 들어올지 보장하지 못한다. 그래서 <strong>"결제 서비스는 데이터베이스의 3306 만 호출할 수 있다"</strong> 처럼 <strong>역할로 정책을 쓴다.</strong></p>
+<p><strong>구현 수단</strong></p>
+<ul>
+<li><strong>분산 방화벽</strong> — 하이퍼바이저나 호스트 커널에서 각 워크로드의 입출력을 직접 통제한다. 트래픽이 중앙 방화벽을 거치지 않아도 정책이 적용된다</li>
+<li><strong>네트워크 오버레이와 캡슐화(VXLAN 등)</strong> — 물리 토폴로지와 무관한 논리망을 만든다</li>
+<li>신원·태그 기반 정책 — IP 가 아니라 워크로드 속성으로 판단</li>
+<li><strong>제로 트러스트 구현의 핵심 수단</strong></li>
+</ul>
+<p><strong>도입의 현실적 난점</strong>은 정책을 만드는 일 자체다. 어떤 워크로드가 어디와 통신해야 하는지 아무도 정확히 모르는 경우가 많다. 그래서 <strong>먼저 흐름을 관찰해(흐름 데이터) 실제 통신 지도를 그리고, 관찰 모드로 검증한 뒤 차단으로 전환</strong>하는 순서를 밟는다. 곧바로 차단하면 업무가 멈춘다.</p>
+<div class="box link"><p><span class="tag">연결</span><a class="xr" href="D3.1.html#s8">D3.1 8) 제로 트러스트 (Zero Trust)</a> · 업무·관리·방문자 환경을 구획하면 허용 흐름의 경계를 그릴 수 있습니다. 그 경계에서 요청 단위 권한과 상태를 판정해야 망에 들어왔다는 사실만으로 내부 접근이 이어지지 않습니다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 세그멘테이션 — 세 가지 수준</div>
+<h3 id="s10-decision">경계의 위치부터 정하는 이유</h3>
+<div class="box add"><p><span class="tag">보충</span>업무망을 설계할 때는 먼저 통신의 출발점·목적지와 필요한 업무 흐름을 그립니다. 규칙을 추가하는 위치가 달라지면 차단할 수 있는 범위도 달라집니다.</p></div>
+<div class="tw"><table><thead><tr><th scope="col">판단할 항목</th><th scope="col">살펴볼 근거</th></tr></thead><tbody><tr><th scope="row">외부에서 내부</th><td>외부에 노출할 기능과 관리용 기능의 진입 경로를 분리합니다.</td></tr><tr><th scope="row">업무 구획 사이</th><td>업무 간 통신 가운데 필요한 항목만 승인합니다.</td></tr><tr><th scope="row">같은 구획 안</th><td>워크로드 간 이동도 제한해야 한다면 해당 경로에 집행 지점을 두고 정상 업무까지 시험합니다.</td></tr></tbody></table></div>
+<div class="quiz" id="s10-applied-quiz"><div class="qh">이해 확인 · 자작 상황 문제</div>
+<p>한 VPC에 여러 업무가 들어 있습니다. 한 업무의 서버에는 같은 업무 데이터베이스만 연결해야 합니다. 세분화 목표를 충족하는 설계는?</p><ol type="A"><li>VPC 외부 경계만 암호화한다</li><li>워크로드별 필요한 흐름을 정의하고 서비스 간 정책으로 검증한다</li><li>두 업무를 같은 관리 네트워크에 추가한다</li><li>외부 링크 용량을 늘린다</li></ol>
+<details class="ans"><summary>정답과 선택지별 해설 보기</summary><div><p><b>정답 B.</b></p><ul><li><b>A · 오답</b> VPC 내부 서비스 간 허용 흐름은 달라지지 않습니다.</li><li><b>B · 정답</b> 같은 VPC 안에서도 동서 방향 연결을 최소화할 수 있습니다.</li><li><b>C · 오답</b> 구획 사이의 접근을 줄인다는 근거가 없습니다.</li><li><b>D · 오답</b> 처리량은 인가 정책을 대신하지 않습니다.</li></ul><p><b>조건을 바꿔 보기.</b> 별도 물리 장비를 써야 하는 요구가 추가되면 논리 구획만으로 충족할 수 있는지 다시 판단합니다.</p></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="s11"><span class="n">12</span>엣지 네트워크</h2>
+<p>엣지는 <strong>내 네트워크가 남의 네트워크와 만나는 지점</strong>이다. 통제의 밀도가 가장 높아야 할 곳이고, 동시에 내 통제가 끝나는 곳이다.</p>
+<p><strong>인그레스와 이그레스</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>방향</th>
+<th>통제</th>
+<th>막는 것</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>인그레스</strong> Ingress (들어옴)</td>
+<td>출발지 주소 검증, 허용 서비스만 공개</td>
+<td>스푸핑, 불필요한 노출</td>
+</tr>
+<tr>
+<td><strong>이그레스</strong> Egress (나감)</td>
+<td><strong>아웃바운드 허용 목록</strong>, 프록시 경유 강제</td>
+<td><strong>C2 통신, 데이터 유출, 내부에서 출발하는 스푸핑</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>이그레스 필터링이 자주 간과된다.</strong> 대부분의 조직이 들어오는 것은 엄격히 막고 나가는 것은 전부 허용한다. 그러나 <strong>침해는 이미 안에서 시작되며</strong>, 공격자는 나가는 통로로 명령을 받고 데이터를 빼낸다.</p>
+<ul>
+<li><strong>인그레스 필터링(BCP 38)</strong> — 내 주소 대역이 아닌 출발지를 가진 들어오는 패킷을 버린다. 반대로 <strong>내 대역이 아닌 출발지로 나가는 패킷도 버린다.</strong> 이것이 전 세계적으로 적용되면 IP 스푸핑 기반 증폭 DDoS 가 크게 줄어든다. 즉 <strong>내 네트워크가 남을 공격하는 데 쓰이지 않게 하는 의무</strong>이기도 하다</li>
+<li>아웃바운드는 <strong>필요한 목적지·포트만</strong> 허용하는 것이 원칙이다. 최소한 DNS 와 HTTP(S) 는 내부 리졸버와 프록시를 경유하게 강제한다</li>
+</ul>
+<p><strong>피어링과 BGP</strong></p>
+<p><strong>피어링</strong>은 두 자율 시스템(AS)이 트래픽을 직접 교환하는 합의다. BGP 가 이 경로 정보를 주고받는다.</p>
+<p><strong>BGP 의 근본 문제는 신뢰 기반 설계</strong>다. 어떤 AS 가 "이 주소 대역은 내 것" 이라고 알리면 이웃은 기본적으로 믿는다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>위협</th>
+<th>설명</th>
+<th>영향</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>경로 하이재킹</strong> Prefix hijacking</td>
+<td>남의 주소 대역을 자기 것이라 광고</td>
+<td>트래픽이 공격자로 흘러 도청·차단</td>
+</tr>
+<tr>
+<td><strong>경로 누출</strong> Route leak</td>
+<td>받은 경로를 광고하면 안 될 쪽으로 전파</td>
+<td>대규모 우회·장애</td>
+</tr>
+<tr>
+<td>AS 경로 위조</td>
+<td>경로를 짧게 위조해 선택되게 만든다</td>
+<td>트래픽 유인</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>대응</strong></p>
+<ul>
+<li><strong>RPKI 와 ROA</strong> — 어떤 AS 가 어떤 대역을 광고할 권리가 있는지 암호학적으로 검증한다</li>
+<li><strong>경로 필터링과 최대 접두사 수 제한</strong> — 이웃이 비정상적으로 많은 경로를 광고하면 차단</li>
+<li>피어 인증(TCP-AO/MD5), 경로 모니터링</li>
+</ul>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> BGP 하이재킹은 <strong>암호화로 막을 수 없다.</strong> 트래픽이 암호화되어 있어도 경로가 공격자를 거치면 메타데이터 노출과 가용성 침해가 일어난다. 경로 자체의 진위를 검증하는 <strong>RPKI</strong> 가 답이다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 엣지 네트워크</div>
+<h2 id="s12"><span class="n">13</span>무선 네트워크</h2>
+<p><strong>Wi-Fi 보안 규격의 진화</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>규격</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WEP</td>
+<td><strong>파기</strong> — 즉시 해독 가능</td>
+</tr>
+<tr>
+<td>WPA (TKIP)</td>
+<td><strong>파기</strong></td>
+</tr>
+<tr>
+<td><strong>WPA2</strong> (AES-CCMP)</td>
+<td>광범위 사용. KRACK 취약점 존재</td>
+</tr>
+<tr>
+<td><strong>WPA3</strong></td>
+<td><strong>현행 권장</strong> — SAE 로 오프라인 사전 공격 방어</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>WPA3 의 SAE(Simultaneous Authentication of Equals)</strong> 는 WPA2-PSK 의 핸드셰이크 캡처 후 <strong>오프라인 사전 공격</strong>을 막는다. 또한 <strong>전방향 비밀성</strong>을 제공한다.</p>
+<p><strong>WPS 는 비활성화한다.</strong> PIN 무차별 대입에 취약하다.</p>
+<p><strong>기업 환경은 WPA2/3-Enterprise(802.1X)</strong> 를 쓴다. 공유 비밀번호 대신 <strong>개별 자격증명</strong>으로 인증한다(D5 참조).</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>구분</th>
+<th>Personal (PSK/SAE)</th>
+<th>Enterprise (802.1X)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>자격증명</td>
+<td><strong>모두가 같은 비밀번호</strong></td>
+<td><strong>사용자·장치별 개별 자격증명</strong></td>
+</tr>
+<tr>
+<td>인증 주체</td>
+<td>AP 자체</td>
+<td><strong>외부 인증 서버(RADIUS)</strong></td>
+</tr>
+<tr>
+<td>퇴직자 처리</td>
+<td><strong>전원 비밀번호 변경</strong> 필요</td>
+<td>해당 계정만 폐기</td>
+</tr>
+<tr>
+<td>책임 추적</td>
+<td>누가 접속했는지 모름</td>
+<td><strong>개인 단위 추적 가능</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>공유 비밀번호의 근본 문제는 폐기 불가능성</strong>이다. 한 명이 떠나도 전체를 바꿔야 하므로 실제로는 바꾸지 않고, 결국 비밀번호가 영구히 유통된다.</p>
+<p><strong>EAP 방식 — 802.1X 안에서 무엇으로 인증하는가</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>방식</th>
+<th>특징</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>EAP-TLS</strong></td>
+<td><strong>양쪽 모두 인증서.</strong> 가장 강하고 비밀번호가 없다</td>
+</tr>
+<tr>
+<td><strong>PEAP / EAP-TTLS</strong></td>
+<td>TLS 터널 안에서 비밀번호 인증. 서버 인증서만 필요</td>
+</tr>
+<tr>
+<td>EAP-MD5</td>
+<td><strong>사용 금지</strong> — 상호 인증 없고 약하다</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>터널형(PEAP 등)에서 반드시 서버 인증서를 검증해야 한다.</strong> 검증하지 않으면 가짜 AP 가 터널을 끝내고 <strong>자격증명을 그대로 받는다.</strong> 이것이 기업 무선에서 가장 흔한 설정 실수다.</p>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> "무선에서 가장 강한 인증" 을 묻는다면 <strong>EAP-TLS(상호 인증서)</strong> 다. "WPA2-PSK 의 한계" 를 묻는다면 <strong>공유 비밀번호와 오프라인 사전 공격</strong>이고, 그 답이 <strong>WPA3 의 SAE</strong> 다.</p></div>
+<p><strong>대표 무선 공격</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>공격</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>악성 쌍둥이(Evil Twin)</strong></td>
+<td>정상 AP 를 사칭한 가짜 AP</td>
+</tr>
+<tr>
+<td><strong>불량 AP(Rogue AP)</strong></td>
+<td>내부에 몰래 설치된 AP</td>
+</tr>
+<tr>
+<td>디어소시에이션</td>
+<td>연결 강제 해제 후 재접속 유도</td>
+</tr>
+<tr>
+<td>워드라이빙</td>
+<td>이동하며 AP 탐색</td>
+</tr>
+<tr>
+<td>재밍</td>
+<td>전파 방해(가용성)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>다른 무선 기술</strong></p>
+<ul>
+<li><strong>Bluetooth</strong> — 블루재킹(메시지 전송), 블루스나핑(데이터 탈취). 페어링 보안, 비발견 모드</li>
+<li><strong>Zigbee</strong> — IoT 저전력. 기본 키 사용 문제(<a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a> 참조)</li>
+<li><strong>위성</strong> — 긴 지연, 광범위 커버리지. 암호화 필수</li>
+</ul>
+<div class="src">원문 위치 · D4.1.md §3 무선 네트워크</div>
+<h2 id="s13"><span class="n">14</span>셀룰러 네트워크</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>세대</th>
+<th>보안 특징</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4G/LTE</td>
+<td>상호 인증 도입</td>
+</tr>
+<tr>
+<td><strong>5G</strong></td>
+<td>더 강한 암호화, <strong>네트워크 슬라이싱</strong>, 엣지 컴퓨팅</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>세대별로 무엇이 달라졌는가</strong></p>
+<ul>
+<li><strong>2G/3G 는 단방향 인증</strong>이었다. 네트워크가 단말을 인증했지만 <strong>단말은 네트워크를 인증하지 않았다.</strong> 그래서 가짜 기지국(IMSI 캐처, 스팅레이)이 단말을 끌어올 수 있었다</li>
+<li><strong>4G/LTE 가 상호 인증을 도입</strong>해 이 문제를 줄였다. 다만 하위 세대로 <strong>강제 다운그레이드</strong>시키는 공격은 남는다</li>
+<li><strong>5G 는 암호화를 강화하고 가입자 식별자(SUPI)를 암호화</strong>해 IMSI 노출을 줄였다</li>
+</ul>
+<div class="box warn"><p><span class="tag">확인 필요</span>원본은 2G/3G를 단방향 인증, 4G를 상호 인증의 시작으로 적었지만, 3GPP TS 33.102(3G 보안 구조)는 UMTS AKA가 사용자와 네트워크의 상호 인증을 달성한다고 명시합니다. 단방향 인증은 2G(GSM)의 특징이며, 가짜 기지국이 3G·4G 단말을 2G로 끌어내리는 다운그레이드 공격이 그래서 의미를 가집니다. 시험 관점의 핵심(구세대의 단방향 인증 → 가짜 기지국, 다운그레이드 위험, 종단 간 암호화)은 같습니다.</p></div>
+<p><strong>5G 네트워크 슬라이싱</strong> — 하나의 물리 인프라를 논리적으로 분할해 용도별로 격리한다. 긴급 통신, 산업 제어, 일반 소비자 트래픽이 같은 물리망 위에서 서로 다른 품질과 격리 수준을 갖는다.</p>
+<p><strong>슬라이스 간 격리가 보안 요구사항</strong>이 된다. 이는 가상화의 격리 문제와 같은 구조다 — 공유 인프라에서 한 테넌트가 다른 테넌트에 영향을 주면 안 된다(D3.5 의 멀티테넌시와 같은 논리다).</p>
+<p><strong>엣지 컴퓨팅(MEC)</strong> 도 5G 와 함께 온다. 처리를 기지국 가까이 옮겨 지연을 줄이는데, <strong>데이터와 연산이 중앙 데이터센터 밖으로 나가므로</strong> 물리 보안과 자산 관리 범위가 넓어진다.</p>
+<p><strong>주의</strong>: 모바일 네트워크를 신뢰하지 않고 <strong>종단 간 암호화</strong>를 적용하는 것이 원칙이다. 통신사 구간을 내가 통제할 수 없고, 다운그레이드 공격과 가짜 기지국의 가능성이 남아 있기 때문이다. 이것은 <strong>"전송 구간을 신뢰하지 않는다"</strong> 는 제로 트러스트 원칙의 적용이다.</p>
+<div class="src">원문 위치 · D4.1.md §3 셀룰러 네트워크</div>
+<h2 id="s14"><span class="n">15</span>CDN — 콘텐츠 전송 네트워크</h2>
+<p>콘텐츠를 사용자 가까운 <strong>엣지에 캐시</strong>한다.</p>
+<p><strong>보안 효과</strong></p>
+<ul>
+<li><strong>DDoS 흡수</strong> — 분산된 용량으로 공격 트래픽 분산</li>
+<li>오리진 서버 <strong>은폐</strong></li>
+<li>WAF 통합 제공</li>
+</ul>
+<p><strong>CDN 이 DDoS 를 흡수하는 원리</strong>는 애니캐스트와 분산 용량이다. 같은 주소를 전 세계 엣지에 두면 공격 트래픽이 <strong>발신지에 가까운 노드로 흩어진다.</strong> 한 곳에 모이지 않으므로 포화시키려면 전 세계 엣지 용량의 총합을 넘겨야 한다.</p>
+<p><strong>보안 고려</strong></p>
+<ul>
+<li>캐시에 <strong>민감 데이터가 남지 않도록</strong> 캐시 정책 관리. 인증이 필요한 응답이 캐시되어 <strong>다른 사용자에게 제공되는 사고</strong>가 실제로 발생한다. <code>Cache-Control: private/no-store</code> 와 사용자별 응답의 캐시 키 설계가 중요하다</li>
+<li><strong>오리진 접근을 CDN 으로만 제한</strong> — 오리진 IP 가 알려지면 공격자가 CDN 을 건너뛰고 직접 때린다. CDN 도입의 효과가 사라지므로 오리진 방화벽에서 CDN 대역만 허용한다</li>
+<li><strong>TLS 종단 지점</strong> — CDN 에서 복호화되는 구간의 신뢰. CDN 사업자가 평문을 보게 되므로 <strong>제3자 위탁의 문제</strong>가 된다(D1.11·D2 참조). 민감 데이터는 CDN 에서 오리진까지 재암호화하거나, CDN 을 경유하지 않도록 설계한다</li>
+<li><strong>캐시 포이즈닝</strong> — 조작된 요청으로 잘못된 응답을 캐시에 심어 다수 사용자에게 배포시키는 공격</li>
+</ul>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> CDN 은 <strong>가용성(DDoS 흡수)과 성능</strong>에 기여하는 통제이면서, 동시에 <strong>TLS 복호화 지점을 외부 사업자에게 넘기는</strong> 위험을 들여온다. 두 면을 함께 따져야 한다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 CDN — 콘텐츠 전송 네트워크</div>
+<h2 id="s15"><span class="n">16</span>SDN / NFV / SD-WAN</h2>
+<p><strong>SDN (Software-Defined Networking)</strong> — <strong>제어 평면과 데이터 평면을 분리</strong>하고 중앙 컨트롤러가 제어한다.</p>
+<ul>
+<li>장점: 중앙 집중 정책, 자동화, 신속한 변경</li>
+<li><strong>위험: 컨트롤러가 단일 장애점이자 최우선 공격 목표</strong>다. 컨트롤러 침해 = 네트워크 전체 장악</li>
+<li>노스바운드/사우스바운드 <strong>API 보안</strong>이 핵심</li>
+</ul>
+<p><strong>SDN 의 보안이 양면적인 이유.</strong> 중앙 컨트롤러는 <strong>통제를 강화하는 수단이면서 집중된 위험</strong>이다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>측면</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>얻는 것</td>
+<td>전체 네트워크에 <strong>일관된 정책을 즉시</strong> 적용. 수동 설정 오류가 줄고, 마이크로세그멘테이션 같은 세밀한 정책이 실현 가능해진다</td>
+</tr>
+<tr>
+<td><strong>잃는 것</strong></td>
+<td><strong>컨트롤러 한 곳이 네트워크 전체의 장악 지점</strong>이 된다. 침해되면 모든 경로를 공격자가 정한다</td>
+</tr>
+</tbody>
+</table></div>
+<p>따라서 SDN 환경의 보안은 <strong>컨트롤러 보호에 집중</strong>된다.</p>
+<ul>
+<li>컨트롤러 접근을 <strong>대역 외 관리망</strong>으로 제한하고 강한 인증(MFA)과 권한 분리 적용</li>
+<li><strong>노스바운드 API</strong>(애플리케이션 ↔ 컨트롤러)와 <strong>사우스바운드 API</strong>(컨트롤러 ↔ 장비) 모두 인증·암호화. 사우스바운드가 위조되면 가짜 정책이 장비에 내려간다</li>
+<li><strong>컨트롤러 이중화</strong> — 단일 장애점 해소</li>
+<li>정책 변경 <strong>감사 로그</strong>와 승인 절차 (변경 관리, D7 참조)</li>
+</ul>
+<p><strong>NFV (Network Function Virtualization)</strong> — 방화벽·로드밸런서 같은 네트워크 기능을 <strong>전용 하드웨어 대신 소프트웨어로</strong> 구현한다. 필요할 때 생성하고 폐기할 수 있어 유연하지만, <strong>네트워크 기능이 가상화 플랫폼의 취약점을 그대로 물려받는다.</strong> 하이퍼바이저가 뚫리면 그 위의 방화벽도 무력화된다(D3.4 의 Ring -1 논리와 같다).</p>
+<p><strong>SD-WAN</strong> — 지점 간 WAN 을 소프트웨어로 제어한다. 전용선(MPLS) 대신 인터넷 회선을 쓰면서 <strong>암호화 터널과 경로 선택을 자동화</strong>해 비용을 낮춘다. <strong>SASE 의 네트워크 구성요소</strong>다(<a class="xr" href="D3.1.html">D3.1 안전한 설계 원칙</a> 참조).</p>
+<ul>
+<li>공용 인터넷을 쓰므로 <strong>구간 암호화가 필수</strong>다</li>
+<li>중앙 오케스트레이터가 SDN 컨트롤러와 같은 집중 위험을 갖는다</li>
+</ul>
+<div class="box add"><p><span class="tag">보충</span>정책을 정하는 제어 영역, 트래픽을 전달하는 영역, 설정과 운영을 담당하는 관리 영역은 서로 다른 종류의 접근이 필요합니다. 예를 들어 사용자의 업무 통신이 전달되더라도 장비 설정을 바꿀 권한까지 얻어서는 안 됩니다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 SDN / NFV / SD-WAN</div>
+<h2 id="s16"><span class="n">17</span>VPC — 가상 사설 클라우드</h2>
+<p>클라우드 내 <strong>논리적으로 격리된 네트워크 공간</strong>이다.</p>
+<p>온프레미스의 네트워크 설계를 클라우드에서 다시 하는 자리이며, <strong>구성요소의 이름과 성격이 다릅니다.</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>구성요소</th>
+<th>적용 단위 / 상태 추적</th>
+<th>규칙</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>보안 그룹</strong> Security Group</td>
+<td><strong>인스턴스(ENI)</strong> · <strong>상태 기반</strong> Stateful</td>
+<td>허용 규칙만. 응답 트래픽은 자동 허용</td>
+</tr>
+<tr>
+<td><strong>네트워크 ACL</strong></td>
+<td><strong>서브넷</strong> · <strong>무상태</strong> Stateless</td>
+<td>허용·거부 모두. <strong>양방향 규칙을 각각</strong> 써야 한다</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>AWS VPC에서 무상태라는 뜻</strong>. 서브넷 네트워크 ACL에서 들어오는 웹 요청을 허용해도 응답 방향은 별도로 평가된다. 요청을 받은 서비스의 포트와 응답을 받는 클라이언트의 임시 포트는 다르다. 보안 그룹은 허용된 연결의 응답을 상태에 따라 허용한다. <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html">AWS VPC 네트워크 ACL</a></p>
+<p><strong>서브넷 설계</strong></p>
+<ul>
+<li><strong>공개 서브넷</strong> — 인터넷 게이트웨이로 가는 경로가 있다. 로드밸런서·베스천만 둔다</li>
+<li><strong>사설 서브넷</strong> — 인터넷에서 직접 닿을 수 없다. 애플리케이션·데이터베이스를 둔다</li>
+<li>사설 서브넷의 아웃바운드는 <strong>NAT 게이트웨이</strong>를 거친다. 나가는 것은 되지만 들어오는 것은 안 되는 구조다</li>
+<li><strong>"공개/사설" 을 가르는 것은 서브넷 이름이 아니라 라우팅 테이블</strong>이다</li>
+</ul>
+<p><strong>연결 수단</strong></p>
+<ul>
+<li><strong>VPC 피어링</strong> — 두 VPC 를 직접 연결. 전이적(transitive)이지 않다. A-B, B-C 가 있어도 A-C 는 통신할 수 없다</li>
+<li><strong>VPC 엔드포인트 / 프라이빗 링크</strong> — 클라우드 관리형 서비스(스토리지 등)를 <strong>공용 인터넷을 거치지 않고</strong> 호출한다. 트래픽이 외부로 나가지 않으므로 노출 면적이 줄어든다</li>
+<li>전용 연결(Direct Connect 류) — 온프레미스와 전용 회선으로 연결</li>
+</ul>
+<p><strong>흔한 실수</strong>: 보안 그룹을 <code>0.0.0.0/0</code> 으로 열어 두는 것. 클라우드 침해의 대표 원인이다(<a class="xr" href="D3.5.html">D3.5 아키텍처별 취약점</a> 참조). 특히 <strong>데이터베이스 포트(3306, 5432, 27017)와 관리 포트(22, 3389)</strong> 의 전체 개방이 전형적이다.</p>
+<p><strong>흐름 로그(VPC Flow Logs)</strong> 를 켜 두는 것이 중요하다. 클라우드에서는 물리 탭을 설치할 수 없으므로 <strong>흐름 로그가 네트워크 가시성의 사실상 유일한 수단</strong>이고, 사고 조사 때 켜져 있지 않으면 되돌릴 방법이 없다.</p>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong> 보안 그룹(인스턴스·상태 기반·허용만) vs 네트워크 ACL(서브넷·무상태·허용과 거부).</strong> 두 통제의 범위와 응답 트래픽을 평가하는 방식을 구분한다. <strong>둘은 대체재가 아니라 계층적으로 함께</strong> 쓰는 것이고, 심층 방어의 클라우드 구현이다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 VPC — 가상 사설 클라우드</div>
+<h2 id="s17"><span class="n">18</span>모니터링과 관리</h2>
+<p>공식 세부 항목이 <strong>관측 가능성, 트래픽 흐름·셰이핑, 용량 관리, 장애 탐지와 처리</strong> 네 가지를 명시한다. 이 항목은 <strong>가용성(CIA 의 A)이 네트워크에서 어떻게 구현되는가</strong>를 묻는 자리다.</p>
+<p><strong>관측 가능성 (Observability)</strong></p>
+<p>모니터링이 "미리 정한 지표를 보는 것" 이라면, 관측 가능성은 <strong>예상하지 못한 질문에도 답할 수 있는 상태</strong>다. 세 가지 축으로 구성된다.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>축</th>
+<th>무엇</th>
+<th>보안 용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>로그</strong> Logs</td>
+<td>개별 사건 기록</td>
+<td>사고 조사의 1차 증거</td>
+</tr>
+<tr>
+<td><strong>메트릭</strong> Metrics</td>
+<td>수치의 시계열</td>
+<td>이상 징후 조기 탐지</td>
+</tr>
+<tr>
+<td><strong>추적</strong> Traces</td>
+<td>요청이 지나간 경로</td>
+<td>영향 범위 파악</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>네트워크 흐름 데이터(NetFlow, IPFIX, sFlow)</strong> 가 특히 중요하다. 패킷 전체를 저장하지 않고 <strong>"누가 누구와 언제 얼마나 통신했는가"</strong> 만 기록하므로 비용이 낮고 장기 보관이 가능하다.</p>
+<ul>
+<li><strong>암호화된 트래픽도 흐름 분석은 가능하다.</strong> 내용을 못 봐도 <strong>통신 상대와 패턴</strong>은 보인다. 평소에 없던 외부 IP 와 주기적으로 소량 통신하는 호스트는 C2 의 전형적 신호다</li>
+<li>사고 조사에서 <strong>"언제부터 침해됐나"</strong> 를 답하는 것이 흐름 데이터다</li>
+</ul>
+<p><strong>시간 동기화(NTP)가 전제 조건이다.</strong> 장비 간 시계가 틀리면 로그 상관분석이 불가능하고, 법적 증거로서의 가치도 떨어진다(D3.5·D7 참조).</p>
+<p><strong>트래픽 흐름과 셰이핑 (QoS)</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>수단</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>분류와 표시</strong></td>
+<td>트래픽을 등급으로 나눈다</td>
+</tr>
+<tr>
+<td><strong>셰이핑</strong> Shaping</td>
+<td>초과분을 <strong>버퍼에 담아 지연</strong>시켜 평탄화</td>
+</tr>
+<tr>
+<td><strong>폴리싱</strong> Policing</td>
+<td>초과분을 <strong>즉시 폐기</strong></td>
+</tr>
+<tr>
+<td><strong>우선순위 큐</strong></td>
+<td>지연에 민감한 트래픽(VoIP)을 먼저 보낸다</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>QoS 는 가용성 통제다.</strong> 회선이 포화됐을 때 무엇을 먼저 버릴지 미리 정해두는 것이고, 정하지 않으면 장애 시 <strong>가장 중요한 트래픽이 먼저 죽는다.</strong></p>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong></strong> QoS 자체가 DDoS 대응은 아니지만, <strong>중요 서비스의 최소 품질을 보장</strong>해 공격 중에도 핵심 기능이 살아남게 한다. 셰이핑(지연)과 폴리싱(폐기)의 차이를 구분한다.</p></div>
+<p><strong>용량 관리 (Capacity Management)</strong></p>
+<p>가용성은 <strong>설계 단계에서 결정된다.</strong> 용량이 부족하면 평시에는 느리고 공격 시에는 즉시 무너진다.</p>
+<ul>
+<li>기준선(baseline)을 측정해 <strong>정상 범위를 알아야</strong> 이상을 탐지할 수 있다</li>
+<li>성장 추세를 반영한 <strong>증설 계획</strong> — 사후 대응은 이미 장애다</li>
+<li><strong>임계치 경보</strong>를 포화 전에 설정한다</li>
+</ul>
+<p><strong>장애 탐지와 처리 (Fault Detection and Handling)</strong></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>수단</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>이중화</strong> Redundancy</td>
+<td>장비·회선·경로를 둘 이상 (D7 가용성 참조)</td>
+</tr>
+<tr>
+<td><strong>헬스 체크와 자동 전환</strong> Failover</td>
+<td>장애를 감지해 예비 경로로 전환</td>
+</tr>
+<tr>
+<td><strong>단일 장애점 제거</strong></td>
+<td>한 지점 고장이 전체를 멈추지 않게</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>이중화는 "있다" 가 아니라 "검증했다" 여야 한다.</strong> 전환이 실제로 동작하는지 시험하지 않은 이중화는 장애 때 작동하지 않는 경우가 흔하다(D7 의 DR 시험과 같은 원리다).</p>
+<div class="box exam"><p><span class="tag">판단 기준</span><strong> 모니터링은 탐지 통제(detective control)</strong> 다. 공격을 막지는 않지만, <strong>탐지 없이는 대응도 복구도 불가능</strong>하다. "사고를 먼저 알 수 있게 하는 것" 이 이 항목의 보안적 가치다.</p></div>
+<div class="src">원문 위치 · D4.1.md §3 모니터링과 관리</div>
+<h2 id="compare"><span class="n">19</span>유사 개념 비교</h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>IPSec</th>
+<th>기밀성</th>
+<th>무결성·인증</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AH</strong></td>
+<td><strong>없음</strong></td>
+<td>있음</td>
+</tr>
+<tr>
+<td><strong>ESP</strong></td>
+<td><strong>있음</strong></td>
+<td>있음</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>트래픽</th>
+<th>통제 주체</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>남북</td>
+<td>경계 방화벽</td>
+</tr>
+<tr>
+<td><strong>동서</strong></td>
+<td><strong>마이크로세그멘테이션</strong></td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>세그멘테이션</th>
+<th>단위</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>물리</td>
+<td>별도 회선·에어갭</td>
+</tr>
+<tr>
+<td>논리(VLAN)</td>
+<td>브로드캐스트 도메인</td>
+</tr>
+<tr>
+<td><strong>마이크로</strong></td>
+<td><strong>워크로드</strong></td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>지표</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>대역폭</td>
+<td>이론 최대</td>
+</tr>
+<tr>
+<td>처리량</td>
+<td>실제 전송량</td>
+</tr>
+<tr>
+<td>지터</td>
+<td>지연의 변동</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>전달 방식</th>
+<th>받는 대상</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>유니캐스트</td>
+<td>하나</td>
+</tr>
+<tr>
+<td>브로드캐스트</td>
+<td><strong>세그먼트 전체</strong> (IPv6 에 없음)</td>
+</tr>
+<tr>
+<td>멀티캐스트</td>
+<td>가입한 그룹</td>
+</tr>
+<tr>
+<td><strong>애니캐스트</strong></td>
+<td><strong>가장 가까운 하나</strong></td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>클라우드 필터</th>
+<th>단위 · 상태</th>
+<th>규칙</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>보안 그룹</strong></td>
+<td>인스턴스 · <strong>상태 기반</strong></td>
+<td>허용만</td>
+</tr>
+<tr>
+<td><strong>네트워크 ACL</strong></td>
+<td>서브넷 · <strong>무상태</strong></td>
+<td>허용·거부</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>VLAN 호핑</th>
+<th>원리</th>
+<th>대응</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>스위치 스푸핑</td>
+<td>트렁크 협상 흉내</td>
+<td>협상 비활성화</td>
+</tr>
+<tr>
+<td><strong>이중 태깅</strong></td>
+<td><strong>태그 2개</strong></td>
+<td><strong>네이티브 VLAN 변경</strong></td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>무선 인증</th>
+<th>자격증명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Personal (PSK/SAE)</td>
+<td><strong>전원 공유</strong></td>
+</tr>
+<tr>
+<td><strong>Enterprise (802.1X)</strong></td>
+<td><strong>개별</strong></td>
+</tr>
+<tr>
+<td><strong>EAP-TLS</strong></td>
+<td><strong>양쪽 인증서</strong></td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>QoS 수단</th>
+<th>초과 트래픽</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>셰이핑</strong></td>
+<td>버퍼에 담아 <strong>지연</strong></td>
+</tr>
+<tr>
+<td><strong>폴리싱</strong></td>
+<td><strong>즉시 폐기</strong></td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>계층</th>
+<th>IPSec vs TLS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>IPSec</strong></td>
+<td><strong>3계층.</strong> 애플리케이션 수정 불필요</td>
+</tr>
+<tr>
+<td><strong>TLS</strong></td>
+<td><strong>4계층 위.</strong> 애플리케이션이 호출</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>DDoS 유형</th>
+<th>겨냥</th>
+<th>막는 곳</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>볼류메트릭</td>
+<td>대역폭</td>
+<td><strong>회선 앞단(ISP·CDN)</strong></td>
+</tr>
+<tr>
+<td>자원 소진</td>
+<td>처리량</td>
+<td>장비 설정</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>토폴로지</th>
+<th>가용성</th>
+<th>통제</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>버스·링</td>
+<td>낮음</td>
+<td>도청 쉬움</td>
+</tr>
+<tr>
+<td>스타</td>
+<td>중앙이 단일 장애점</td>
+<td><strong>쉬움</strong></td>
+</tr>
+<tr>
+<td><strong>메시</strong></td>
+<td><strong>높음</strong></td>
+<td>복잡</td>
+</tr>
+</tbody>
+</table></div>
+<div class="src">원문 위치 · D4.1.md §5 유사 개념 비교</div>
+<h2 id="cases"><span class="n">20</span>실무 적용 사례</h2>
+<p><strong>사례 1 — 듀얼 스택의 열린 뒷문</strong></p>
+<p>방화벽 정책이 IPv4 기준으로만 작성되어 있었다. 서버가 IPv6 를 기본 활성화한 상태로 배포되었고, <strong>IPv6 주소로는 관리 포트가 그대로 열려 있었다.</strong></p>
+<p><strong>IPv4 와 IPv6 는 동등한 통제를 받아야 한다.</strong> 사용하지 않으면 비활성화하는 것이 안전하다.</p>
+<p><strong>사례 2 — DNS 터널링으로 빠져나간 데이터</strong></p>
+<p>방화벽이 아웃바운드를 엄격히 제한했지만 <strong>DNS 는 허용</strong>되어 있었다. 공격자가 데이터를 DNS 질의에 인코딩해 조금씩 유출했다.</p>
+<p><strong>다계층 프로토콜의 캡슐화</strong>를 이용한 은닉 채널이다. DNS 질의 패턴 모니터링과 내부 DNS 리졸버 강제 경유로 대응했다.</p>
+<p><strong>사례 3 — 평문 iSCSI</strong></p>
+<p>스토리지 트래픽이 업무 VLAN 과 같은 네트워크에서 <strong>인증과 암호화 없이</strong> 흐르고 있었다. 내부 침해자가 스토리지 트래픽을 캡처해 데이터베이스 파일 내용을 복원했다.</p>
+<p><strong>전용망을 전제로 설계된 프로토콜</strong>이 공용 경로에 올라온 전형적 사례다. 전용 VLAN 분리와 CHAP 인증, 암호화를 적용했다.</p>
+<p><strong>사례 4 — 경계는 지켰지만 내부는 무방비</strong></p>
+<p>경계 방화벽은 견고했으나 <strong>데이터센터 내부 서버 간 통신에는 제한이 없었다.</strong> 웹 서버 한 대가 침해되자 공격자가 데이터베이스, 백업 서버, 도메인 컨트롤러로 자유롭게 이동했다.</p>
+<p><strong>동서 트래픽 통제 부재</strong>가 원인이다. 마이크로세그멘테이션을 도입해 워크로드 간 필요한 통신만 허용하도록 바꿨다.</p>
+<p><strong>사례 5 — 관리 평면이 노출된 스위치</strong></p>
+<p>네트워크 스위치의 관리 인터페이스가 업무 VLAN 에서 접근 가능했다. 침해된 사용자 PC 에서 <strong>스위치 관리자 로그인 시도</strong>가 가능했다.</p>
+<p><strong>관리 평면은 대역 외로 분리</strong>해야 한다. 전용 관리 VLAN 과 별도 접근 경로로 변경했다.</p>
+<p><strong>사례 6 — 열린 보안 그룹</strong></p>
+<p>클라우드 데이터베이스 인스턴스의 보안 그룹이 <code>0.0.0.0/0</code> 으로 3306 포트를 허용하고 있었다. 외부에서 직접 접근이 가능했다.</p>
+<p><strong>클라우드 침해의 대표 원인</strong>이다. 보안 그룹을 애플리케이션 서버 그룹으로만 제한하고, 정책 코드화로 사전 차단했다(<a class="xr" href="D2.3.html">D2.3 안전한 프로비저닝</a> 참조).</p>
+<p><strong>사례 7 — 이중 태깅으로 넘어간 VLAN</strong></p>
+<p>사용자 VLAN 과 서버 VLAN 을 분리해 두었으나 <strong>트렁크의 네이티브 VLAN 이 기본값(VLAN 1)</strong> 이었고 사용자 포트도 VLAN 1 에 있었다. 공격자가 바깥 태그를 VLAN 1, 안쪽 태그를 서버 VLAN 으로 지정한 프레임을 보내자 첫 스위치가 바깥 태그를 떼면서 <strong>서버 VLAN 으로 프레임이 전달</strong>되었다.</p>
+<p><strong>VLAN 은 보안 경계가 아니다</strong>를 보여주는 전형적 사례다. 네이티브 VLAN 을 사용하지 않는 번호로 바꾸고, 민감 구간은 방화벽이 있는 라우팅 경계로 올렸다.</p>
+<p><strong>사례 8 — 검증하지 않은 서버 인증서</strong></p>
+<p>기업 무선을 WPA2-Enterprise(PEAP)로 운영했지만 <strong>단말 프로파일에서 서버 인증서 검증이 꺼져</strong> 있었다. 공격자가 같은 SSID 의 가짜 AP 와 가짜 RADIUS 를 세우자 단말이 그대로 접속해 <strong>사용자 자격증명이 공격자에게 전달</strong>되었다.</p>
+<p><strong>802.1X 를 쓴다는 사실만으로 안전해지지 않는다.</strong> 터널형 EAP 에서는 <strong>서버 인증서 검증이 보안의 전부</strong>다. 검증을 강제하고 신뢰 CA 를 고정했으며, 장기적으로 EAP-TLS 로 전환했다.</p>
+<p><strong>사례 9 — 무상태 ACL 때문에 끊긴 응답</strong></p>
+<p>클라우드에서 네트워크 ACL 로 인바운드 443 만 허용했는데 <strong>서비스가 동작하지 않았다.</strong> 네트워크 ACL 은 무상태이므로 <strong>응답이 나가는 아웃바운드 임시 포트 범위가 막혀</strong> 있었던 것이다.</p>
+<p>보안 그룹(상태 기반)에만 익숙하면 겪는 전형적 혼동이다. <strong>상태 추적 여부가 설정 방식을 바꾼다</strong>는 점을 이해해야 한다.</p>
+<p><strong>사례 10 — 꺼져 있던 흐름 로그</strong></p>
+<p>침해 사고 조사에서 <strong>어떤 내부 서버가 외부와 통신했는지 확인할 수 없었다.</strong> VPC 흐름 로그가 비활성화 상태였고, 클라우드에는 물리 탭을 설치할 수 없어 과거 트래픽을 되살릴 방법이 없었다.</p>
+<p><strong>가시성은 사고 전에 켜 두어야만 존재한다.</strong> 흐름 로그를 전 VPC 에 활성화하고 중앙 로그 저장소로 보내 보존 기간을 정했다(D7 참조).</p>
+<div class="src">원문 위치 · D4.1.md §7 실무 적용 사례</div>
+<h2 id="practice"><span class="n">21</span>이해 확인</h2>
+<div class="quiz" id="question-2"><div class="qh">새 상황 문제</div><div class="box ex"><p><span class="tag">가상 예시</span>운영망과 방문자 무선망이 같은 내부 시스템에 도달합니다. 어떻게 요구사항을 정할까요?</p></div><details class="ans"><summary>판단 순서와 해설 보기</summary><div><div class="box think"><p><span class="tag">판단 순서</span></p><ol><li>방문자와 운영 기기의 허용 목적지를 구분합니다.</li><li>망을 분리하고 필요한 통신만 경계를 통과하게 한 뒤 차단과 허용 경로를 검증합니다.</li></ol></div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-3"><div class="qh">원본 연습문제 · D4.1-Q01</div>
+<p>설계자가 IPSec 으로 보호되는 트래픽에 기밀성과 무결성을 모두 요구한다. 반드시 사용해야 할 구성요소는?</p><ol type="A"><li>둘 다 동일하게 트래픽을 암호화하므로 AH 또는 ESP 어느 쪽이든.</li><li>두 서비스를 모두 제공하므로 인증 헤더(AH).</li><li>모든 페이로드를 암호화하는 인터넷 키 교환(IKE) 단독.</li><li>AH 는 암호화를 제공하지 않으므로 캡슐화 보안 페이로드(ESP).</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> AH 는 무결성과 인증만 제공하고 암호화는 하지 않는다. 기밀성이 필요하면 ESP 를 사용해야 하며 ESP 는 암호화에 더해 무결성과 인증도 제공한다. IKE 는 키 교환과 보안 연관 협상을 담당하며 데이터 보호 자체를 수행하지 않는다.</p><ul><li>A · 두 구성요소의 제공 서비스가 다르다.</li><li>B · AH 는 암호화 기능이 없다.</li><li>C · IKE 는 키 교환 프로토콜이다.</li></ul><div class="src">원문 위치 · D4.1-Q01</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-4"><div class="qh">원본 연습문제 · D4.1-Q13</div>
+<p>서비스가 동작하려면 가용률 99.9%, 99.9%, 99.5%인 장비 세 대가 모두 정상이어야 한다. 장비 고장이 서로 독립이라고 가정한다. 종단 간 가용률은 대략 얼마이며 이것이 시사하는 바는?</p><ol type="A"><li>약 99.9%. 경로는 가장 좋은 구성요소만큼 좋다.</li><li>약 99.5%. 가장 약한 구성요소가 결과를 정확히 결정한다.</li><li>약 100%. 세 장비가 서로 이중화를 제공한다.</li><li>약 99.3%. 독립인 필수 구성요소의 가용률을 곱한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> 각 구성요소가 모두 작동해야 하고 장애가 서로 독립이면 경로의 가용률은 각 구성요소 가용률의 곱이다. 0.999 와 0.999, 0.995 를 곱하면 약 0.9930 으로 99.3% 다. 어떤 구성요소보다도 낮아지며 직렬 구성요소를 늘릴수록 가용률이 떨어진다는 점이 핵심이다. 이중화를 검토할 때는 공통 전원이나 회선 장애가 두 경로에 함께 영향을 주는지 확인한다. 공통 장애가 있으면 독립 가정을 그대로 사용하기 어렵다. <a href="https://docs.aws.amazon.com/whitepapers/latest/availability-and-beyond-improving-resilience/availability-with-dependencies.html">AWS 의존성 가용률 예시</a></p><ul><li>A · 최고 구성요소가 아니라 곱이 결과를 정한다.</li><li>B · 가장 약한 구성요소보다도 낮아진다.</li><li>C · 직렬 배치는 이중화가 아니다.</li></ul><div class="src">원문 위치 · D4.1-Q13</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-5"><div class="qh">원본 연습문제 · D4.1-Q26</div>
+<p>어떤 조직의 주소 범위로 향하는 트래픽이 잠시 무관한 자율 시스템을 경유해 전달되었다. 이를 설명하는 것과 완화 수단은?</p><ol type="A"><li>인터넷 교환 지점의 ARP 스푸핑이며 동적 ARP 검사로 완화된다.</li><li>내부 라우팅 루프이며 OSPF 비용값 조정으로 완화된다.</li><li>DNS 캐시 오염이며 DNSSEC 로 완화된다.</li><li>BGP 가 신뢰를 전제로 경로 광고를 수락하기 때문에 발생하는 BGP 경로 하이재킹이다. RPKI 경로 출처 검증, 피어와의 접두사 필터링, 예상치 못한 광고 모니터링으로 완화한다.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 D.</b> BGP 는 설계상 상대가 광고하는 경로를 신뢰한다. 다른 자율 시스템이 더 구체적인 접두사를 광고하면 트래픽이 그쪽으로 끌려간다. 실수로도 발생하고 의도적 가로채기에도 쓰인다. RPKI 로 경로 출처를 검증하고, 피어와 접두사 필터를 합의하고, 자사 접두사에 대한 예상 외 광고를 모니터링해야 한다.</p><ul><li>A · ARP 는 같은 2계층 세그먼트에서만 동작한다.</li><li>B · 내부 프로토콜 문제가 아니라 외부 경로 광고 문제다.</li><li>C · 이름 해석이 아니라 경로 선택 문제다.</li></ul><div class="src">원문 위치 · D4.1-Q26</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<div class="quiz" id="question-6"><div class="qh">원본 연습문제 · D4.1-Q38</div>
+<p>실시간 음성과 영상에 UDP 가 흔히 선택되는 이유는?</p><ol type="A"><li>UDP 가 기본적으로 페이로드를 암호화하므로.</li><li>UDP 가 전달 순서를 보장하므로.</li><li>연결 수립과 재전송의 지연을 피하므로. 실시간 미디어에서 늦게 도착한 패킷은 쓸모가 없으므로 전달 보장보다 낮은 지연이 선호된다.</li><li>UDP 가 TCP 보다 적은 포트 번호를 쓰므로.</li></ol>
+<details class="ans"><summary>정답과 해설 보기</summary><div><p><b>정답 C.</b> TCP 는 손실된 패킷을 재전송해 신뢰성을 주지만 그 재전송이 도착할 때쯤 그 음성 구간은 이미 지났다. 그래서 실시간 미디어는 약간의 손실을 감수하고 지연을 줄인다. UDP 는 암호화나 순서 보장을 제공하지 않으므로 보안이 필요하면 SRTP 처럼 상위에서 보호를 더한다.</p><ul><li>A · UDP 는 암호화를 제공하지 않는다.</li><li>B · 순서 보장은 TCP 의 특성이다.</li><li>D · 포트 번호 공간은 동일하다.</li></ul><div class="src">원문 위치 · D4.1-Q38</div></div></details><a class="question-back" href="#questions">문제 목록으로 돌아가기</a></div>
+<h2 id="recall"><span class="n">22</span>핵심 개념을 내 말로 설명하기</h2>
+<div class="quiz"><div class="qh">복습</div><p>네트워크 단원에서 계층·흐름·구획을 함께 보는 이유는 무엇인가요?</p><details class="ans"><summary>설명 확인하기</summary><div><p>계층은 통제가 보는 정보와 처리 위치를, 흐름은 누가 어디에 연결하는지를, 구획은 정책을 집행할 경계를 알려 줍니다. 암호화와 세그멘테이션을 선택할 때 같은 연결의 세 질문에 답합니다.</p></div></details></div>
+<h2 id="summary"><span class="n">23</span>핵심 요약</h2>
+<div class="box sum">
+<ol>
+<li><strong>OSI 7계층</strong>: 응용-표현-세션-전송-네트워크-데이터링크-물리 (<code>All People Seem To Need Data Processing</code>)</li>
+<li><strong>PDU: 세그먼트(4) / 패킷(3) / 프레임(2) / 비트(1)</strong></li>
+<li><strong>2계층 = ARP·MAC·스위치·VLAN</strong>, <strong>3계층 = IP·ICMP·라우터</strong></li>
+<li><strong>TCP/IP 4계층</strong>: 응용(5~7) / 전송(4) / 인터넷(3) / 링크(1~2)</li>
+<li><strong>IPSec: AH(암호화 없음) vs ESP(암호화 포함)</strong></li>
+<li><strong>전송 모드(페이로드) vs 터널 모드(IP 헤더 포함, VPN)</strong></li>
+<li>IPv6: <strong>128비트, 브로드캐스트 없음(멀티캐스트·애니캐스트), IPSec 내장</strong></li>
+<li><strong>듀얼 스택에서 IPv6 통제 누락</strong>이 흔한 공백</li>
+<li><strong>다계층 프로토콜 → 터널링·은닉 채널</strong>(DNS·ICMP·HTTP 터널링)</li>
+<li><strong>융합 프로토콜(iSCSI·VoIP·FCoE)은 전용망 전제</strong> — 인증·암호화 약함</li>
+<li><strong>평면 3종: 데이터(전달) / 제어(경로) / 관리(설정).</strong> 관리는 <strong>대역 외 분리</strong></li>
+<li><strong>Store-and-forward(검사 후 전달) vs Cut-through(즉시 전달)</strong></li>
+<li><strong>대역폭(이론) / 처리량(실제) / 지연 / 지터(변동) / SNR</strong></li>
+<li><strong>남북(외부↔DC) vs 동서(서버↔서버).</strong> 동서가 횡적 이동 경로</li>
+<li>세그멘테이션: <strong>물리(에어갭·대역외) / 논리(VLAN·VPN·VRF) / 마이크로(워크로드)</strong></li>
+<li><strong>VLAN 은 보안 경계가 아니다.</strong> VLAN 호핑 대응 필요</li>
+<li><strong>이그레스 필터링</strong>이 C2·유출 차단의 핵심</li>
+<li>무선: <strong>WEP·WPA 파기 → WPA2 → WPA3(SAE)</strong>, <strong>WPS 비활성화</strong>, 기업은 <strong>802.1X</strong></li>
+<li><strong>Evil Twin(사칭 AP) / Rogue AP(내부 무단 설치)</strong></li>
+<li><strong>5G 네트워크 슬라이싱 — 슬라이스 간 격리</strong>가 보안 요구</li>
+<li><strong>CDN 은 DDoS 흡수와 오리진 은폐</strong>, 캐시 민감정보 주의</li>
+<li><strong>SDN 컨트롤러 = 단일 장애점이자 최고 가치 표적</strong></li>
+<li><strong>VPC: 보안 그룹(인스턴스·상태 기반) / 네트워크 ACL(서브넷·무상태)</strong></li>
+<li><strong>0.0.0.0/0 개방이 클라우드 침해의 대표 원인</strong></li>
+<li><strong>전달 방식: 유니캐스트(1:1) / 브로드캐스트(세그먼트 전체·IPv6 없음) / 멀티캐스트(그룹) / 애니캐스트(가장 가까운 하나)</strong></li>
+<li><strong>애니캐스트 = DDoS 분산</strong>, <strong>브로드캐스트 = 증폭 공격 재료</strong>(스머프)</li>
+<li><strong>캡슐화: 통제는 볼 수 있는 계층까지만 판단</strong>한다. 암호화 지점이 검사 지점을 정한다</li>
+<li><strong>IPSec 3계층(앱 수정 불필요) vs TLS 4계층 위(앱이 호출)</strong></li>
+<li><strong>다운그레이드 대응 = 구버전 지원 제거</strong>. SSHv1·SSL·TLS 1.0/1.1 제거</li>
+<li><strong>SNMPv1/v2c 는 커뮤니티 스트링 평문</strong> — v3 를 쓴다</li>
+<li><strong>VLAN 호핑: 스위치 스푸핑(트렁크 협상) / 이중 태깅(태그 2개)</strong></li>
+<li><strong>이중 태깅 때문에 네이티브 VLAN 을 바꾼다</strong></li>
+<li><strong>MAC 플러딩 → 스위치가 허브처럼 된다(fail-open).</strong> 대응 = 포트 보안</li>
+<li><strong>BGP 하이재킹은 암호화로 못 막는다 → RPKI/ROA</strong></li>
+<li><strong>BCP 38 = 출발지 주소 검증.</strong> 남을 공격하는 데 쓰이지 않을 의무</li>
+<li><strong>융합 프로토콜의 첫 답은 분리</strong></li>
+<li><strong>터널링(DNS·ICMP·HTTP)은 허용된 포트를 쓴다 → DPI·프록시·아웃바운드 기본 거부</strong></li>
+<li><strong>에어갭의 현실적 위협 = 이동식 매체·내부자</strong></li>
+<li><strong>대역외 관리 = 침해 확산 차단 + 장애 시 접근 보장</strong></li>
+<li><strong>마이크로세그멘테이션은 IP 가 아니라 역할·태그로 정책</strong>을 쓴다. 관찰 → 검증 → 차단 순서</li>
+<li>무선: <strong>Personal(공유·폐기 불가) vs Enterprise(개별·802.1X)</strong>, <strong>최강은 EAP-TLS</strong></li>
+<li><strong>터널형 EAP(PEAP)는 서버 인증서 검증이 핵심.</strong> 끄면 자격증명이 넘어간다</li>
+<li><strong>토폴로지: 메시(가용성↑·통제 복잡) vs 스타(통제 쉬움·중앙 단일 장애점)</strong></li>
+<li><strong>셰이핑(버퍼·지연) vs 폴리싱(즉시 폐기)</strong></li>
+<li><strong>볼류메트릭 DDoS = 회선 앞단(ISP·CDN)에서만 차단.</strong> 자원 소진 = 장비 설정</li>
+<li><strong>보안 그룹(인스턴스·상태 기반·허용만) vs 네트워크 ACL(서브넷·무상태·허용+거부)</strong></li>
+<li><strong>무상태 ACL 은 응답용 임시 포트를 따로 허용</strong>해야 한다</li>
+<li><strong>VPC 피어링은 전이적이지 않다.</strong> 공개/사설은 <strong>라우팅 테이블</strong>이 가른다</li>
+<li><strong>흐름 로그(NetFlow·VPC Flow Logs)는 암호화 트래픽에서도 패턴이 보인다.</strong> 사고 전에 켜야 존재한다</li>
+<li><strong>5G: SUPI 암호화, 슬라이스 간 격리</strong>(상호 인증은 3G부터, 2G는 단방향)</li>
+</ol>
+</div>
+<div class="src">원문 위치 · D4.1.md §9 핵심 암기 요약</div>
+<h2 id="glossary"><span class="n">24</span>주요 용어 (Glossary)</h2>
+<details class="more" open=""><summary>영어 원어와 한국어 뜻 · English–Korean</summary><div><h3 id="glossary-1"><span lang="en">OSI Model</span> <span class="term-ko">· OSI 참조 모델</span></h3>
+<p>7계층 네트워크 참조 모델. 응용-표현-세션-전송-네트워크-데이터링크-물리.</p>
+<h3 id="glossary-2"><span lang="en">PDU — Protocol Data Unit</span> <span class="term-ko">· 프로토콜 데이터 단위</span></h3>
+<p>전송 계층은 세그먼트, 네트워크 계층은 패킷, 데이터링크 계층은 프레임, 물리 계층은 비트.</p>
+<h3 id="glossary-3"><span lang="en">AH / ESP — Authentication Header / Encapsulating Security Payload</span> <span class="term-ko">· 인증 헤더 / 캡슐화 보안 페이로드</span></h3>
+<p>IPSec 의 구성요소. AH 는 무결성·인증만 제공하고 암호화하지 않으며, ESP 는 암호화를 포함한다.</p>
+<h3 id="glossary-4"><span lang="en">Transport Mode / Tunnel Mode</span> <span class="term-ko">· 전송 모드 / 터널 모드</span></h3>
+<p>IPSec 모드. 전송 모드는 페이로드만, 터널 모드는 IP 헤더를 포함한 전체를 보호한다.</p>
+<h3 id="glossary-5"><span lang="en">Multilayer Protocol</span> <span class="term-ko">· 다계층 프로토콜</span></h3>
+<p>캡슐화로 계층을 쌓는 구조. 터널링과 은닉 채널의 기반이 된다.</p>
+<h3 id="glossary-6"><span lang="en">Converged Protocol</span> <span class="term-ko">· 융합 프로토콜</span></h3>
+<p>전용망 프로토콜을 IP 위에서 운반하는 것. iSCSI, VoIP, FCoE 가 해당한다.</p>
+<h3 id="glossary-7"><span lang="en">Data / Control / Management Plane</span> <span class="term-ko">· 데이터 평면 / 제어 평면 / 관리 평면</span></h3>
+<p>실제 트래픽 전달, 경로 결정, 장비 설정의 세 평면. 관리 평면은 분리해야 한다.</p>
+<h3 id="glossary-8"><span lang="en">Store-and-Forward / Cut-Through</span> <span class="term-ko">· 저장 후 전달 / 즉시 전달</span></h3>
+<p>프레임 전체를 받고 검사한 뒤 전달하는 방식과 목적지 주소만 읽고 즉시 전달하는 방식.</p>
+<h3 id="glossary-9"><span lang="en">Jitter</span> <span class="term-ko">· 지터</span></h3>
+<p>지연의 변동 폭. 실시간 통신 품질을 좌우한다.</p>
+<h3 id="glossary-10"><span lang="en">North-South / East-West Traffic</span> <span class="term-ko">· 남북 트래픽 / 동서 트래픽</span></h3>
+<p>외부와 데이터센터 간 트래픽과 내부 서버 간 트래픽. 동서 트래픽이 횡적 이동의 경로다.</p>
+<h3 id="glossary-11"><span lang="en">Air Gap</span> <span class="term-ko">· 에어갭</span></h3>
+<p>물리적으로 완전히 분리된 네트워크. 절대적이지는 않지만 공격 난이도를 크게 높인다.</p>
+<h3 id="glossary-12"><span lang="en">Out-of-Band Management</span> <span class="term-ko">· 대역 외 관리</span></h3>
+<p>업무 트래픽과 분리된 별도 경로로 장비를 관리하는 방식.</p>
+<h3 id="glossary-13"><span lang="en">VLAN / VRF — Virtual Local Area Network / Virtual Routing and Forwarding</span> <span class="term-ko">· 가상 LAN / 가상 라우팅 및 전달</span></h3>
+<p>2계층 논리 분리와 라우팅 테이블 분리.</p>
+<h3 id="glossary-14"><span lang="en">Micro-segmentation</span> <span class="term-ko">· 마이크로세그멘테이션</span></h3>
+<p>워크로드 단위로 통신을 제한하는 방식. 동서 트래픽 통제와 제로 트러스트의 핵심 수단이다.</p>
+<h3 id="glossary-15"><span lang="en">Egress Filtering</span> <span class="term-ko">· 이그레스 필터링</span></h3>
+<p>나가는 트래픽을 통제하는 것. C2 통신과 데이터 유출을 막는다.</p>
+<h3 id="glossary-16"><span lang="en">SAE — Simultaneous Authentication of Equals</span> <span class="term-ko">· 동등한 참여자의 동시 인증</span></h3>
+<p>WPA3 의 핸드셰이크 방식. 오프라인 사전 공격을 방어하고 전방향 비밀성을 제공한다.</p>
+<h3 id="glossary-17"><span lang="en">Evil Twin / Rogue AP</span> <span class="term-ko">· 정상 AP 사칭 / 비인가 AP</span></h3>
+<p>정상 AP 를 사칭한 가짜 AP 와 내부에 몰래 설치된 AP.</p>
+<h3 id="glossary-18"><span lang="en">Network Slicing</span> <span class="term-ko">· 네트워크 슬라이싱</span></h3>
+<p>5G 에서 물리 인프라를 논리적으로 분할해 용도별로 격리하는 기술.</p>
+<h3 id="glossary-19"><span lang="en">SDN / NFV / SD-WAN — Software-Defined Networking / Network Functions Virtualization / Software-Defined Wide Area Network</span> <span class="term-ko">· 소프트웨어 정의 네트워크 / 네트워크 기능 가상화 / 소프트웨어 정의 광역망</span></h3>
+<p>제어·데이터 평면 분리, 네트워크 기능의 소프트웨어화, 소프트웨어 기반 WAN 제어.</p>
+<h3 id="glossary-20"><span lang="en">VPC — Virtual Private Cloud</span> <span class="term-ko">· 가상 사설 클라우드</span></h3>
+<p>클라우드 내 논리적으로 격리된 네트워크 공간.</p>
+<h3 id="glossary-21"><span lang="en">Security Group / Network ACL</span> <span class="term-ko">· 보안 그룹 / 네트워크 접근 제어 목록</span></h3>
+<p>인스턴스 단위 상태 기반 필터와 서브넷 단위 무상태 필터. 무상태인 네트워크 ACL 은 응답 트래픽을 위한 임시 포트 범위를 따로 허용해야 한다.</p>
+<h3 id="glossary-22"><span lang="en">Unicast / Broadcast / Multicast / Anycast</span> <span class="term-ko">· 단일 대상 전송 / 전체 전송 / 그룹 전송 / 경로상 한 대상 전송</span></h3>
+<p>1 대 1, 세그먼트 전체, 가입한 그룹, 같은 주소를 가진 노드 중 가장 가까운 하나로 보내는 네 가지 전달 방식.</p>
+<h3 id="glossary-23"><span lang="en">Anycast</span> <span class="term-ko">· 애니캐스트</span></h3>
+<p>동일 IP 를 여러 지역에 두어 가장 가까운 노드가 응답하게 하는 방식. DNS 루트 서버와 CDN 의 DDoS 분산 기반이다.</p>
+<h3 id="glossary-24"><span lang="en">Smurf Attack</span> <span class="term-ko">· 스머프 공격</span></h3>
+<p>출발지를 피해자로 위조한 ICMP 를 브로드캐스트 주소로 보내 세그먼트 전체가 피해자에게 응답하게 만드는 증폭 공격. 방향성 브로드캐스트 차단으로 대응한다.</p>
+<h3 id="glossary-25"><span lang="en">Encapsulation / Decapsulation</span> <span class="term-ko">· 캡슐화 / 역캡슐화</span></h3>
+<p>계층을 내려가며 헤더를 덧붙이고 올라가며 벗기는 과정. 통제가 어느 계층에서 무엇을 볼 수 있는지를 결정한다.</p>
+<h3 id="glossary-26"><span lang="en">Protocol Downgrade Attack</span> <span class="term-ko">· 프로토콜 다운그레이드</span></h3>
+<p>협상을 구버전이나 약한 암호군으로 끌어내리는 공격. 대응은 구버전 지원 자체를 제거하는 것이다.</p>
+<h3 id="glossary-27"><span lang="en">SNMPv3 — Simple Network Management Protocol version 3</span> <span class="term-ko">· 단순 네트워크 관리 프로토콜 3판</span></h3>
+<p>네트워크 관리 프로토콜의 보안 버전. v1/v2c 는 커뮤니티 스트링을 평문으로 전송한다.</p>
+<h3 id="glossary-28"><span lang="en">SSH Port Forwarding</span> <span class="term-ko">· SSH 포트 포워딩</span></h3>
+<p>SSH 터널로 임의 포트를 중계하는 기능. 내부 서비스를 외부로 노출해 방화벽을 우회할 수 있다.</p>
+<h3 id="glossary-29"><span lang="en">Switch Spoofing / Double Tagging</span> <span class="term-ko">· 스위치 사칭 / 이중 태그</span></h3>
+<p>VLAN 호핑의 두 방식. 트렁크 협상을 흉내 내는 것과 VLAN 태그를 두 개 붙여 네이티브 VLAN 을 통과하는 것.</p>
+<h3 id="glossary-30"><span lang="en">Native VLAN</span> <span class="term-ko">· 네이티브 VLAN</span></h3>
+<p>트렁크에서 태그 없이 전달되는 VLAN. 기본값(VLAN 1)을 그대로 두면 이중 태깅의 발판이 된다.</p>
+<h3 id="glossary-31"><span lang="en">MAC Flooding</span> <span class="term-ko">· MAC 플러딩</span></h3>
+<p>스위치의 MAC 테이블을 넘치게 해 모든 포트로 프레임을 브로드캐스트하게 만드는 공격. 포트 보안으로 대응한다.</p>
+<h3 id="glossary-32"><span lang="en">Ingress / Egress Filtering</span> <span class="term-ko">· 유입 트래픽 필터링 / 유출 트래픽 필터링</span></h3>
+<p>들어오는 트래픽과 나가는 트래픽의 통제. 이그레스 필터링은 C2 통신과 데이터 유출을 막는다.</p>
+<h3 id="glossary-33"><span lang="en">BCP 38</span> <span class="term-ko">· 출발지 IP 위조를 줄이기 위한 네트워크 유입 필터링 지침</span></h3>
+<p>자기 주소 대역이 아닌 출발지를 가진 패킷을 버리는 출발지 주소 검증 권고. IP 스푸핑 기반 증폭 DDoS 를 줄인다.</p>
+<h3 id="glossary-34"><span lang="en">BGP Prefix Hijacking</span> <span class="term-ko">· 경로 하이재킹</span></h3>
+<p>남의 주소 대역을 자기 것이라 광고해 트래픽을 끌어오는 공격. 암호화로는 막을 수 없다.</p>
+<h3 id="glossary-35"><span lang="en">RPKI / ROA — Resource Public Key Infrastructure / Route Origin Authorization</span> <span class="term-ko">· 인터넷 번호 자원 공개키 기반구조 / 경로 원점 인가</span></h3>
+<p>어떤 AS 가 어떤 대역을 광고할 권리가 있는지 암호학적으로 검증하는 체계.</p>
+<h3 id="glossary-36"><span lang="en">EAP-TLS / PEAP — Extensible Authentication Protocol–Transport Layer Security / Protected Extensible Authentication Protocol</span> <span class="term-ko">· TLS 기반 확장 인증 / 보호형 확장 인증</span></h3>
+<p>802.1X 안에서 쓰이는 인증 방식. EAP-TLS 는 양쪽 모두 인증서를 쓰고, PEAP 는 TLS 터널 안에서 비밀번호로 인증한다.</p>
+<h3 id="glossary-37"><span lang="en">WPA2/3-Personal vs Enterprise</span> <span class="term-ko">· 개인용 / 기업용 무선 보안 방식</span></h3>
+<p>공유 비밀번호 방식과 사용자별 자격증명을 외부 인증 서버로 검증하는 방식.</p>
+<h3 id="glossary-38"><span lang="en">IMSI Catcher</span> <span class="term-ko">· 가짜 기지국</span></h3>
+<p>단말을 끌어오는 위조 기지국. 2G/3G 의 단방향 인증이 원인이었고 4G 의 상호 인증으로 완화되었다.</p>
+<h3 id="glossary-39"><span lang="en">MEC — Multi-access Edge Computing</span> <span class="term-ko">· 다중 접속 엣지 컴퓨팅</span></h3>
+<p>연산을 기지국 가까이 배치해 지연을 줄이는 구조. 데이터가 중앙 밖으로 나가므로 물리 보안 범위가 넓어진다.</p>
+<h3 id="glossary-40"><span lang="en">Observability</span> <span class="term-ko">· 관측 가능성</span></h3>
+<p>로그·메트릭·추적으로 예상하지 못한 질문에도 답할 수 있는 상태. 사전에 정한 지표만 보는 모니터링보다 넓은 개념이다.</p>
+<h3 id="glossary-41"><span lang="en">NetFlow / IPFIX / sFlow</span> <span class="term-ko">· 네트워크 흐름 기록·내보내기·샘플링 방식</span></h3>
+<p>패킷 전체가 아니라 통신 상대·시각·양을 기록하는 흐름 데이터. 암호화된 트래픽에서도 패턴 분석이 가능하다.</p>
+<h3 id="glossary-42"><span lang="en">Traffic Shaping / Policing</span> <span class="term-ko">· 셰이핑 / 폴리싱</span></h3>
+<p>초과 트래픽을 버퍼에 담아 지연시키는 방식과 즉시 폐기하는 방식.</p>
+<h3 id="glossary-43"><span lang="en">Topology</span> <span class="term-ko">· 토폴로지</span></h3>
+<p>버스·링·스타·메시의 연결 구조. 가용성과 통제 용이성이 서로 교환 관계에 있다.</p>
+<h3 id="glossary-44"><span lang="en">Leaf-Spine</span> <span class="term-ko">· 리프-스파인</span></h3>
+<p>데이터센터의 부분 메시 구조. 서버 간 경로 길이를 일정하게 유지해 동서 트래픽에 적합하다.</p>
+<h3 id="glossary-45"><span lang="en">Cache Poisoning</span> <span class="term-ko">· 캐시 포이즈닝</span></h3>
+<p>조작된 요청으로 잘못된 응답을 캐시에 심어 다수 사용자에게 배포시키는 공격.</p>
+<h3 id="glossary-46"><span lang="en">Northbound / Southbound API</span> <span class="term-ko">· 상위 앱 방향 API / 하위 장비 방향 API</span></h3>
+<p>SDN 에서 애플리케이션과 컨트롤러 사이, 컨트롤러와 장비 사이의 인터페이스. 사우스바운드가 위조되면 가짜 정책이 장비에 내려간다.</p>
+<h3 id="glossary-47"><span lang="en">VPC Endpoint / Private Link</span> <span class="term-ko">· VPC 엔드포인트 / 사설 연결</span></h3>
+<p>클라우드 관리형 서비스를 공용 인터넷을 거치지 않고 호출하는 연결. 노출 면적을 줄인다.</p>
+<h3 id="glossary-48"><span lang="en">VPC Flow Logs</span> <span class="term-ko">· 흐름 로그</span></h3>
+<p>클라우드 네트워크의 흐름 기록. 물리 탭을 설치할 수 없는 환경에서 사실상 유일한 가시성 수단이다.</p>
+<div class="src">원문 위치 · D4.1.md §4 주요 용어 정리</div>
+</div></details>
+<h2 id="reference"><span class="n">25</span>관련 표준 및 프레임워크</h2>
+<details class="more"><summary>관련 표준 및 프레임워크</summary><div><ul>
+<li><strong>ISO/IEC 7498-1</strong> — OSI 참조 모델</li>
+<li><strong>IETF RFC 4301 등</strong> — IPSec 아키텍처</li>
+<li><strong>IEEE 802.1X / 802.11</strong> — 포트 기반 인증과 무선 LAN</li>
+<li><strong>Wi-Fi Alliance WPA3</strong> — 현행 무선 보안 규격</li>
+<li><strong>NIST SP 800-207</strong> — 제로 트러스트 아키텍처</li>
+<li><strong>NIST SP 800-125B</strong> — 가상 네트워크 보안</li>
+<li><strong>NIST SP 800-77</strong> — IPSec VPN 지침</li>
+<li><strong>NIST SP 800-153</strong> — 무선 LAN 보안</li>
+<li><strong>BCP 38 / RFC 2827</strong> — 출발지 주소 검증(인그레스 필터링)</li>
+<li><strong>RFC 6480 등</strong> — RPKI, 경로 원천 검증</li>
+<li><strong>IEEE 802.1Q</strong> — VLAN 태깅</li>
+<li><strong>RFC 7348</strong> — VXLAN 오버레이</li>
+<li><strong>RFC 7011</strong> — IPFIX 흐름 데이터 내보내기</li>
+<li><strong>RFC 8446</strong> — TLS 1.3</li>
+<li><strong>NIST SP 800-58</strong> — VoIP 보안 (<a class="xr" href="D4.3.html">D4.3 안전한 통신 채널</a> 참조)</li>
+</ul>
+</div></details>
+<div class="src">원문 위치 · D4.1.md §6 관련 표준 및 프레임워크</div>
+<section class="question-list" aria-labelledby="questions"><h2 id="questions">연습문제 6개</h2><p>문항을 선택하면 본문의 지문과 해설로 이동합니다.</p><ol><li><a href="#s10-applied-quiz">한 VPC에 여러 업무가 들어 있습니다. 한 업무의 서버에는 같은 업무 데이터베이스만 연결해야 합니다. 세분화 목표를 충족하는 설계는?</a></li>
+<li><a href="#question-2">운영망과 방문자 무선망이 같은 내부 시스템에 도달합니다. 어떻게 요구사항을 정할까요?</a></li>
+<li><a href="#question-3">설계자가 IPSec 으로 보호되는 트래픽에 기밀성과 무결성을 모두 요구한다. 반드시 사용해야 할 구성요소는?</a></li>
+<li><a href="#question-4">서비스가 동작하려면 가용률 99.9%, 99.9%, 99.5%인 장비 세 대가 모두 정상이어야 한다. 장비 고장이 서로 독립이라고 가정한다. 종단 간 가용률은 대략 얼마이며 이것이 시사하는 바는?</a></li>
+<li><a href="#question-5">어떤 조직의 주소 범위로 향하는 트래픽이 잠시 무관한 자율 시스템을 경유해 전달되었다. 이를 설명하는 것과 완화 수단은?</a></li>
+<li><a href="#question-6">실시간 음성과 영상에 UDP 가 흔히 선택되는 이유는?</a></li></ol><p><a href="#recall">핵심 개념 복습 문제</a></p></section><div class="nav"><a href="D3.10.html"><small>← 이전 단원</small>3.10 정보시스템 생애주기</a><a href="D4.2.html" style="text-align:right"><small>다음 단원 →</small>4.2 네트워크 구성요소</a></div>
+</article></main>
+</div>
+<script>window.CISSP_DOMAINS={"D1": "보안 및 위험 관리", "D2": "자산 보안", "D3": "보안 아키텍처 및 엔지니어링", "D4": "통신 및 네트워크 보안", "D5": "식별 및 접근 관리", "D6": "보안 평가 및 테스트", "D7": "보안 운영", "D8": "소프트웨어 개발 보안"};
+window.CISSP_UNITS=[{"id": "D1.1", "s": "전문가 윤리", "done": true, "glossary": true, "questions": 6}, {"id": "D1.2", "s": "보안 개념 (CIA 등)", "done": true, "glossary": true, "questions": 5}, {"id": "D1.3", "s": "보안 거버넌스", "done": true, "glossary": true, "questions": 6}, {"id": "D1.4", "s": "법률·규제·컴플라이언스", "done": true, "glossary": true, "questions": 5}, {"id": "D1.5", "s": "조사 유형", "done": true, "glossary": true, "questions": 5}, {"id": "D1.6", "s": "정책·표준·절차·지침", "done": true, "glossary": true, "questions": 5}, {"id": "D1.7", "s": "업무연속성 요구사항", "done": true, "glossary": true, "questions": 5}, {"id": "D1.8", "s": "인적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D1.9", "s": "위험 관리", "done": true, "glossary": true, "questions": 9}, {"id": "D1.10", "s": "위협 모델링", "done": true, "glossary": true, "questions": 6}, {"id": "D1.11", "s": "공급망 위험 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D1.12", "s": "인식·교육·훈련", "done": true, "glossary": true, "questions": 6}, {"id": "D2.1", "s": "자산 식별과 분류", "done": true, "glossary": true, "questions": 7}, {"id": "D2.2", "s": "자산 취급 요구사항", "done": true, "glossary": true, "questions": 8}, {"id": "D2.3", "s": "안전한 프로비저닝", "done": true, "glossary": true, "questions": 6}, {"id": "D2.4", "s": "데이터 생애주기", "done": true, "glossary": true, "questions": 6}, {"id": "D2.5", "s": "자산 보존 (EOL·EOS)", "done": true, "glossary": true, "questions": 6}, {"id": "D2.6", "s": "데이터 보안 통제", "done": true, "glossary": true, "questions": 7}, {"id": "D3.1", "s": "안전한 설계 원칙", "done": true, "glossary": true, "questions": 6}, {"id": "D3.2", "s": "보안 모델", "done": true, "glossary": true, "questions": 6}, {"id": "D3.3", "s": "통제 선택 (RMF·CC)", "done": true, "glossary": true, "questions": 6}, {"id": "D3.4", "s": "시스템 보안 기능", "done": true, "glossary": true, "questions": 6}, {"id": "D3.5", "s": "아키텍처별 취약점", "done": true, "glossary": true, "questions": 5}, {"id": "D3.6", "s": "암호 솔루션", "done": true, "glossary": true, "questions": 5}, {"id": "D3.7", "s": "암호 분석 공격", "done": true, "glossary": true, "questions": 5}, {"id": "D3.8", "s": "사이트·설비 설계 원칙", "done": true, "glossary": true, "questions": 5}, {"id": "D3.9", "s": "사이트·설비 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D3.10", "s": "정보시스템 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D4.1", "s": "네트워크 아키텍처", "done": true, "glossary": true, "questions": 6}, {"id": "D4.2", "s": "네트워크 구성요소", "done": true, "glossary": true, "questions": 5}, {"id": "D4.3", "s": "안전한 통신 채널", "done": true, "glossary": true, "questions": 5}, {"id": "D5.1", "s": "물리적·논리적 접근 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D5.2", "s": "식별·인증 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D5.3", "s": "연합 식별", "done": true, "glossary": true, "questions": 5}, {"id": "D5.4", "s": "인가 메커니즘", "done": true, "glossary": true, "questions": 5}, {"id": "D5.5", "s": "프로비저닝 생애주기", "done": true, "glossary": true, "questions": 5}, {"id": "D5.6", "s": "인증 시스템", "done": true, "glossary": true, "questions": 5}, {"id": "D6.1", "s": "평가·테스트·감사 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D6.2", "s": "보안 통제 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D6.3", "s": "보안 프로세스 데이터", "done": true, "glossary": true, "questions": 5}, {"id": "D6.4", "s": "결과 분석과 보고", "done": true, "glossary": true, "questions": 5}, {"id": "D6.5", "s": "보안 감사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.1", "s": "조사", "done": true, "glossary": true, "questions": 5}, {"id": "D7.2", "s": "로깅·모니터링", "done": true, "glossary": true, "questions": 5}, {"id": "D7.3", "s": "구성 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.4", "s": "기본 보안 운영 개념", "done": true, "glossary": true, "questions": 5}, {"id": "D7.5", "s": "자원 보호", "done": true, "glossary": true, "questions": 5}, {"id": "D7.6", "s": "사고 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.7", "s": "탐지·예방 수단", "done": true, "glossary": true, "questions": 5}, {"id": "D7.8", "s": "패치·취약점 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.9", "s": "변경 관리", "done": true, "glossary": true, "questions": 5}, {"id": "D7.10", "s": "복구 전략", "done": true, "glossary": true, "questions": 5}, {"id": "D7.11", "s": "재해 복구 프로세스", "done": true, "glossary": true, "questions": 5}, {"id": "D7.12", "s": "DRP 테스트", "done": true, "glossary": true, "questions": 5}, {"id": "D7.13", "s": "업무연속성 계획·훈련", "done": true, "glossary": true, "questions": 5}, {"id": "D7.14", "s": "물리적 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D7.15", "s": "인원 안전", "done": true, "glossary": true, "questions": 5}, {"id": "D8.1", "s": "SDLC 보안", "done": true, "glossary": true, "questions": 5}, {"id": "D8.2", "s": "개발 생태계 보안 통제", "done": true, "glossary": true, "questions": 5}, {"id": "D8.3", "s": "소프트웨어 보안 효과성", "done": true, "glossary": true, "questions": 5}, {"id": "D8.4", "s": "도입 소프트웨어 평가", "done": true, "glossary": true, "questions": 5}, {"id": "D8.5", "s": "안전한 코딩", "done": true, "glossary": true, "questions": 5}];
+</script>
+<script src="../assets/search-index.js"></script>
+<script>/* CISSP 이해형 교재 공통 스크립트. 서버 없이 파일을 직접 열어도 동작한다. */
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var root=document.documentElement, body=document.body;
+  var BASE=body.getAttribute('data-base')||'', ME=body.getAttribute('data-unit')||'';
+  var UNITS=window.CISSP_UNITS||[], DOMS=window.CISSP_DOMAINS||{}, INDEX=window.CISSP_INDEX||[];
+
+  // 글자 크기·밝기
+  var fs=parseInt(store.get('cissp.fs'),10)||17;
+  function applyFs(){fs=Math.max(14,Math.min(23,fs));root.style.setProperty('--fs',fs+'px');store.set('cissp.fs',fs)}
+  applyFs();
+  $('#fsUp').onclick=function(){fs++;applyFs()}; $('#fsDn').onclick=function(){fs--;applyFs()};
+  var th=store.get('cissp.th')||((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  function applyTh(){root.setAttribute('data-theme',th);store.set('cissp.th',th)}
+  applyTh(); $('#thBtn').onclick=function(){th=th==='dark'?'light':'dark';applyTh()};
+
+  function ht(h){var s=h.querySelector('.n');return s?s.textContent+'. '+h.textContent.slice(s.textContent.length).trim():h.textContent.trim()}
+  if(window.innerWidth<600) $('#q').placeholder='검색 (예: ALE)';
+
+  // 단원 내 목차
+  var heads=$$('article h2[id], article h3[id]').filter(function(h){return !h.closest('details')});
+  var toc=$('#toc'), links={};
+  heads.forEach(function(h){
+    var shortcut=$('#side .side-shortcuts a[href="#'+h.id+'"]');
+    if(shortcut){
+      links[h.id]=shortcut;
+      return;
+    }
+    var li=document.createElement('li'); if(h.tagName==='H3') li.className='l3';
+    var a=document.createElement('a'); a.href='#'+h.id; a.textContent=ht(h); li.appendChild(a); toc.appendChild(li); links[h.id]=a;
+  });
+  if(!heads.length){ var t0=$('#tocTitle'); if(t0) t0.style.display='none'; }
+
+  // 도메인별 목차
+  var dt=$('#dtoc'), curDom=ME?ME.split('.')[0]:'';
+  function addUnitShortcut(row,u,anchor,label){
+    var link=document.createElement('a');
+    link.className='side-unit-shortcut'; link.href=BASE+u.id+'.html#'+anchor;
+    link.textContent=label; link.setAttribute('aria-label',u.id+' '+u.s+' '+label);
+    row.appendChild(link);
+  }
+  Object.keys(DOMS).forEach(function(d){
+    var det=document.createElement('details'); if(d===curDom) det.open=true;
+    var sm=document.createElement('summary'); sm.textContent=d+' '+DOMS[d]; det.appendChild(sm);
+    var ul=document.createElement('ul');
+    UNITS.filter(function(u){return u.id.split('.')[0]===d}).forEach(function(u){
+      var li=document.createElement('li'), el;
+      if(u.done){ el=document.createElement('a'); el.href=BASE+u.id+'.html'; el.className='done'; if(u.id===ME) el.className='done here'; }
+      else { el=document.createElement('span'); el.title='제작 예정'; }
+      el.textContent=u.id.slice(1)+' '+u.s+(u.id===ME?' ← 현재':''); li.appendChild(el);
+      if(u.glossary||u.questions){
+        var shortcuts=document.createElement('div'); shortcuts.className='side-unit-shortcuts';
+        if(u.glossary) addUnitShortcut(shortcuts,u,'glossary','용어');
+        if(u.questions) addUnitShortcut(shortcuts,u,'questions','문제 '+u.questions+'개');
+        li.appendChild(shortcuts);
+      }
+      ul.appendChild(li);
+    });
+    det.appendChild(ul); dt.appendChild(det);
+  });
+
+  function closeMenu(){body.classList.remove('open')}
+  $('#side').addEventListener('click',function(e){if(e.target.closest('a'))closeMenu()});
+  $('#menuBtn').onclick=function(){body.classList.toggle('open')};
+  $('#shade').onclick=closeMenu;
+  var glossary=$('#glossary + details');
+  if(glossary){
+    function showGlossary(){glossary.open=true}
+    $$('a').filter(function(link){return link.hash==='#glossary' && link.pathname===location.pathname})
+      .forEach(function(link){link.addEventListener('click',showGlossary)});
+    function showLinkedGlossary(){if(location.hash==='#glossary')showGlossary()}
+    showLinkedGlossary();
+    window.addEventListener('hashchange',showLinkedGlossary);
+  }
+
+  // 현재 위치 표시 + 진행 막대
+  var cur=null;
+  function onScroll(){
+    if(heads.length){
+      var y=window.scrollY+110, now=heads[0];
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top+window.scrollY<=y) now=heads[i]; else break; }
+      if(now!==cur){ if(cur) links[cur.id].classList.remove('cur'); cur=now; var a=links[cur.id]; a.classList.add('cur');
+        var sb=$('#side'); if(a.offsetTop<sb.scrollTop+40||a.offsetTop>sb.scrollTop+sb.clientHeight-60) sb.scrollTop=a.offsetTop-sb.clientHeight/2; }
+    }
+    var d=root.scrollHeight-window.innerHeight; $('#prog').style.width=(d>0?window.scrollY/d*100:0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  // 검색: 이 단원(화면의 요소) + 다른 단원(색인 파일)
+  var local=[];
+  $$('article p, article li, article tr, article pre, article h2, article h3, article summary').forEach(function(el){
+    if(el.tagName==='LI'&&el.querySelector('p,ul,ol')) return;
+    if(el.closest('.nav,.question-list')) return;
+    var t=el.textContent.replace(/\s+/g,' ').trim(); if(t.length<2) return;
+    var h=el; while(h&&!((h.tagName==='H2'||h.tagName==='H3')&&h.id)){ h=h.previousElementSibling||h.parentElement; if(h&&h.tagName==='ARTICLE'){h=null;break} }
+    local.push({el:el,t:t,l:t.toLowerCase(),hid:h?h.id:'',w:h?ht(h):'머리말',fold:!!el.closest('details.ans')});
+  });
+  var remote=INDEX.filter(function(r){return r[0]!==ME}).map(function(r){return {u:r[0],hid:r[1],w:r[2],t:r[3],l:r[3].toLowerCase()}});
+  var box=$('#results'), q=$('#q');
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function row(o,k,label,fn){
+    var p=o.l.indexOf(k), s=Math.max(0,p-28), e=Math.min(o.t.length,p+k.length+50);
+    var b=document.createElement('button'); b.className='r'; b.type='button';
+    b.innerHTML='<div class="w">'+esc(label)+'</div><div class="s">'+(s>0?'…':'')+esc(o.t.slice(s,p))+'<mark>'+esc(o.t.slice(p,p+k.length))+'</mark>'+esc(o.t.slice(p+k.length,e))+(e<o.t.length?'…':'')+'</div>';
+    b.onclick=fn; box.appendChild(b);
+  }
+  function search(){
+    var raw=q.value.trim(), k=raw.toLowerCase(); box.innerHTML='';
+    if(k.length<2){box.classList.remove('on');return}
+    var a=local.filter(function(o){return o.l.indexOf(k)>=0}), b=remote.filter(function(o){return o.l.indexOf(k)>=0});
+    if(!a.length&&!b.length){box.innerHTML='<div class="none">“'+esc(raw)+'” 검색 결과가 없습니다.</div>';box.classList.add('on');return}
+    var cap=document.createElement('div'); cap.className='none'; cap.textContent=(ME?'이 단원 '+a.length+'건 · ':'')+'다른 단원 '+b.length+'건'+(a.length+b.length>80?' (앞 80건만 표시)':''); box.appendChild(cap);
+    a.slice(0,40).forEach(function(o){ row(o,k,(ME?ME+' · ':'')+o.w+(o.fold?' · 접힌 해설 안':''),function(){go(o.el)}) });
+    b.slice(0,80-Math.min(a.length,40)).forEach(function(o){ row(o,k,o.u+' · '+o.w+' ↗',function(){ location.href=BASE+o.u+'.html#'+o.hid+'?q='+encodeURIComponent(raw) }) });
+    box.classList.add('on');
+  }
+  function go(el){
+    box.classList.remove('on'); closeMenu();
+    var d=el.closest('details'); while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}
+    el.scrollIntoView({block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+  q.addEventListener('input',search); q.addEventListener('focus',search);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){box.classList.remove('on');q.blur()} if(e.key==='/'&&document.activeElement!==q&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();q.focus()} });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)&&e.target!==q) box.classList.remove('on') });
+
+  // 다른 단원의 검색 결과에서 넘어온 경우: #제목id?q=검색어
+  function fromHash(){
+    var h=location.hash.slice(1), i=h.indexOf('?q='); if(i<0) return;
+    var hid=h.slice(0,i), k;
+    try{k=decodeURIComponent(h.slice(i+3)).toLowerCase()}catch(e){return}
+    if(!k)return;
+    var hit=local.filter(function(o){return o.hid===hid&&o.l.indexOf(k)>=0})[0]||local.filter(function(o){return o.l.indexOf(k)>=0})[0];
+    if(hit) setTimeout(function(){go(hit.el)},60);
+  }
+  fromHash(); window.addEventListener('hashchange',fromHash);
+})();
+</script>
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('../sw.js').catch(function(){})}}catch(e){}</script>
+</body>
+</html>
